@@ -3,6 +3,7 @@ package com.sm.dao.dao;
 import com.sm.dao.domain.User;
 import com.sm.dao.domain.UserAmountLogType;
 import com.sm.dao.rowMapper.UserRowMapper;
+import com.sm.message.profile.SimpleUserInfo;
 import com.sm.message.profile.UpdateProfileRequest;
 import com.sm.message.profile.UserAmountInfo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * @author wanli.zhou

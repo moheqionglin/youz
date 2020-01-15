@@ -185,8 +185,18 @@ public class ProductDao {
     }
 
     public void createComment(int userId, List<OrderCommentsRequest> orderCommentsRequests) {
-        final String sql = String.format("insert into %s(user_id, product_id, good, comment, images) values(?,?,?,?,?)", VarProperties.PRODUCT_COMMENT);
-        List<Object[]> collect = orderCommentsRequests.stream().map(o -> new Object[]{userId, o.getProductId(), o.isGood(), o.getMessage(), o.getImages() != null ? o.getImages().stream().collect(Collectors.joining("|")) : ""}).collect(Collectors.toList());
+        final String sql = String.format("insert into %s(user_id, product_id, good, comment, images, product_name, product_profile_img, product_size) values(?,?,?,?,?, ?,?,?)", VarProperties.PRODUCT_COMMENT);
+        List<Object[]> collect = orderCommentsRequests.stream()
+                .map(o -> new Object[]{userId,
+                        o.getProductId(),
+                        o.isGood(),
+                        o.getMessage(),
+                        o.getImages() != null ? o.getImages().stream().collect(Collectors.joining("|")) : "",
+                        o.getProductName(),
+                        o.getProductProfileImg(),
+                        o.getProductSize()
+                })
+                .collect(Collectors.toList());
         jdbcTemplate.batchUpdate(sql, collect);
     }
 

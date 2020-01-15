@@ -248,4 +248,9 @@ public class OrderDao {
         final String sql = String.format("select id ,order_num,user_id ,address_id ,address_detail ,address_contract , status, total_price ,chajia_status,chajia_price, chajia_need_pay_money, chajia_had_pay_money, message,  jianhuo_status , has_fahuo from %s where jianhuo_status = ? order by id desc limit ?, ?", VarProperties.ORDER);
         return jdbcTemplate.query(sql, new Object[]{orderType.toString(),  startIndex, pageSize}, new OrderListItemInfo.OrderListItemInfoRowMapper());
     }
+
+    public List<SimpleOrderItem> getSimpleOrderItem(List<Integer> ids) {
+        final String sql = String.format("select id,product_name,product_profile_img,product_size from %s where id in (?)", VarProperties.ORDERS_ITEM);
+        return jdbcTemplate.query(sql, new Object[]{ids}, new SimpleOrderItem.SimpleOrderItemRowMapper());
+    }
 }

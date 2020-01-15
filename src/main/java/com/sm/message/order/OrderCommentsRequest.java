@@ -12,12 +12,19 @@ import java.util.List;
 @Valid
 public class OrderCommentsRequest {
     @NotNull
+    private Integer orderItemId;
+    @NotNull
     private Integer productId;
     @NotNull
     private boolean good;
     @NotNull
     private String message;
     private List<String> images;
+
+    //前端不用传递
+    private String productName ;
+    private String productProfileImg;
+    private String productSize;
 
     public Integer getProductId() {
         return productId;
@@ -31,8 +38,40 @@ public class OrderCommentsRequest {
         return good;
     }
 
+    public Integer getOrderItemId() {
+        return orderItemId;
+    }
+
+    public void setOrderItemId(Integer orderItemId) {
+        this.orderItemId = orderItemId;
+    }
+
     public void setGood(boolean good) {
         this.good = good;
+    }
+
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
+
+    public String getProductProfileImg() {
+        return productProfileImg;
+    }
+
+    public void setProductProfileImg(String productProfileImg) {
+        this.productProfileImg = productProfileImg;
+    }
+
+    public String getProductSize() {
+        return productSize;
+    }
+
+    public void setProductSize(String productSize) {
+        this.productSize = productSize;
     }
 
     public String getMessage() {

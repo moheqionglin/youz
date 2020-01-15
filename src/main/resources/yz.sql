@@ -274,6 +274,9 @@ create table product_comment(
     id int auto_increment primary key,
     user_id int,
     product_id int,
+    product_name varchar(200),
+    product_profile_img varchar(200),
+    product_size varchar(200),
     good boolean default true,
     comment varchar(300),
     images varchar(1000),
@@ -283,9 +286,8 @@ create table product_comment(
 
 create table product_append_comment(
     id int auto_increment primary key,
-    product_comment int,
+    product_comment_id int,
     user_id int,
-    product_id int,
     good boolean default true,
     comment varchar(300),
     images varchar(1000),

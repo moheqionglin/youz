@@ -225,6 +225,15 @@ public class OrderService {
     }
 
     public void commentOrder(int userId, String orderNum, List<OrderCommentsRequest> orderCommentsRequest) {
+        List<Integer> ids = orderCommentsRequest.stream().map(r -> r.getOrderItemId()).collect(Collectors.toList());
+        List<SimpleOrderItem> oids = orderDao.getSimpleOrderItem(ids);
+        Map<Integer, List<SimpleOrderItem>> simpleOrderItemMap = oids.stream().collect(Collectors.groupingBy(SimpleOrderItem::getOrderItemId));
+        orderCommentsRequest.stream().forEach(oc -> {
+            SimpleOrderItem item = simpleOrderItemMap.get(oc.getOrderItemId()).get(0);
+            oc.setProductName(item.getProductName());
+            oc.setProductSize(item.getProductSize());
+            oc.setProductProfileImg(item.getProductProfileImg());
+        });
         productService.createComment(userId, orderCommentsRequest);
         productService.addCommentCount(orderCommentsRequest.stream().map(o -> o.getProductId()).collect(Collectors.toList()));
     }
