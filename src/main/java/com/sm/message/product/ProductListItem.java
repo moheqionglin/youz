@@ -1,0 +1,222 @@
+package com.sm.message.product;
+
+import org.springframework.jdbc.core.RowMapper;
+
+import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+/**
+ * @author wanli.zhou
+ * @description
+ * @time 2020-01-11 21:17
+ */
+public class ProductListItem {
+    @NotNull
+    private Integer id;
+    private String name;
+    private boolean sanzhung;
+    private String size;
+    private int stock;
+    private BigDecimal originPrice;
+    private BigDecimal costPrice;
+    private BigDecimal currentPrice;
+    private String profileImg;
+    private int salesCnt;
+    private int zhuanquId;
+    private String zhuanquName;
+    private Long zhuanquEndTime;
+    private boolean zhuanquEnable;
+    private BigDecimal zhuanquPrice;
+    private boolean showAble;
+    public static class ProductListItemRowMapper implements RowMapper<ProductListItem> {
+        @Override
+        public ProductListItem mapRow(ResultSet resultSet, int i) throws SQLException {
+            ProductListItem product = new ProductListItem();
+            if(existsColumn(resultSet, "id")){
+                product.setId(resultSet.getInt("id"));
+            }
+            if(existsColumn(resultSet, "name")){
+                product.setName(resultSet.getString("name"));
+            }
+            if(existsColumn(resultSet, "sanzhung")){
+                product.setSanzhung(resultSet.getBoolean("sanzhung"));
+            }
+            if(existsColumn(resultSet, "size")){
+                product.setSize(resultSet.getString("size"));
+            }
+            if(existsColumn(resultSet, "stock")){
+                product.setStock(resultSet.getInt("stock"));
+            }
+            if(existsColumn(resultSet, "originPrice")){
+                product.setOriginPrice(resultSet.getBigDecimal("originPrice"));
+            }
+            if(existsColumn(resultSet, "currentPrice")){
+                product.setCurrentPrice(resultSet.getBigDecimal("currentPrice"));
+            }
+            if(existsColumn(resultSet, "costPrice")){
+                product.setCostPrice(resultSet.getBigDecimal("costPrice"));
+            }
+            if(existsColumn(resultSet, "profile_img")){
+                product.setProfileImg(resultSet.getString("profile_img"));
+            }
+            if(existsColumn(resultSet, "salesCnt")){
+                product.setSalesCnt(resultSet.getInt("salesCnt"));
+            }
+            if(existsColumn(resultSet, "zhuanquEndTime")){
+                product.setZhuanquEndTime(resultSet.getLong("zhuanquEndTime"));
+            }
+            if(existsColumn(resultSet, "show_able")){
+                product.setShowAble(resultSet.getBoolean("show_able"));
+            }
+            if(existsColumn(resultSet, "zhuanquenable")){
+                product.setZhuanquEnable(resultSet.getBoolean("zhuanquenable"));
+            }
+            if(existsColumn(resultSet, "zhuanqu_id")){
+
+                product.setZhuanquId(resultSet.getInt("zhuanqu_id"));
+            }
+            if(existsColumn(resultSet, "zhuanqu_price")){
+                product.setZhuanquPrice(resultSet.getBigDecimal("zhuanqu_price"));
+            }
+            return product;
+        }
+
+        private boolean existsColumn(ResultSet rs, String column) {
+            try {
+                return rs.findColumn(column) > 0;
+            } catch (SQLException sqlex) {
+                return false;
+            }
+        }
+    }
+
+    public boolean isShowAble() {
+        return showAble;
+    }
+
+    public void setShowAble(boolean showAble) {
+        this.showAble = showAble;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public int getZhuanquId() {
+        return zhuanquId;
+    }
+
+    public void setZhuanquId(int zhuanquId) {
+        this.zhuanquId = zhuanquId;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public boolean isSanzhung() {
+        return sanzhung;
+    }
+
+    public void setSanzhung(boolean sanzhung) {
+        this.sanzhung = sanzhung;
+    }
+
+    public int getStock() {
+        return stock;
+    }
+
+    public void setStock(int stock) {
+        this.stock = stock;
+    }
+
+    public BigDecimal getOriginPrice() {
+        return originPrice;
+    }
+
+    public void setOriginPrice(BigDecimal originPrice) {
+        this.originPrice = originPrice;
+    }
+
+    public BigDecimal getCurrentPrice() {
+        return currentPrice;
+    }
+
+    public boolean isZhuanquEnable() {
+        return zhuanquEnable;
+    }
+
+    public void setZhuanquEnable(boolean zhuanquEnable) {
+        this.zhuanquEnable = zhuanquEnable;
+    }
+
+    public void setCurrentPrice(BigDecimal currentPrice) {
+        this.currentPrice = currentPrice;
+    }
+
+    public String getProfileImg() {
+        return profileImg;
+    }
+
+    public void setProfileImg(String profileImg) {
+        this.profileImg = profileImg;
+    }
+
+    public int getSalesCnt() {
+        return salesCnt;
+    }
+
+    public void setSalesCnt(int salesCnt) {
+        this.salesCnt = salesCnt;
+    }
+
+    public String getZhuanquName() {
+        return zhuanquName;
+    }
+
+    public void setZhuanquName(String zhuanquName) {
+        this.zhuanquName = zhuanquName;
+    }
+
+    public Long getZhuanquEndTime() {
+        return zhuanquEndTime;
+    }
+
+    public void setZhuanquEndTime(Long zhuanquEndTime) {
+        this.zhuanquEndTime = zhuanquEndTime;
+    }
+
+    public BigDecimal getZhuanquPrice() {
+        return zhuanquPrice;
+    }
+
+    public String getSize() {
+        return size;
+    }
+
+    public void setSize(String size) {
+        this.size = size;
+    }
+
+    public BigDecimal getCostPrice() {
+        return costPrice;
+    }
+
+    public void setCostPrice(BigDecimal costPrice) {
+        this.costPrice = costPrice;
+    }
+
+    public void setZhuanquPrice(BigDecimal zhuanquPrice) {
+        this.zhuanquPrice = zhuanquPrice;
+    }
+}
