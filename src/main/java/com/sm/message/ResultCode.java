@@ -1,7 +1,6 @@
 package com.sm.message;
 
 /**
- * @author Joetao
  * 状态码
  * Created by jt on 2018/3/8.
  */

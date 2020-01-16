@@ -8,7 +8,7 @@ import javax.validation.constraints.NotNull;
 /**
  * @author wanli.zhou
  * @description
- * @time 2020-01-11 17:16
+ * @time 2020-01-11 22:24
  */
 public class ZhuanquCategoryItem {
     private Integer id;

@@ -69,7 +69,7 @@ create table shipping_address(
 
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-
+select child.id, child.name, parent.id, parent.name from product_category child inner join product_category parent on child.parent_id = parent.id where child.id in (1);
 
 create table product_category(
     id int auto_increment primary key,
@@ -102,6 +102,7 @@ create table products(
     id int auto_increment primary key comment '商品ID',
     name varchar(200) not null comment '商品名称',
     size varchar(200) not null comment '商品包装',
+    first_category_id int not null,
     second_category_id int not null comment '商品关联二级分类',
     sanzhung bit(1) default false comment '是否散装',
     show_able bit(1) default true comment '上下架标志',
@@ -298,6 +299,60 @@ create table product_append_comment(
 
 
 
+create table toutiao(
+    id int auto_increment primary key,
+    title varchar(100),
+    content varchar(500),
+    created_time timestamp DEFAULT CURRENT_TIMESTAMP ,
+	modified_time timestamp  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+
+create table statistics(
+    id int auto_increment primary key,
+    day bigint,
+    total_price decimal(10, 2),
+    total_cnt decimal(10, 2),
+	total_cost decimal(10, 2),
+	total_profit decimal(10, 2)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+create table lunbo(
+    id int auto_increment primary key,
+    image varchar(200),
+    link_type varchar(20),
+    link_id int
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+create table tixian_approve(
+    id int auto_increment primary key,
+    user_id int,
+    amount varchar(20),
+
+    approve_status varchar(40) default 'WAIT_APPROVE' not null ,
+
+    approve_id int,
+    approve_comment varchar(300),
+    created_time timestamp DEFAULT CURRENT_TIMESTAMP ,
+	modified_time timestamp  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+create table my_search(
+    id int auto_increment primary key,
+    search_term varchar(200),
+    user_id int,
+    created_time timestamp DEFAULT CURRENT_TIMESTAMP
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+create table hot_search(
+    id int auto_increment primary key,
+    search_term varchar(200),
+    cnt int
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 
@@ -311,6 +366,7 @@ select role_name from roles left join user_roles on roles.id = user_roles.roles_
 
 select * from product_category
  select user_id,amount, remark , modified_time from user_amonut_log where user_id = 9 and log_type = 'YUE'
+
 
 
 create table t1 (

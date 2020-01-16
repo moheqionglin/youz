@@ -6,6 +6,8 @@ import com.sm.message.PageResult;
 import com.sm.message.order.OrderCommentsRequest;
 import com.sm.message.product.*;
 import com.sm.message.profile.UserSimpleInfo;
+import com.sm.message.search.SearchHistory;
+import com.sm.message.search.SearchRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +29,8 @@ public class ProductService {
     @Autowired
     private ProductCategoryDao productCategoryDao;
 
+    @Autowired
+    private SearchService searchService;
     /**
      * 获取不包含 下架商品的列表
      * @param secondCategoryId
@@ -136,5 +140,25 @@ public class ProductService {
 
     public void addCommentCount(List<Integer> ids) {
         productDao.addCommentCount(ids);
+    }
+
+    public List<ProductListItem> adminSearch(SearchRequest searchRequest, int pageSize, int pageNum) {
+        return productDao.search(searchRequest, pageSize, pageNum, "ADMIN");
+
+    }
+    public List<ProductListItem> search(Integer userid, String term, int pageSize, int pageNum) {
+        SearchRequest searchRequest = new SearchRequest();
+        searchRequest.setFirstCatalog(null);
+        searchRequest.setSecondCatalog(null);
+        searchRequest.setShow(true);
+        searchRequest.setSearchTerm(term);
+        if(userid != null){
+            searchService.addMySearchTerm(userid, term);
+        }
+        return productDao.search(searchRequest, pageSize, pageNum, "NOTADMIN");
+    }
+
+    public SearchHistory getHotSearchAndMySearchHistory(Integer userid) {
+        return searchService.getHotSearchAndMySearchHistory(userid);
     }
 }

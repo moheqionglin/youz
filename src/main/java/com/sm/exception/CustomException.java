@@ -4,7 +4,6 @@ package com.sm.exception;
 import com.sm.message.ResultJson;
 
 /**
- * @author Joetao
  * Created at 2018/8/24.
  */
 public class CustomException extends RuntimeException {

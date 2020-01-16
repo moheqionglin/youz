@@ -3,6 +3,10 @@ package com.sm.utils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 /**
@@ -11,6 +15,17 @@ import java.util.Date;
  * @time 2020-01-11 23:12
  */
 public class SmUtil {
+    public static DateTimeFormatter ymr = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+
+    public static String parseLongToYMD(long time){
+        return ymr.format(LocalDateTime.ofInstant(Instant.ofEpochMilli(time),ZoneId.systemDefault()));
+    }
+
+    public static String getTodayYMD(){
+        return ymr.format(LocalDateTime.ofInstant(Instant.ofEpochMilli(new Date().getTime()), ZoneId.systemDefault()));
+    }
+
     public static String mockName(String name){
         if(StringUtils.isBlank(name)){
             return name;

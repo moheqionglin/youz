@@ -31,7 +31,7 @@ public class CreateProductRequest {
     private String size;
     @NonNull
     private Integer secondCategoryId;
-
+    @NotNull
     private Integer firstCategoryId;
     private String firstCategoryName;
     private String secondCategoryName;

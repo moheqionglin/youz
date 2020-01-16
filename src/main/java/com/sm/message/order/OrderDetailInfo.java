@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * @author wanli.zhou
  * @description
- * @time 2020-01-15 14:24
+ * @time 2020-01-15 22:24
  */
 public class OrderDetailInfo {
     private Integer id;

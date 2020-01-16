@@ -3,7 +3,7 @@ package com.sm.exception;
 /**
  * @author wanli.zhou
  * @description
- * @time 2020-01-07 19:13
+ * @time 2020-01-07 22:24
  */
 public enum ExceptionCode {
 

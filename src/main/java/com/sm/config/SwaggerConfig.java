@@ -16,7 +16,6 @@ import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 /**
- * @author joetao
  * swagger相关配置类
  */
 @EnableSwagger2
@@ -33,7 +32,12 @@ public class SwaggerConfig {
             new Tag("product", "product相关页面接口"),
             new Tag("shoppingcart", "购物车相关页面接口"),
             new Tag("adminOrder", "admin的order相关页面接口"),
-            new Tag("order", "非admin的order相关页面接口")
+            new Tag("order", "非admin的order相关页面接口"),
+            new Tag("adminother", "admin其他接口"),
+            new Tag("toutiao", "头条管理"),
+            new Tag("tixian", "提现管理"),
+            new Tag("lunbo", "轮播"),
+            new Tag("search", "搜索"),
         };
     }
 

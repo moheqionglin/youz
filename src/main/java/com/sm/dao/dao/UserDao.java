@@ -12,12 +12,14 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author wanli.zhou
  * @description
- * @time 2020-01-07 11:08
+ * @time 2020-01-07 22:24
  * id, sex, password, nick_name, birthday, reg_time, head_picture, disable, open_code
  *  amount, yongjin, created_time,modified_time
  */
@@ -81,5 +83,14 @@ public class UserDao {
         }catch (Exception e){
             return null;
         }
+    }
+    public Map<Integer, String> getUserId2Names(List<Integer> userIds) {
+        final String sql = String.format("select id, nick_name from %s where id in(?)", VarProperties.USERS);
+        List<Map<String, Object>> maps = jdbcTemplate.queryForList(sql, new Object[]{userIds});
+        HashMap<Integer, String> uid2Nams = new HashMap<>();
+        maps.stream().forEach(m -> {
+            uid2Nams.put(Integer.valueOf(m.get("id").toString()), m.get("nick_name").toString());
+        });
+        return uid2Nams;
     }
 }

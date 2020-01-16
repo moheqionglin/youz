@@ -6,7 +6,7 @@ import java.sql.Timestamp;
 /**
  * @author wanli.zhou
  * @description
- * @time 2020-01-12 17:09
+ * @time 2020-01-12 22:24
  * id, user_id, product_id, product_cnt, selected, cart_price, kanjia_product
  */
 public class ShoppingCart {

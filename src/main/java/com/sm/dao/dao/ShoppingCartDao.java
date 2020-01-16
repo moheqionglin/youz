@@ -17,7 +17,7 @@ import java.util.Map;
 /**
  * @author wanli.zhou
  * @description
- * @time 2020-01-12 17:11
+ * @time 2020-01-12 22:24
  * id, user_id, product_id, product_cnt, selected, cart_price, kanjia_product
  */
 @Component

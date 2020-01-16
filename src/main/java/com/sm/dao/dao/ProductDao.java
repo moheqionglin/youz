@@ -3,6 +3,7 @@ package com.sm.dao.dao;
 import com.sm.message.order.OrderCommentsRequest;
 import com.sm.message.product.*;
 import com.sm.message.profile.UserSimpleInfo;
+import com.sm.message.search.SearchRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -12,10 +13,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -203,5 +201,38 @@ public class ProductDao {
     public void addCommentCount(List<Integer> ids) {
         final String sql = String.format("update %s set comment_cnt = comment_cnt + 1 where id in (?)", VarProperties.PRODUCTS);
         jdbcTemplate.update(sql, new Object[]{ids});
+    }
+
+    public List<ProductListItem> search(SearchRequest searchRequest, int pageSize, int pageNum, String pageType) {
+        if(pageNum <= 0 ){
+            pageNum = 1;
+        }
+        if(pageSize <= 0){
+            pageSize = 10;
+        }
+        int startIndex = (pageNum - 1) * pageSize;
+        String adminPageColumns = "ADMIN".equalsIgnoreCase(pageType) ? ", t1.size as size, t1.cost_price as cost_price" : "";
+
+        List<Object> params = new ArrayList<>();
+        params.add(searchRequest.isShow());
+        params.add("%"+searchRequest.getSearchTerm()+"%");
+        String filterByFirstCategory = "";
+        String filterBySecondCategory = "";
+        if(searchRequest.getFirstCatalog() != null){
+            filterByFirstCategory = " and first_category_id = ?";
+            params.add(searchRequest.getFirstCatalog());
+        }else if(searchRequest.getSecondCatalog() != null){
+            filterBySecondCategory = " and second_category_id = ?";
+            params.add(searchRequest.getSecondCatalog());
+        }
+
+        params.add(startIndex);
+        params.add(pageSize);
+        final String sql = String.format("select t1.id as id, t1.name as name ,sanzhung,show_able,stock,origin_price,current_price,profile_img,sales_cnt, zhuanqu_id, t2.enable as zhuanquenable, zhunqu_price " +adminPageColumns +
+                " from %s as t1 left join %s as t2 on t1.zhuanqu_id = t2.id " +
+                " where t1.show_able = ? and name like ? %s %s order by t1.sort asc limit ?, ?", VarProperties.PRODUCTS, VarProperties.PRODUCT_ZHUANQU_CATEGORY,
+                filterByFirstCategory, filterBySecondCategory);
+
+        return jdbcTemplate.query(sql, params.toArray(), new ProductListItem.ProductListItemRowMapper());
     }
 }

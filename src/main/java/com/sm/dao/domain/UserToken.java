@@ -3,7 +3,7 @@ package com.sm.dao.domain;
 /**
  * @author wanli.zhou
  * @description
- * @time 2020-01-08 10:30
+ * @time 2020-01-08 22:24
  */
 public class UserToken {
     private int id;

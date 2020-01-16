@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * @author wanli.zhou
  * @description
- * @time 2020-01-14 11:31
+ * @time 2020-01-14 22:24
  */
 public class ServiceUtil {
     public static String zhuanquName(int zhuanquId){

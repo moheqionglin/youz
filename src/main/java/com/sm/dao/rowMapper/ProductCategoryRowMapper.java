@@ -10,7 +10,7 @@ import java.sql.SQLException;
 /**
  * @author wanli.zhou
  * @description
- * @time 2020-01-11 12:07
+ * @time 2020-01-11 22:24
  * id,name, image , sort,parent_id, created_time , modified_time
  */
 public class ProductCategoryRowMapper implements RowMapper<ProductCategory> {

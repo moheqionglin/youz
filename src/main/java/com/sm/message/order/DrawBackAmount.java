@@ -9,7 +9,7 @@ import java.sql.SQLException;
 /**
  * @author wanli.zhou
  * @description
- * @time 2020-01-15 10:30
+ * @time 2020-01-15 22:24
  */
 public class DrawBackAmount {
     private BigDecimal displayTotalAmount;

@@ -2,7 +2,6 @@ package com.sm.config;
 
 
 /**
- * @author JoeTao
  * createAt: 2018/9/17
  */
 public class ResponseUserToken {

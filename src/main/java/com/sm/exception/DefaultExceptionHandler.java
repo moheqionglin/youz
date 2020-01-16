@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 /**
- * @author Joetao
  * 异常处理类
  * controller层异常无法捕获处理，需要自己处理
  * Created at 2018/8/27.

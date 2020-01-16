@@ -3,7 +3,7 @@ package com.sm.dao.dao;
 /**
  * @author wanli.zhou
  * @description
- * @time 2020-01-11 18:39
+ * @time 2020-01-11 22:24
  */
 public class VarProperties {
     public static final String PRODUCT_ZHUANQU_CATEGORY = "product_zhuanqu_category";
@@ -19,6 +19,11 @@ public class VarProperties {
     public static final String ORDER_DRAWBACK = "order_drawback";
     public static final String USER_AMONUT_LOG = "user_amonut_log";
     public static final String PRODUCT_COMMENT = "product_comment";
-    public static final String PRODUCT_APPEND_COMMENT= "product_append_comment";
-
+    public static final String PRODUCT_APPEND_COMMENT = "product_append_comment";
+    public static final String STATISTICS = "statistics";
+    public static final String LUNBO = "lunbo";
+    public static final String TOUTIAO = "toutiao";
+    public static final String TIXIAN_APPROVE="tixian_approve";
+    public static final String MY_SEARCH="my_search";
+    public static final String HOT_SEARCH = "hot_search";
 }

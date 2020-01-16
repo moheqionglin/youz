@@ -12,7 +12,6 @@ import java.util.List;
 
 /**
  * @author : JoeTao
- * createAt: 2018/9/14
  */
 public class UserDetail implements UserDetails {
     private int id;

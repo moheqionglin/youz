@@ -10,7 +10,7 @@ import java.sql.Timestamp;
 /**
  * @author wanli.zhou
  * @description
- * @time 2020-01-15 14:33
+ * @time 2020-01-15 22:24
  */
 public class OrderDetailItemInfo {
     private Integer orderId;

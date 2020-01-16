@@ -17,7 +17,7 @@ import java.util.List;
 /**
  * @author wanli.zhou
  * @description
- * @time 2019-05-23 11:06
+ * @time 2019-05-23 22:24
  */
 @Configuration
 @ComponentScan(basePackages = {"com.sm.dao"}, excludeFilters={@ComponentScan.Filter(type= FilterType.ANNOTATION,value= Configuration.class)})

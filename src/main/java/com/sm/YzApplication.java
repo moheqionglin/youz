@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.TimeZone;
 
 /**
- * @author Joetao
  */
 @SpringBootApplication
 @Component("com.sm")

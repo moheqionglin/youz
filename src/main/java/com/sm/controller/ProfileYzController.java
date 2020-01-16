@@ -1,5 +1,6 @@
 package com.sm.controller;
 
+import com.sm.config.UserDetail;
 import com.sm.dao.domain.UserAmountLogType;
 import com.sm.message.PageResult;
 import com.sm.message.profile.MyYueResponse;
@@ -12,6 +13,8 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -36,40 +39,41 @@ public class ProfileYzController {
     @PreAuthorize("hasAuthority('BUYER')  ")
     @ApiOperation(value = "更新基本用户信息, body中的四个字段nickName，sex，headPicture，birthday 不能为空， 用于[授权登录， 更新我的信息 地方]")
     @ApiImplicitParams({
-       @ApiImplicitParam(name = "userId", value = "userId", required = true, paramType = "path", dataType = "Integer"),
        @ApiImplicitParam(name = "user", value = "用户标识", required = true, paramType = "body", dataType = "UpdateProfileRequest")
     })
-    public void updateProfileBaseInfo(@Valid @RequestBody UpdateProfileRequest user, @Valid @NotNull @PathVariable("userId") int userId){
-        profileService.update(userId, user);
+    public void updateProfileBaseInfo(@Valid @RequestBody UpdateProfileRequest user){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
+        profileService.update(userDetail.getId(), user);
     }
 
 
-    @GetMapping(path = "/user/{userId}/{type}")
+    @GetMapping(path = "/user/{type}")
     @PreAuthorize("hasAuthority('BUYER')  ")
     @ApiOperation(value = "[我的余额]  返回余额总数，和前30条交易明细")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "userId", value = "userId", required = true, paramType = "path", dataType = "Integer"),
             @ApiImplicitParam(name = "type", value = "type YUE or YONGJIN ", required = true, paramType = "path", dataType = "UserAmountLogType")
     })
-    public MyYueResponse getAmount(@Valid @NotNull @PathVariable("userId") int userId,
-                                @Valid @NotNull @PathVariable("type") UserAmountLogType type){
-        return profileService.getMyAmount(userId, type);
+    public MyYueResponse getAmount(@Valid @NotNull @PathVariable("type") UserAmountLogType type){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
+        return profileService.getMyAmount(userDetail.getId(), type);
     }
 
-    @GetMapping(path = "/user/{userId}/{type}/log")
+    @GetMapping(path = "/user/{type}/log")
     @PreAuthorize("hasAuthority('BUYER')  ")
     @ApiOperation(value = "[我的余额]  返回余额总数，和前30条交易明细")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "userId", value = "userId", required = true, paramType = "path", dataType = "Integer"),
             @ApiImplicitParam(name = "page_size", value = "page_size", required = true, paramType = "query", dataType = "Integer"),
             @ApiImplicitParam(name = "page_num", value = "page_num", required = true, paramType = "query", dataType = "Integer"),
             @ApiImplicitParam(name = "type", value = "type YUE or YONGJIN", required = true, paramType = "path", dataType = "UserAmountLogType")
     })
-    public PageResult<YueItemResponse> getYueLogPaged(@Valid @NotNull @PathVariable("userId") int userId,
-                                                      @Valid @NotNull @RequestParam("page_size") int pageSize,
+    public PageResult<YueItemResponse> getYueLogPaged(@Valid @NotNull @RequestParam("page_size") int pageSize,
                                                       @Valid @NotNull @RequestParam("page_num") int pageNum,
                                                       @Valid @NotNull @PathVariable("type") UserAmountLogType type){
-        return profileService.getAmountLogPaged(userId, type, pageSize, pageNum);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
+        return profileService.getAmountLogPaged(userDetail.getId(), type, pageSize, pageNum);
 
     }
 

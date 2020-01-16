@@ -2,7 +2,6 @@ package com.sm.dao.domain;
 
 
 /**
- * @author : JoeTao
  * createAt: 2018/9/17
  */
 public class Role {
