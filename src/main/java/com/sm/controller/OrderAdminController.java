@@ -62,7 +62,7 @@ public class OrderAdminController {
         return orderService.getDrawbackApproveList(orderType, pageSize, pageNum);
     }
 
-    @GetMapping(path = "/aorder/{orderType}/drawback/list")
+    @GetMapping(path = "/aorder/{orderType}/jianhuo/list")
     @PreAuthorize("hasAuthority('ADMIN') OR hasAuthority('JIANHUO') ")
     @ApiOperation(value = "[获取拣货员列表] 未拣货， 已经拣货， 拣货完成")
     @ApiImplicitParams(value = {

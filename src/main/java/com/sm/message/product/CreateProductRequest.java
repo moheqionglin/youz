@@ -111,7 +111,7 @@ public class CreateProductRequest {
                 if(StringUtils.isBlank(lunboImgs)){
                     product.setLunboImgs(Collections.emptyList());
                 }else{
-                    product.setLunboImgs(Arrays.asList(StringUtils.trimToEmpty(lunboImgs).split("|")));
+                    product.setLunboImgs(Arrays.asList(StringUtils.trimToEmpty(lunboImgs).split("\\|")));
                 }
 
             }
@@ -120,7 +120,7 @@ public class CreateProductRequest {
                 if(StringUtils.isBlank(detailImgs)){
                     product.setDetailImgs(Collections.emptyList());
                 }else{
-                    product.setDetailImgs(Arrays.asList(StringUtils.trimToEmpty(detailImgs).split("|")));
+                    product.setDetailImgs(Arrays.asList(StringUtils.trimToEmpty(detailImgs).split("\\|")));
                 }
             }
             if(existsColumn(resultSet, "supplierId")){

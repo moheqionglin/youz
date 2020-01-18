@@ -25,7 +25,7 @@ import java.util.List;
  * @time 2020-01-15 21:36
  */
 @RestController
-@Api(tags={"catalog"})
+@Api(tags={"comment"})
 @RequestMapping("/api/v1/")
 public class CommentController {
     @Autowired
@@ -46,8 +46,7 @@ public class CommentController {
     }
 
     @GetMapping(path = "/comment/product/{pid}/list")
-    @PreAuthorize("hasAuthority('BUYER')")
-    @ApiOperation(value = "[获取自己的评价列表]")
+    @ApiOperation(value = "[获取产品评价列表]")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "pid", value = "pid", required = true, paramType = "path", dataType = "Integer"),
             @ApiImplicitParam(name = "page_size", value = "page_size", required = true, paramType = "query", dataType = "Integer"),
@@ -56,9 +55,8 @@ public class CommentController {
     public List<CommentInfo> getProductCommentPaged(@Valid @NotNull @PathVariable("pid") int pid,
                                                     @Valid @NotNull @RequestParam("page_size") int pageSize,
                                                     @Valid @NotNull @RequestParam("page_num") int pageNum){
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
-        return commentService.getProductCommentPaged(userDetail.getId(), pid, pageSize, pageNum);
+
+        return commentService.getProductCommentPaged(pid, pageSize, pageNum);
     }
 
     @PostMapping(path = "/comment/append/{id}")

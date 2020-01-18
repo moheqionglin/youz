@@ -25,7 +25,7 @@ public class RestTemplateTest extends BaseTest{
 
     @Ignore
     @Test
-    public void codeTest(){//WxCode2SessionResponse{session_key='Ua/78WlzgM2EZLDD5AUKhg==', openid='oNnYf0cWKN5eZk5zhYQ8s0_byTeM', expires_in=7200}
+    public void codeTest(){
 
         String code = "001rk9Nn0T3o1n1DpMOn0vS6Nn0rk9ND";
         WxCode2SessionResponse wxCode2SessionResponse = authService.getWxCode2SessionResponse(code);

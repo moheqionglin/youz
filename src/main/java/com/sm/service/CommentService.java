@@ -29,7 +29,7 @@ public class CommentService {
         return myCommentPaged;
     }
 
-    public List<CommentInfo> getProductCommentPaged(int userID, int pid, int pageSize, int pageNum) {
+    public List<CommentInfo> getProductCommentPaged(int pid, int pageSize, int pageNum) {
         List<CommentInfo> myCommentPaged = commentDao.getProductCommentPaged(pid, pageSize, pageNum);
         fillAppendComment(myCommentPaged);
         return myCommentPaged;
@@ -43,7 +43,9 @@ public class CommentService {
         List<AppendCommentInfo> appendComment = commentDao.getAppendComment(ids);
         Map<Integer, List<AppendCommentInfo>> appcomms = appendComment.stream().collect(Collectors.groupingBy(AppendCommentInfo::getProductCommentId));
         myCommentPaged.stream().forEach(c -> {
-            c.setAppendCommentInfo(appcomms.get(c.getId()).stream().findFirst().orElse(null));
+            if(appcomms.get(c.getId()) != null) {
+                c.setAppendCommentInfo(appcomms.get(c.getId()).stream().findFirst().orElse(null));
+            }
         });
     }
 

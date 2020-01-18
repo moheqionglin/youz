@@ -1,5 +1,6 @@
 package com.sm.service;
 
+import com.sm.controller.ProductController;
 import com.sm.dao.dao.ProductCategoryDao;
 import com.sm.dao.dao.ProductDao;
 import com.sm.message.PageResult;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -33,20 +35,19 @@ public class ProductService {
     private SearchService searchService;
     /**
      * 获取不包含 下架商品的列表
-     * @param secondCategoryId
      * @param isShow
      * @param pageType
      * @param pageSize
      * @param pageNum
      * @return
      */
-    public PageResult<ProductListItem> getProductsPaged(int secondCategoryId, boolean isShow, String pageType, int pageSize, int pageNum) {
-        List<ProductListItem> ps = productDao.getProductsPaged(secondCategoryId, isShow, pageType, pageSize, pageNum);
+    public List<ProductListItem> getProductsPaged(ProductController.CategoryType categoryType, int categoryId, boolean isShow, String pageType, int pageSize, int pageNum) {
+        List<ProductListItem> ps = productDao.getProductsPaged(categoryType, categoryId, isShow, pageType, pageSize, pageNum);
         ps.forEach(pi -> {
-            pi.setZhuanquName(ServiceUtil.zhuanquName(pi.getZhuanquId()));
+            pi.setZhuanquName(ServiceUtil.zhuanquName(pi.getZhuanquId(), pi.isZhuanquEnable(), pi.getZhuanquEndTime()));
             pi.setCurrentPrice(ServiceUtil.calcCurrentPrice(pi.getCurrentPrice(), pi.getZhuanquPrice(), pi.isZhuanquEnable(), pi.getZhuanquId(), pi.getZhuanquEndTime()));
         });
-        return new PageResult(pageSize, pageNum, -1, ps);
+        return ps;
     }
 
     /**
@@ -54,13 +55,25 @@ public class ProductService {
      * @param ids
      * @return
      */
-    public List<ProductListItem> getProductsByIds(List<Integer> ids) {
-        List<ProductListItem> ps = productDao.getProductsByIds(ids);
+    public List<ProductListItem> getAllContanisXiajiaProductsByIds(List<Integer> ids) {
+        List<ProductListItem> ps = productDao.getAllContanisXiajiaProductsByIds(ids);
         ps.forEach(pi -> {
-            pi.setZhuanquName(ServiceUtil.zhuanquName(pi.getZhuanquId()));
+            pi.setZhuanquName(ServiceUtil.zhuanquName(pi.getZhuanquId(), pi.isZhuanquEnable(), pi.getZhuanquEndTime()));
             pi.setCurrentPrice(ServiceUtil.calcCurrentPrice(pi.getCurrentPrice(), pi.getZhuanquPrice(), pi.isZhuanquEnable(), pi.getZhuanquId(), pi.getZhuanquEndTime()));
         });
         return ps;
+    }
+
+    public List<ProductListItem> getTop6ProductsByZhuanQuIds(List<Integer> zhuanquIds) {
+        if(zhuanquIds == null || zhuanquIds.isEmpty()){
+            return new ArrayList<>();
+        }
+        List<ProductListItem> productsByZhuanQuIds = productDao.getTop6ProductsByZhuanQuIds(zhuanquIds);
+        productsByZhuanQuIds.stream().forEach(pi ->{
+            pi.setZhuanquName(ServiceUtil.zhuanquName(pi.getZhuanquId(), pi.isZhuanquEnable(), pi.getZhuanquEndTime()));
+            pi.setCurrentPrice(ServiceUtil.calcCurrentPrice(pi.getCurrentPrice(), pi.getZhuanquPrice(), pi.isZhuanquEnable(), pi.getZhuanquId(), pi.getZhuanquEndTime()));
+        });
+        return productsByZhuanQuIds;
     }
 
     @Transactional
@@ -72,6 +85,7 @@ public class ProductService {
         if(userId == null || productSalesDetail.zhuanquExpired()){
             return productSalesDetail;
         }
+        productSalesDetail.setZhuanquName(ServiceUtil.zhuanquName(productSalesDetail.getZhuanquId(), productSalesDetail.isZhuanquEnable(), productSalesDetail.getZhuanquEndTime()));
         productSalesDetail.setCurrentPrice(ServiceUtil.calcCurrentPrice(productSalesDetail.getCurrentPrice(), productSalesDetail.getZhuanquPrice(), productSalesDetail.isZhuanquEnable(), productSalesDetail.getZhuanquId(), productSalesDetail.getZhuanquEndTime()));
         KanjiaDetailInfo kajiaers = productDao.getKanjiaDetail(userId, productId);
 
@@ -158,7 +172,7 @@ public class ProductService {
         return productDao.search(searchRequest, pageSize, pageNum, "NOTADMIN");
     }
 
-    public SearchHistory getHotSearchAndMySearchHistory(Integer userid) {
-        return searchService.getHotSearchAndMySearchHistory(userid);
+    public Integer getProductIdByCode(String code) {
+        return productDao.getProductIdByCode(code);
     }
 }

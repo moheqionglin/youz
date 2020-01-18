@@ -27,4 +27,8 @@ public class SearchService {
         }
         return searchHistory;
     }
+
+    public void deleteMySearch(int id) {
+        searchDao.deleteMySearch(id);
+    }
 }

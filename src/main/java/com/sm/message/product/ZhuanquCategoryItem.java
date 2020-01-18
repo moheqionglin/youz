@@ -4,6 +4,8 @@ import com.sm.dao.domain.ProductZhuanQuCategory;
 import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author wanli.zhou
@@ -21,6 +23,8 @@ public class ZhuanquCategoryItem {
     private boolean deleteAble;
     @NotNull
     private boolean enable;
+
+    private List<ProductListItem> top6 = new ArrayList<>();
 
     public ZhuanquCategoryItem(ProductZhuanQuCategory t) {
         this.id = t.getId();
@@ -78,4 +82,11 @@ public class ZhuanquCategoryItem {
         this.enable = enable;
     }
 
+    public List<ProductListItem> getTop6() {
+        return top6;
+    }
+
+    public void setTop6(List<ProductListItem> top6) {
+        this.top6 = top6;
+    }
 }

@@ -70,11 +70,11 @@ public class ProductSalesDetail {
             if(existsColumn(resultSet, "stock")){
                 product.setStock(resultSet.getInt("stock"));
             }
-            if(existsColumn(resultSet, "originPrice")){
-                product.setOriginPrice(resultSet.getBigDecimal("originPrice"));
+            if(existsColumn(resultSet, "origin_price")){
+                product.setOriginPrice(resultSet.getBigDecimal("origin_price"));
             }
-            if(existsColumn(resultSet, "currentPrice")){
-                product.setCurrentPrice(resultSet.getBigDecimal("currentPrice"));
+            if(existsColumn(resultSet, "current_price")){
+                product.setCurrentPrice(resultSet.getBigDecimal("current_price"));
             }
             if(existsColumn(resultSet, "profile_img")){
                 product.setProfileImg(resultSet.getString("profile_img"));
@@ -91,7 +91,7 @@ public class ProductSalesDetail {
                 if(StringUtils.isBlank(lunboImgs)){
                     product.setLunboImgs(Collections.emptyList());
                 }else{
-                    product.setLunboImgs(Arrays.asList(StringUtils.trimToEmpty(lunboImgs).split("|")));
+                    product.setLunboImgs(Arrays.asList(StringUtils.trimToEmpty(lunboImgs).split("\\|")));
                 }
 
             }
@@ -100,14 +100,14 @@ public class ProductSalesDetail {
                 if(StringUtils.isBlank(detailImgs)){
                     product.setDetailImgs(Collections.emptyList());
                 }else{
-                    product.setDetailImgs(Arrays.asList(StringUtils.trimToEmpty(detailImgs).split("|")));
+                    product.setDetailImgs(Arrays.asList(StringUtils.trimToEmpty(detailImgs).split("\\|")));
                 }
             }
-            if(existsColumn(resultSet, "salesCnt")){
-                product.setSalesCnt(resultSet.getInt("salesCnt"));
+            if(existsColumn(resultSet, "sales_cnt")){
+                product.setSalesCnt(resultSet.getInt("sales_cnt"));
             }
-            if(existsColumn(resultSet, "commentCnt")){
-                product.setCommentCnt(resultSet.getInt("commentCnt"));
+            if(existsColumn(resultSet, "comment_cnt")){
+                product.setCommentCnt(resultSet.getInt("comment_cnt"));
             }
 
             if(existsColumn(resultSet, "zhuanqu_price")){
@@ -116,11 +116,11 @@ public class ProductSalesDetail {
             if(existsColumn(resultSet, "zhuanquName")){
                 product.setZhuanquName(resultSet.getString("zhuanquName"));
             }
-            if(existsColumn(resultSet, "zhuanquEndTime")){
-                product.setZhuanquEndTime(resultSet.getLong("zhuanquEndTime"));
+            if(existsColumn(resultSet, "zhuanqu_endTime")){
+                product.setZhuanquEndTime(resultSet.getLong("zhuanqu_endTime"));
             }
-            if(existsColumn(resultSet, "maxKanjiaPerson")){
-                product.setMaxKanjiaPerson(resultSet.getInt("maxKanjiaPerson"));
+            if(existsColumn(resultSet, "max_kanjia_person")){
+                product.setMaxKanjiaPerson(resultSet.getInt("max_kanjia_person"));
             }
             return product;
         }

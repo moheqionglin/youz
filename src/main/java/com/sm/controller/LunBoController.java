@@ -29,8 +29,8 @@ public class LunBoController {
 
     @GetMapping(path = "/lunbo/all")
     @ApiOperation(value = "[获取所有轮播] ")
-    public List<LunBoInfo> getAll(){
-        return lunboService.getAll();
+    public ResponseEntity<List<LunBoInfo>> getAll(){
+        return ResponseEntity.ok(lunboService.getAll());
     }
 
     @PostMapping(path = "/lunbo")
@@ -45,7 +45,7 @@ public class LunBoController {
         return lunboService.create(lunbo);
     }
 
-    @PutMapping(path = "/toutiao/{id}")
+    @PutMapping(path = "/lunbo/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
     @ApiOperation(value = "[更新轮播] ")
     @ApiImplicitParams({

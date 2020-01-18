@@ -5,7 +5,10 @@ import com.sm.utils.JwtUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
@@ -17,6 +20,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * token校验
@@ -57,7 +62,19 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 logger.info(String.format("Authenticated userDetail %s, setting security context", userId));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+            }else {//匿名用户
+                List<GrantedAuthority> authorities = new ArrayList<>();
+                authorities.add(new SimpleGrantedAuthority("Anonymous"));
+                AnonymousAuthenticationToken authentication = new AnonymousAuthenticationToken("null", "Anonymous", authorities);
+                logger.info(String.format("Authenticated userDetail %s, setting security context", userId));
+                SecurityContextHolder.getContext().setAuthentication(authentication);
             }
+        }else {//匿名用户
+            List<GrantedAuthority> authorities = new ArrayList<>();
+            authorities.add(new SimpleGrantedAuthority("Anonymous"));
+            AnonymousAuthenticationToken authentication = new AnonymousAuthenticationToken("null", "Anonymous", authorities);
+            logger.info(String.format("Authenticated userDetail %s, setting security context", userId));
+            SecurityContextHolder.getContext().setAuthentication(authentication);
         }
         chain.doFilter(request, response);
     }

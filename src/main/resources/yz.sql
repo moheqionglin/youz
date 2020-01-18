@@ -7,10 +7,10 @@ CREATE TABLE users (
     id int auto_increment primary key,
     sex varchar(5) NULL default '男',
     password varchar(100) default '',
-    nick_name varchar(50) NULL,
+    nick_name varchar(50) default '新用户',
     birthday datetime DEFAULT CURRENT_TIMESTAMP,
     reg_time timestamp DEFAULT CURRENT_TIMESTAMP,
-    head_picture varchar(255) NULL,
+    head_picture varchar(255) default 'http://img.suimeikeji.com/touxiang.png',
     disable bit(1) default false,
     open_code varchar(100) NULL,
     amount decimal(10,2)   default 0,
@@ -69,7 +69,6 @@ create table shipping_address(
 
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-select child.id, child.name, parent.id, parent.name from product_category child inner join product_category parent on child.parent_id = parent.id where child.id in (1);
 
 create table product_category(
     id int auto_increment primary key,
@@ -125,13 +124,12 @@ create table products(
 
     zhuanqu_id int comment '专区ID',
     zhuanqu_price decimal(10,2) comment '专区价格(砍价底价)',
-    zhuanqu_endTime long comment '特价结束时间',
+    zhuanqu_endTime bigint comment '特价结束时间',
     max_kanjia_person int default 0 comment '最多支持多少人砍价',
     created_time timestamp DEFAULT CURRENT_TIMESTAMP ,
 	modified_time timestamp  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
 
 create table product_suppliers(
     id int auto_increment primary key,
@@ -347,6 +345,7 @@ create table my_search(
     user_id int,
     created_time timestamp DEFAULT CURRENT_TIMESTAMP
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
+CREATE UNIQUE INDEX my_search_term_idx ON my_search (search_term)
 
 create table hot_search(
     id int auto_increment primary key,
@@ -355,11 +354,24 @@ create table hot_search(
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
+create table feeback(
+    id int auto_increment primary key,
+    user_id int,
+    content varchar(500),
+    phone varchar(12),
+    created_time timestamp DEFAULT CURRENT_TIMESTAMP
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+
+
+
+
 
 select t1.id, t1.name,t1.parent_id,t2.id, t2.name from product_category t1 inner join product_category t2 on t1.parent_id = t2.id where t1.id =   154
 
-select * from product_tejia_category
-select * from products
+ select * from products
 select * from user_amonut_log
 select * from shipping_address limit 1, 4
 select role_name from roles left join user_roles on roles.id = user_roles.roles_id where user_roles.user_id = 1
@@ -367,8 +379,10 @@ select role_name from roles left join user_roles on roles.id = user_roles.roles_
 select * from product_category
  select user_id,amount, remark , modified_time from user_amonut_log where user_id = 9 and log_type = 'YUE'
 
+select child.id, child.name, parent.id, parent.name from product_category child inner join product_category parent on child.parent_id = parent.id where child.id in (1);
 
 
+select * from product_zhuanqu_category
 create table t1 (
 
     id int ,
@@ -383,5 +397,65 @@ create table t2 (
     name varchar(10)
 )
 select * from t2
-select * from roles
+select * from users
 select * from t1 left join t2 on t1.t2_id = t2.id
+
+
+select * from products order by id desc limit 1
+
+drop table test
+create table test(
+    id int auto_increment primary key,
+    user_id int)
+    insert into test value (1, 2) select * from test
+select count(1) from products
+
+select *from product_category
+select * from product_zhuanqu_category
+select * from products where zhuanqu_id < 10 and zhuanqu_id > 0
+select * from roles
+select * from toutiao
+select * from users
+select * from user_tokes
+select * from lunbo
+select * from products where zhuanqu_id is not null
+ select id, name,profile_img from products where id in( 562
+,1463
+,1997
+,822)
+
+select * from product_zhuanqu_category
+select * from products where zhuanqu_id = 19
+
+
+select * from product_category where id =61
+
+select * from product_comment
+select * from product_append_comment
+
+select t1.id     as id,
+       t1.name   as name,
+       second_category_id,
+       size,
+       sanzhung,
+       stock,
+       origin_price,
+       current_price,
+       profile_img,
+       lunbo_imgs,
+       detail_imgs,
+       sales_cnt,
+       zhuanqu_id,
+       comment_cnt,
+       t2.enable as zhuanquenable,
+       zhuanqu_price,
+       zhuanqu_endTime,
+       max_kanjia_person
+from products as t1
+         left join product_zhuanqu_category as t2 on t1.zhuanqu_id = t2.id
+where t1.show_able = true
+  and id = 1463
+
+select * from products where second_category_id = 15
+zhuanqu_enable
+

@@ -5,8 +5,11 @@ import com.sm.message.comment.AppendCommentRequest;
 import com.sm.message.comment.CommentInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
+import javax.naming.Name;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,6 +24,9 @@ public class CommentDao {
     private JdbcTemplate jdbcTemplate;
 
 
+    @Autowired
+    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
     public List<CommentInfo> getCommentPaged(int userID, int pageSize, int pageNum) {
         final String sql = String.format("select t1.id as id ,user_id,product_id,product_name,product_profile_img,product_size,good,comment,t1.images as images,t1.created_time as created_time, t2.nick_name, t2.head_picture from %s t1 left join %s t2 on t1.user_id = t2.id where user_id = ? order by t1.id desc limit ?, ?" , VarProperties.PRODUCT_COMMENT);
         int startIndex = (pageNum - 1) * pageSize;
@@ -28,12 +34,12 @@ public class CommentDao {
     }
 
     public List<AppendCommentInfo> getAppendComment(List<Integer> ids) {
-        final String sql = String.format("select  product_comment_id , good,comment , images ,created_time from %s where product_comment_id in (?)", VarProperties.PRODUCT_APPEND_COMMENT);
-        return jdbcTemplate.query(sql, new Object[]{ids}, new AppendCommentInfo.AppendCommentInfoRowMapper());
+        final String sql = String.format("select  product_comment_id , good,comment , images ,created_time from %s where product_comment_id in (:ids)", VarProperties.PRODUCT_APPEND_COMMENT);
+        return namedParameterJdbcTemplate.query(sql, Collections.singletonMap("ids", ids), new AppendCommentInfo.AppendCommentInfoRowMapper());
     }
 
     public List<CommentInfo> getProductCommentPaged(int pid, int pageSize, int pageNum) {
-        final String sql = String.format("select t1.id as id ,user_id,product_id,product_name,product_profile_img,product_size,good,comment,t1.images as images,t1.created_time as created_time, t2.nick_name, t2.head_picture from %s t1 left join %s t2 on t1.user_id = t2.id where product_id = ? order by t1.id desc limit ?, ?" , VarProperties.PRODUCT_COMMENT);
+        final String sql = String.format("select t1.id as id ,user_id,product_id,product_name,product_profile_img,product_size,good,comment,t1.images as images,t1.created_time as created_time, t2.nick_name, t2.head_picture from %s t1 left join %s t2 on t1.user_id = t2.id where product_id = ? order by t1.id desc limit ?, ?" , VarProperties.PRODUCT_COMMENT, VarProperties.USERS);
         int startIndex = (pageNum - 1) * pageSize;
         return jdbcTemplate.query(sql, new Object[]{pid, startIndex, pageSize}, new CommentInfo.CommentInfoRowMapper());
     }

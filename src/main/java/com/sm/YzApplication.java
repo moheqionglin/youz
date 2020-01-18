@@ -10,6 +10,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
@@ -17,7 +19,12 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import javax.net.ssl.SSLContext;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.nio.charset.Charset;
+import java.security.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -68,20 +75,25 @@ public class YzApplication {
 				MediaType.APPLICATION_OCTET_STREAM,
 
 				MediaType.APPLICATION_JSON_UTF8,
-				MediaType.TEXT_HTML,
-				MediaType.TEXT_PLAIN,
-				MediaType.TEXT_XML,
+//				MediaType.TEXT_HTML,
+//				MediaType.TEXT_PLAIN,
+//				MediaType.TEXT_XML,
 				MediaType.APPLICATION_STREAM_JSON,
-				MediaType.APPLICATION_ATOM_XML,
+//				MediaType.APPLICATION_ATOM_XML,
 				MediaType.APPLICATION_FORM_URLENCODED,
-				MediaType.APPLICATION_PDF,
+//				MediaType.APPLICATION_PDF,
 		};
 
 		jsonMessageConverter.setSupportedMediaTypes(Arrays.asList(mediaTypes));
 
 		messageConverters.add(jsonMessageConverter);
+		StringHttpMessageConverter utf8 = new StringHttpMessageConverter(Charset.forName("utf8"));
+		utf8.setSupportedMediaTypes(Arrays.asList(new MediaType[]{MediaType.TEXT_XML,MediaType.TEXT_PLAIN,MediaType.APPLICATION_FORM_URLENCODED}));
+		messageConverters.add(utf8);
 		return messageConverters;
 	}
+
+
 	public static void main(String[] args) {
 		SpringApplication.run(YzApplication.class, args);
 	}

@@ -4,6 +4,7 @@ import com.sm.dao.domain.UserToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -17,7 +18,10 @@ public class TokenDao {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    @Transactional
     public void create(UserToken token){
+        String removesql ="delete from user_tokes where user_id =?";
+        jdbcTemplate.update(removesql, new Object[]{token.getUserId()});
         String sql = "insert into user_tokes(user_id, token) values (?, ?)";
         jdbcTemplate.update(sql, new Object[]{token.getUserId(), token.getToken()});
     }

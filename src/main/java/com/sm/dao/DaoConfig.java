@@ -93,7 +93,7 @@ public class DaoConfig {
         ds.setPoolPreparedStatements(false);
         ds.setMaxPoolPreparedStatementPerConnectionSize(maxPoolPreparedStatementPerConnectionSize);
         List<Filter> filters = new ArrayList<>();
-        filters.add(slf4jFilter);
+//        filters.add(slf4jFilter);
         ds.setProxyFilters(filters);
         return ds;
     }

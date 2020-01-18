@@ -30,7 +30,7 @@ public class CommentInfo {
     private String comment;
     private boolean good;
     private List<String> images;
-    private Timestamp createDate;
+    private String createDate;
 
     private AppendCommentInfo appendCommentInfo;
     public static class CommentInfoRowMapper implements RowMapper<CommentInfo> {
@@ -72,13 +72,13 @@ public class CommentInfo {
                 commentInfo.setComment(resultSet.getString("comment"));
             }
             if(existsColumn(resultSet, "created_time")){
-                commentInfo.setCreateDate(resultSet.getTimestamp("created_time"));
+                commentInfo.setCreateDate(SmUtil.parseLongToTMDHMS(resultSet.getTimestamp("created_time").getTime()));
             }
 
             if(existsColumn(resultSet, "images")){
                 String images = resultSet.getString("images");
                 if(StringUtils.isNoneBlank(images)){
-                    commentInfo.setImages(Arrays.stream(images.split("|")).collect(Collectors.toList()));
+                    commentInfo.setImages(Arrays.stream(images.split("\\|")).collect(Collectors.toList()));
                 }
 
             }
@@ -190,11 +190,11 @@ public class CommentInfo {
         this.images = images;
     }
 
-    public Timestamp getCreateDate() {
+    public String getCreateDate() {
         return createDate;
     }
 
-    public void setCreateDate(Timestamp createDate) {
+    public void setCreateDate(String createDate) {
         this.createDate = createDate;
     }
 }

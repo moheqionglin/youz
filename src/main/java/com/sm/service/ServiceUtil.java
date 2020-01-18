@@ -13,18 +13,21 @@ import java.util.List;
  * @time 2020-01-14 22:24
  */
 public class ServiceUtil {
-    public static String zhuanquName(int zhuanquId){
+    public static String zhuanquName(int zhuanquId, boolean zhuanquEnable, Long zhuanquEndTime){
+        if(!zhuanquEnable || zhuanquEndTime == null || new Date().getTime() > zhuanquEndTime){
+            return "";
+        }
         if(zhuanquId == 1){
-            return "砍价专区";
+            return "砍价商品";
         }
         if(zhuanquId > 10){
-            return "特价专区";
+            return "特价商品";
         }
         return null;
     }
 
     public static BigDecimal calcCurrentPrice(BigDecimal currentPrice, BigDecimal zhuanquPrice, boolean zhuanquEnable, int zhuanquId, Long zhuanquEndTime) {
-        if(!zhuanquEnable || zhuanquId == 0 || new Date().getTime() > zhuanquEndTime){
+        if(!zhuanquEnable || zhuanquId == 0 || zhuanquEndTime == null || new Date().getTime() > zhuanquEndTime){
             return currentPrice;
         }
         return zhuanquPrice;

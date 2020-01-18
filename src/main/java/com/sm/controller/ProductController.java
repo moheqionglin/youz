@@ -1,5 +1,6 @@
 package com.sm.controller;
 
+import com.sm.config.UserDetail;
 import com.sm.message.PageResult;
 import com.sm.message.product.CreateProductRequest;
 import com.sm.message.product.ProductListItem;
@@ -11,10 +12,13 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 /**
  * @author wanli.zhou
@@ -105,54 +109,65 @@ public class ProductController {
         return productService.getEditDetail(productId);
     }
 
-    @GetMapping(path = "/products/{secondCategoryId}/{isShow}/editList")
+    @GetMapping(path = "/products/{categoryType}/{categoryId}/{isShow}/editList")
     @ApiOperation(value = "[获取商品列表] 分页返回 secondCategoryId < 0 显示所有，否则 只显示二级分类的")
     @PreAuthorize("hasAuthority('ADMIN')")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "secondCategoryId", value = "secondCategoryId", required = true, paramType = "query", dataType = "Integer"),
-            @ApiImplicitParam(name = "isShow", value = "isShow", required = true, paramType = "query", dataType = "Boolean"),
+            @ApiImplicitParam(name = "categoryType", value = "categoryType", required = true, paramType = "path", dataType = "CategoryType"),
+            @ApiImplicitParam(name = "categoryId", value = "categoryId", required = true, paramType = "path", dataType = "Integer"),
+            @ApiImplicitParam(name = "isShow", value = "isShow", required = true, paramType = "path", dataType = "Boolean"),
             @ApiImplicitParam(name = "page_size", value = "page_size", required = true, paramType = "query", dataType = "Integer"),
             @ApiImplicitParam(name = "page_num", value = "page_num", required = true, paramType = "query", dataType = "Integer")
     })
-    public PageResult<ProductListItem> getProductsPaged(
-            @Valid @NotNull @PathVariable("secondCategoryId") int secondCategoryId,
+    public List<ProductListItem> getProductsPaged(
+            @Valid @NotNull @PathVariable("categoryType") CategoryType categoryType,
+            @Valid @NotNull @PathVariable("categoryId") int categoryId,
             @Valid @NotNull @PathVariable("isShow") boolean isShow,
             @Valid @NotNull @RequestParam("page_size") int pageSize,
              @Valid @NotNull @RequestParam("page_num") int pageNum){
-        return productService.getProductsPaged(secondCategoryId, isShow, "ADMIN",pageSize, pageNum);
+        return productService.getProductsPaged(categoryType, categoryId, isShow, "ADMIN",pageSize, pageNum);
     }
 
     /////////// /////////// //////////
     /////////// 用户 专区 /////////////
     /////////// /////////// /////////
 
-    @GetMapping(path = "/products/{secondCategoryId}/list")
+    @GetMapping(path = "/products/{categoryType}/{categoryId}/list")
     @ApiOperation(value = "[获取商品列表] 分页返回")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "secondCategoryId", value = "secondCategoryId", required = true, paramType = "query", dataType = "Integer"),
+            @ApiImplicitParam(name = "categoryType", value = "categoryType", required = true, paramType = "path", dataType = "CategoryType"),
+            @ApiImplicitParam(name = "categoryId", value = "categoryId", required = true, paramType = "path", dataType = "Integer"),
             @ApiImplicitParam(name = "page_size", value = "page_size", required = true, paramType = "query", dataType = "Integer"),
             @ApiImplicitParam(name = "page_num", value = "page_num", required = true, paramType = "query", dataType = "Integer")
     })
-    public PageResult<ProductListItem> getProductsPaged(
-            @Valid @NotNull @PathVariable("secondCategoryId") int secondCategoryId,
+    public List<ProductListItem> getProductsPaged(
+            @Valid @NotNull @PathVariable("categoryType") CategoryType categoryType,
+            @Valid @NotNull @PathVariable("categoryId") int categoryId,
             @Valid @NotNull @RequestParam("page_size") int pageSize,
             @Valid @NotNull @RequestParam("page_num") int pageNum){
-        return productService.getProductsPaged(secondCategoryId, true , "BUYER", pageSize, pageNum);
+        return productService.getProductsPaged(categoryType, categoryId, true , "BUYER", pageSize, pageNum);
     }
 
-    @GetMapping(path = "/product/{userId}/{productId}/detail")
+    @GetMapping(path = "/product/{productId}/detail")
     @ApiOperation(value = "[获取商品详情] ")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "userId", value = "userId", required = true, paramType = "path", dataType = "Integer"),
             @ApiImplicitParam(name = "productId", value = "productId", required = true, paramType = "path", dataType = "Integer")
     })
-    public ProductSalesDetail getSalesDetail(@Valid @NotNull @PathVariable("userId") Integer userId,
-                                             @Valid @NotNull @PathVariable("productId") int productId){
+    public ProductSalesDetail getSalesDetail(@Valid @NotNull @PathVariable("productId") int productId){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
+        Integer userId = userDetail.getId();
         if(userId <= 0 || userId == null){//没有登录的人的
             userId = null;
         }
         return productService.getSalesDetail(userId, productId);
 
+    }
+    public static enum CategoryType{
+        ALL,
+        FIRST,
+        SECOND,
+        ZHUANQU
     }
 
 

@@ -18,7 +18,12 @@ public class SearchDao {
 
     public void addMySearchTerm(Integer userid, String term) {
         final String sql = String.format("insert into %s(search_term, user_id)values (?,?)", VarProperties.MY_SEARCH);
-        jdbcTemplate.update(sql, new Object[]{term, userid});
+        try{
+            jdbcTemplate.update(sql, new Object[]{term, userid});
+        }catch (Exception e){
+
+        }
+
     }
 
     public List<String> getHotSearchTop10() {
@@ -29,5 +34,14 @@ public class SearchDao {
     public List<String> getMySearchTop10(Integer userid) {
         final String sql = String.format("select search_term from %s where user_id = ?", VarProperties.MY_SEARCH);
         return jdbcTemplate.queryForList(sql, new Object[]{userid}, String.class);
+    }
+
+    public void deleteMySearch(int id) {
+        final String sql = String.format("delete from %s where user_id = ?", VarProperties.MY_SEARCH);
+        jdbcTemplate.update(sql, new Object[]{id});
+    }
+
+    public void addHotSearch(String term) {
+
     }
 }

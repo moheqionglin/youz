@@ -1,6 +1,7 @@
 package com.sm.message.comment;
 
 import com.sm.message.order.SimpleOrderItem;
+import com.sm.utils.SmUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.jdbc.core.RowMapper;
 
@@ -23,7 +24,7 @@ public class AppendCommentInfo {
     private String comment;
     private List<String> images = new ArrayList<>(1);
     private boolean good;
-    private Timestamp createdDate;
+    private String createdDate;
 
     public static class AppendCommentInfoRowMapper implements RowMapper<AppendCommentInfo> {
         @Override
@@ -39,12 +40,12 @@ public class AppendCommentInfo {
                 appendCommentInfo.setComment(resultSet.getString("comment"));
             }
             if(existsColumn(resultSet, "created_time")){
-                appendCommentInfo.setCreatedDate(resultSet.getTimestamp("created_time"));
+                appendCommentInfo.setCreatedDate(SmUtil.parseLongToTMDHMS(resultSet.getTimestamp("created_time").getTime()));
             }
             if(existsColumn(resultSet, "images")){
                 String images = resultSet.getString("images");
                 if(StringUtils.isNoneBlank(images)){
-                    appendCommentInfo.setImages(Arrays.stream(images.split("|")).collect(Collectors.toList()));
+                    appendCommentInfo.setImages(Arrays.stream(images.split("\\|")).collect(Collectors.toList()));
                 }
 
             }
@@ -63,11 +64,11 @@ public class AppendCommentInfo {
         return productCommentId;
     }
 
-    public Timestamp getCreatedDate() {
+    public String getCreatedDate() {
         return createdDate;
     }
 
-    public void setCreatedDate(Timestamp createdDate) {
+    public void setCreatedDate(String createdDate) {
         this.createdDate = createdDate;
     }
 

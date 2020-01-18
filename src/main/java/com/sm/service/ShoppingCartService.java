@@ -28,7 +28,7 @@ public class ShoppingCartService {
     public List<CartItemInfo> getAllCartItems(int userId) {
         List<ShoppingCart> allCartItem = shoppingCartDao.getAllCartItem(userId);
         List<Integer> ids = allCartItem.stream().map(aci -> aci.getProductId()).collect(Collectors.toList());
-        List<ProductListItem> products = productService.getProductsByIds(ids);
+        List<ProductListItem> products = productService.getAllContanisXiajiaProductsByIds(ids);
         Map<Integer, List<ProductListItem>> collect = products.stream().collect(Collectors.groupingBy(ProductListItem::getId));
         List<CartItemInfo> result = allCartItem.stream()
                 .map(ci -> new CartItemInfo(ci, collect.containsKey(ci.getProductId()) && !collect.get(ci.getProductId()).isEmpty() ? collect.get(ci.getProductId()).get(0) : null))

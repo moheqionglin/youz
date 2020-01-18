@@ -16,10 +16,15 @@ import java.util.Date;
  */
 public class SmUtil {
     public static DateTimeFormatter ymr = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    public static DateTimeFormatter ymrhms = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
 
     public static String parseLongToYMD(long time){
         return ymr.format(LocalDateTime.ofInstant(Instant.ofEpochMilli(time),ZoneId.systemDefault()));
+    }
+
+    public static String parseLongToTMDHMS(long time){
+        return ymrhms.format(LocalDateTime.ofInstant(Instant.ofEpochMilli(time),ZoneId.systemDefault()));
     }
 
     public static String getTodayYMD(){

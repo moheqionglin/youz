@@ -49,23 +49,23 @@ public class ProductListItem {
             if(existsColumn(resultSet, "stock")){
                 product.setStock(resultSet.getInt("stock"));
             }
-            if(existsColumn(resultSet, "originPrice")){
-                product.setOriginPrice(resultSet.getBigDecimal("originPrice"));
+            if(existsColumn(resultSet, "origin_price")){
+                product.setOriginPrice(resultSet.getBigDecimal("origin_price"));
             }
-            if(existsColumn(resultSet, "currentPrice")){
-                product.setCurrentPrice(resultSet.getBigDecimal("currentPrice"));
+            if(existsColumn(resultSet, "current_price")){
+                product.setCurrentPrice(resultSet.getBigDecimal("current_price"));
             }
-            if(existsColumn(resultSet, "costPrice")){
-                product.setCostPrice(resultSet.getBigDecimal("costPrice"));
+            if(existsColumn(resultSet, "cost_price")){
+                product.setCostPrice(resultSet.getBigDecimal("cost_price"));
             }
             if(existsColumn(resultSet, "profile_img")){
                 product.setProfileImg(resultSet.getString("profile_img"));
             }
-            if(existsColumn(resultSet, "salesCnt")){
-                product.setSalesCnt(resultSet.getInt("salesCnt"));
+            if(existsColumn(resultSet, "sales_cnt")){
+                product.setSalesCnt(resultSet.getInt("sales_cnt"));
             }
-            if(existsColumn(resultSet, "zhuanquEndTime")){
-                product.setZhuanquEndTime(resultSet.getLong("zhuanquEndTime"));
+            if(existsColumn(resultSet, "zhuanqu_endTime")){
+                product.setZhuanquEndTime(resultSet.getLong("zhuanqu_endTime"));
             }
             if(existsColumn(resultSet, "show_able")){
                 product.setShowAble(resultSet.getBoolean("show_able"));

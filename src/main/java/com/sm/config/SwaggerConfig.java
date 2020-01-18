@@ -38,6 +38,8 @@ public class SwaggerConfig {
             new Tag("tixian", "提现管理"),
             new Tag("lunbo", "轮播"),
             new Tag("search", "搜索"),
+            new Tag("comment", "评论"),
+
         };
     }
 

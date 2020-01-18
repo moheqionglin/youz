@@ -23,6 +23,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 /**
@@ -39,9 +40,9 @@ public class AuthServiceImpl {
 
     @Autowired
     private UserService userService;
-    @Value("${sm.wx.appid:wxdc49b5ed19221a05}")
+    @Value("${sm.wx.appid}")
     private String appid;
-    @Value("${sm.wx.appsec:}")
+    @Value("${sm.wx.appsec}")
     private String sec;
     @Value("${sm.wx.grant_type:authorization_code}")
     private String grant_type;
@@ -76,7 +77,10 @@ public class AuthServiceImpl {
         //存储token
         UserToken userToken = new UserToken(token, userDetail.getId());
         tokenDao.create(userToken);
-        return new ResponseUserToken(token, userDetail);
+        ResponseUserToken.SimpleU u = new ResponseUserToken.SimpleU();
+        u.setId(userDetail.getId());
+        u.setRoles(userDetail.getRoles().stream().map(r -> r.getName()).collect(Collectors.toList()));
+        return new ResponseUserToken(token, u);
 
     }
     public WxCode2SessionResponse getWxCode2SessionResponse(String code){
@@ -85,7 +89,8 @@ public class AuthServiceImpl {
         params.put("secret", this.sec);
         params.put("js_code", code);
         params.put("grant_type", this.grant_type);
-        JSONObject code2Session = restTemplate.getForObject(WX_CODE_2_OPENID_URL, JSONObject.class, params);
+        String code2SessionStr = restTemplate.getForObject(WX_CODE_2_OPENID_URL, String.class, params);
+        JSONObject code2Session = JSONObject.parseObject(code2SessionStr);
         WxCode2SessionResponse response = new WxCode2SessionResponse();
         response.setOpenid(code2Session.getString("openid"));
         response.setExpires_in(code2Session.getInteger("expires_in"));

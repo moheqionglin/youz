@@ -25,7 +25,6 @@ public class UserRowMapper implements RowMapper<User> {
         if(existsColumn(resultSet, "password")){
             user.setPassword(resultSet.getString("password"));
         }
-        user.setPassword("");
         if(existsColumn(resultSet, "nick_name")){
             user.setNickName(resultSet.getString("nick_name"));
         }

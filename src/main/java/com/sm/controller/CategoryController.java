@@ -59,26 +59,23 @@ public class CategoryController {
         categoryService.update(productCategoryItem);
     }
 
-    @DeleteMapping(path = "/category/{userId}/{categoryid}")
+    @DeleteMapping(path = "/category/{categoryid}")
     @PreAuthorize("hasAuthority('ADMIN')")
     @ApiOperation(value = "[删除category] ")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "categoryid", value = "categoryid", required = true, paramType = "path", dataType = "Integer")
     })
-    public void deleteCategory(@Valid @NotNull @PathVariable("userId") int userId,
-                              @Valid @NotNull @PathVariable("categoryid") int categoryid){
+    public void deleteCategory(@Valid @NotNull @PathVariable("categoryid") int categoryid){
         categoryService.delete(categoryid);
     }
 
-    @GetMapping(path = "/category/{userId}/{catalogid}")
+    @GetMapping(path = "/category/{catalogid}")
     @PreAuthorize("hasAuthority('BUYER') ")
     @ApiOperation(value = "[根据catalog id获取详情] ")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "userId", value = "userId", required = true, paramType = "path", dataType = "Integer"),
             @ApiImplicitParam(name = "catalogid", value = "catalogid", required = true, paramType = "path", dataType = "Integer")
     })
-    public CategoryItem getProductCategory(@Valid @NotNull @PathVariable("userId") int userId,
-                                           @Valid @NotNull @PathVariable("catalogid") int catalogid){
+    public CategoryItem getProductCategory(@Valid @NotNull @PathVariable("catalogid") int catalogid){
         return categoryService.getProductCategory(catalogid);
     }
 

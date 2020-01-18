@@ -1,5 +1,6 @@
 package com.sm.dao.dao;
 
+import com.sm.controller.ProductController;
 import com.sm.message.order.OrderCommentsRequest;
 import com.sm.message.product.*;
 import com.sm.message.profile.UserSimpleInfo;
@@ -29,7 +30,7 @@ public class ProductDao {
     @Autowired
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
-    public List<ProductListItem> getProductsPaged(int secondCategoryId, boolean isShow, String pageType, int pageSize, int pageNum) {
+    public List<ProductListItem> getProductsPaged(ProductController.CategoryType categoryType, int categoryId, boolean isShow, String pageType, int pageSize, int pageNum) {
         if(pageNum <= 0 ){
             pageNum = 1;
         }
@@ -37,18 +38,31 @@ public class ProductDao {
             pageSize = 10;
         }
         int startIndex = (pageNum - 1) * pageSize;
+        String filterByCategory = "";
+        if(ProductController.CategoryType.FIRST.equals(categoryType)){
+            filterByCategory = " and first_category_id = ? ";
+        }else if(ProductController.CategoryType.SECOND.equals(categoryType)){
+            filterByCategory = " and second_category_id = ? ";
+        }else if(ProductController.CategoryType.ZHUANQU.equals(categoryType)){
+            filterByCategory = " and zhuanqu_id = ? ";
+        }
+
         String adminPageColumns = "ADMIN".equalsIgnoreCase(pageType) ? ", t1.size as size, t1.cost_price as cost_price" : "";
-        final String sql = String.format("select t1.id as id, t1.name as name ,sanzhung,show_able,stock,origin_price,current_price,profile_img,sales_cnt, zhuanqu_id, t2.enable as zhuanquenable, zhunqu_price " + adminPageColumns +
+        final String sql = String.format("select t1.id as id, t1.name as name ,sanzhung,show_able,stock,origin_price,current_price,profile_img,sales_cnt, zhuanqu_id, t2.enable as zhuanquenable, zhuanqu_price,zhuanqu_endTime " + adminPageColumns +
                 " from %s as t1 left join %s as t2 on t1.zhuanqu_id = t2.id " +
-                " where t1.show_able = ? and second_category_id = ? order by t1.sort asc limit ?, ?", VarProperties.PRODUCTS, VarProperties.PRODUCT_ZHUANQU_CATEGORY);
-        return jdbcTemplate.query(sql, new Object[]{isShow, secondCategoryId, startIndex, pageSize}, new ProductListItem.ProductListItemRowMapper());
+                " where t1.show_able = ? %s order by t1.sales_cnt desc, t1.sort asc limit ?, ?", VarProperties.PRODUCTS, VarProperties.PRODUCT_ZHUANQU_CATEGORY, filterByCategory);
+        Object[] pams = new Object[]{isShow, categoryId, startIndex, pageSize};
+        if(ProductController.CategoryType.ALL.equals(categoryType)){
+            pams = new Object[]{isShow, startIndex, pageSize};
+        }
+        return jdbcTemplate.query(sql, pams, new ProductListItem.ProductListItemRowMapper());
     }
 
     public ProductSalesDetail getSalesDetail(int productId) {
 
-        final String sql = String.format("select t1.id as id, t1.name as name, second_category_id, size, sanzhung,stock,origin_price,current_price,profile_img,lunbo_imgs,detail_imgs,sales_cnt,zhuanqu_id, comment_cnt, t2.enable as zhuanquenable, zhunqu_price ,zhuanqu_endTime, max_kanjia_person " +
+        final String sql = String.format("select t1.id as id, t1.name as name, second_category_id, size, sanzhung,stock,origin_price,current_price,profile_img,lunbo_imgs,detail_imgs,sales_cnt,zhuanqu_id, comment_cnt, t2.enable as zhuanquenable, zhuanqu_price ,zhuanqu_endTime, max_kanjia_person " +
                 " from %s as t1 left join %s as t2 on t1.zhuanqu_id = t2.id " +
-                " where t1.show_able = true and id = ?", VarProperties.PRODUCTS, VarProperties.PRODUCT_ZHUANQU_CATEGORY);
+                " where t1.show_able = true and t1.id = ?", VarProperties.PRODUCTS, VarProperties.PRODUCT_ZHUANQU_CATEGORY);
         return jdbcTemplate.query(sql, new Object[]{productId}, new ProductSalesDetail.ProductSalesDetailRowMapper()).stream().findFirst().orElse(null);
     }
 
@@ -64,8 +78,8 @@ public class ProductDao {
             if(ids.isEmpty()){
                 return udi;
             }
-            final String sql = String.format("select id, nick_name, head_picture from %s where id in ( ? ) ", VarProperties.USERS);
-            List<UserSimpleInfo> query = jdbcTemplate.query(sql, new Object[]{uids}, new UserSimpleInfo.UserSimpleInfoRowMapper());
+            final String sql = String.format("select id, nick_name, head_picture from %s where id in ( :ids ) ", VarProperties.USERS);
+            List<UserSimpleInfo> query = namedParameterJdbcTemplate.query(sql, Collections.singletonMap("ids", uids), new UserSimpleInfo.UserSimpleInfoRowMapper());
             udi.getKanjieHelpers().addAll(query);
             udi.setUserId(userId);
             udi.setProductId(productId);
@@ -170,16 +184,16 @@ public class ProductDao {
         jdbcTemplate.update(sql, new Object[]{productId});
     }
 
-    public List<ProductListItem> getProductsByIds(List<Integer> ids) {
-        final String sql = String.format("select t1.id as id, t1.name as name ,sanzhung,stock,show_able,origin_price,current_price,profile_img,sales_cnt, zhuanqu_id, t2.enable as zhuanquenable, zhunqu_price " +
+    public List<ProductListItem> getAllContanisXiajiaProductsByIds(List<Integer> ids) {
+        final String sql = String.format("select t1.id as id, t1.name as name ,sanzhung,stock,show_able,origin_price,current_price,profile_img,sales_cnt, zhuanqu_id, t2.enable as zhuanquenable, zhuanqu_price " +
                 " from %s as t1 left join %s as t2 on t1.zhuanqu_id = t2.id " +
-                " where id in (?)", VarProperties.PRODUCTS, VarProperties.PRODUCT_ZHUANQU_CATEGORY);
-        return jdbcTemplate.query(sql, new Object[]{ids}, new ProductListItem.ProductListItemRowMapper());
+                " where id in (:ids)", VarProperties.PRODUCTS, VarProperties.PRODUCT_ZHUANQU_CATEGORY);
+        return namedParameterJdbcTemplate.query(sql, Collections.singletonMap("ids", ids), new ProductListItem.ProductListItemRowMapper());
     }
 
     public void addSalesCount(List<Integer> ids) {
-        final String sql = String.format("update %s set sales_cnt = sales_cnt + 1 where id in (?)", VarProperties.PRODUCTS);
-        jdbcTemplate.update(sql, new Object[]{ids});
+        final String sql = String.format("update %s set sales_cnt = sales_cnt + 1 where id in (:ids)", VarProperties.PRODUCTS);
+        namedParameterJdbcTemplate.update(sql, Collections.singletonMap("ids", ids));
     }
 
     public void createComment(int userId, List<OrderCommentsRequest> orderCommentsRequests) {
@@ -199,8 +213,8 @@ public class ProductDao {
     }
 
     public void addCommentCount(List<Integer> ids) {
-        final String sql = String.format("update %s set comment_cnt = comment_cnt + 1 where id in (?)", VarProperties.PRODUCTS);
-        jdbcTemplate.update(sql, new Object[]{ids});
+        final String sql = String.format("update %s set comment_cnt = comment_cnt + 1 where id in (:ids)", VarProperties.PRODUCTS);
+        namedParameterJdbcTemplate.update(sql, Collections.singletonMap("ids", ids));
     }
 
     public List<ProductListItem> search(SearchRequest searchRequest, int pageSize, int pageNum, String pageType) {
@@ -228,11 +242,30 @@ public class ProductDao {
 
         params.add(startIndex);
         params.add(pageSize);
-        final String sql = String.format("select t1.id as id, t1.name as name ,sanzhung,show_able,stock,origin_price,current_price,profile_img,sales_cnt, zhuanqu_id, t2.enable as zhuanquenable, zhunqu_price " +adminPageColumns +
+        final String sql = String.format("select t1.id as id, t1.name as name ,sanzhung,show_able,stock,origin_price,current_price,profile_img,sales_cnt, zhuanqu_id, t2.enable as zhuanquenable, zhuanqu_price , zhuanqu_endTime" +adminPageColumns +
                 " from %s as t1 left join %s as t2 on t1.zhuanqu_id = t2.id " +
-                " where t1.show_able = ? and name like ? %s %s order by t1.sort asc limit ?, ?", VarProperties.PRODUCTS, VarProperties.PRODUCT_ZHUANQU_CATEGORY,
+                " where t1.show_able = ? and t1.name like ? %s %s order by t1.sort asc limit ?, ?", VarProperties.PRODUCTS, VarProperties.PRODUCT_ZHUANQU_CATEGORY,
                 filterByFirstCategory, filterBySecondCategory);
 
         return jdbcTemplate.query(sql, params.toArray(), new ProductListItem.ProductListItemRowMapper());
+    }
+
+    public List<ProductListItem> getTop6ProductsByZhuanQuIds(List<Integer> zhuanquIds) {
+        final String sql = String.format("select t1.id as id, t1.name as name ,sanzhung,stock,show_able,origin_price,current_price,profile_img,sales_cnt, zhuanqu_id, t2.enable as zhuanquenable, zhuanqu_price,zhuanqu_endTime" +
+                " from %s as t1 left join %s as t2 on t1.zhuanqu_id = t2.id " +
+                " where zhuanqu_id in (:ids) and show_able = true and zhuanqu_endTime > :time", VarProperties.PRODUCTS, VarProperties.PRODUCT_ZHUANQU_CATEGORY);
+        HashMap<String, Object> pams = new HashMap<>();
+        pams.put("ids", zhuanquIds);
+        pams.put("time", new Date().getTime());
+        return namedParameterJdbcTemplate.query(sql, pams, new ProductListItem.ProductListItemRowMapper());
+    }
+
+    public Integer getProductIdByCode(String code) {
+        final String sql = String.format("select id from %s where code = ? and show_able= true", VarProperties.PRODUCTS);
+        try{
+            return jdbcTemplate.queryForObject(sql, new Object[]{code}, Integer.class);
+        }catch (Exception e){
+            return null;
+        }
     }
 }

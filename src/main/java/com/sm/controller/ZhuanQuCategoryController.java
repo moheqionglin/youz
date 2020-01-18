@@ -1,8 +1,10 @@
 package com.sm.controller;
 
 import com.sm.message.product.KanjiaProductItem;
+import com.sm.message.product.ProductListItem;
 import com.sm.message.product.TejiaProductItem;
 import com.sm.message.product.ZhuanquCategoryItem;
+import com.sm.service.ProductService;
 import com.sm.service.ZhuanQuCategoryService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -29,10 +31,19 @@ public class ZhuanQuCategoryController {
     @Autowired
     private ZhuanQuCategoryService zhuanQuCategoryService;
 
+    @Autowired
+    private ProductService productService;
     @GetMapping(path = "/zhuanqucategory/list")
     @ApiOperation(value = "[获取所有特价/砍价 list] 注意专区id <10 的是保留专区, 如果为空返回空数组")
     public List<ZhuanquCategoryItem> getChildCategoryListByPid(){
         return zhuanQuCategoryService.getZhuanquCategoryList();
+    }
+
+    @GetMapping(path = "/zhuanqucategory/home/page")
+    @ApiOperation(value = "[给首页获取所有enable的专区和top6的商品] 注意专区id <10 的是保留专区, 如果为空返回空数组")
+    public List<ZhuanquCategoryItem> getHomePageZhuanquProducts(){
+
+        return zhuanQuCategoryService.getHomePageZhuanquProducts();
     }
 
     @PostMapping(path = "/zhuanqucategory")
@@ -106,7 +117,7 @@ public class ZhuanQuCategoryController {
     @ApiOperation(value = "[删除特价/砍价商品]")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "categoryid", value = "categoryid", required = true, paramType = "path", dataType = "Integer"),
-            @ApiImplicitParam(name = "productIRestTemplateTestd", value = "productId", required = true, paramType = "path", dataType = "Integer")
+            @ApiImplicitParam(name = "productId", value = "productId", required = true, paramType = "path", dataType = "Integer")
     })
     public void deleteZhuanquCategoryProduct(@Valid @NotNull @PathVariable("categoryid") int categoryid,
                                         @Valid @NotNull @PathVariable("productId") int productId){
