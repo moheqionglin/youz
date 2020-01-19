@@ -455,7 +455,31 @@ from products as t1
          left join product_zhuanqu_category as t2 on t1.zhuanqu_id = t2.id
 where t1.show_able = true
   and id = 1463
-
+select * from products where id = 1463
 select * from products where second_category_id = 15
 zhuanqu_enable
+select * from  roles
+select * from user_tokes
+select * from user_roles
 
+select * from products where show_able = false and second_category_id = 16
+select * from products where name like '%删除%'
+select * from product_category where id =105
+
+
+select id,sort from products where id = 578
+select id, sort from products order by sort
+
+select id from products where sort = 522
+select sort, count(1) from products
+group by sort having count(1) > 1
+
+select
+select sort, id , show_able from products order by sort asc
+select * from products where name like '%删除%'
+select * from products order by id desc where second_category_id = 105
+select * from product_suppliers
+
+select * from product_suppliers
+
+select * from product_category where id= 53

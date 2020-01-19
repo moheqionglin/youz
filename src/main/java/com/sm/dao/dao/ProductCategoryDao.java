@@ -60,6 +60,10 @@ public class ProductCategoryDao {
      */
     public List<ProductCategory> getLCategoryByParentId(int parentCategoryId){
         String sql = "select id,name, image , sort,parent_id from product_category where parent_id = ?";
+        if(parentCategoryId == -1){
+            sql = "select id,name, image , sort,parent_id from product_category where parent_id != ?";
+            parentCategoryId = 0;
+        }
         return jdbcTemplate.query(sql, new Object[]{parentCategoryId}, new ProductCategoryRowMapper());
     }
 

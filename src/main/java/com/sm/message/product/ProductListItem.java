@@ -30,6 +30,7 @@ public class ProductListItem {
     private boolean zhuanquEnable;
     private BigDecimal zhuanquPrice;
     private boolean showAble;
+    private int sort;
     public static class ProductListItemRowMapper implements RowMapper<ProductListItem> {
         @Override
         public ProductListItem mapRow(ResultSet resultSet, int i) throws SQLException {
@@ -42,6 +43,9 @@ public class ProductListItem {
             }
             if(existsColumn(resultSet, "sanzhung")){
                 product.setSanzhung(resultSet.getBoolean("sanzhung"));
+            }
+            if(existsColumn(resultSet, "sort")){
+                product.setSort(resultSet.getInt("sort"));
             }
             if(existsColumn(resultSet, "size")){
                 product.setSize(resultSet.getString("size"));
@@ -142,6 +146,14 @@ public class ProductListItem {
 
     public BigDecimal getOriginPrice() {
         return originPrice;
+    }
+
+    public int getSort() {
+        return sort;
+    }
+
+    public void setSort(int sort) {
+        this.sort = sort;
     }
 
     public void setOriginPrice(BigDecimal originPrice) {

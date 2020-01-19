@@ -47,10 +47,11 @@ public class ProductDao {
             filterByCategory = " and zhuanqu_id = ? ";
         }
 
-        String adminPageColumns = "ADMIN".equalsIgnoreCase(pageType) ? ", t1.size as size, t1.cost_price as cost_price" : "";
+        String adminPageColumns = "ADMIN".equalsIgnoreCase(pageType) ? ", t1.size as size, t1.sort as sort, t1.cost_price as cost_price" : "";
+        String sort = "ADMIN".equalsIgnoreCase(pageType) ? "order by t1.sort asc " : "order by t1.sales_cnt desc, t1.sort asc ";
         final String sql = String.format("select t1.id as id, t1.name as name ,sanzhung,show_able,stock,origin_price,current_price,profile_img,sales_cnt, zhuanqu_id, t2.enable as zhuanquenable, zhuanqu_price,zhuanqu_endTime " + adminPageColumns +
                 " from %s as t1 left join %s as t2 on t1.zhuanqu_id = t2.id " +
-                " where t1.show_able = ? %s order by t1.sales_cnt desc, t1.sort asc limit ?, ?", VarProperties.PRODUCTS, VarProperties.PRODUCT_ZHUANQU_CATEGORY, filterByCategory);
+                " where t1.show_able = ? %s %s limit ?, ?", VarProperties.PRODUCTS, VarProperties.PRODUCT_ZHUANQU_CATEGORY, filterByCategory, sort);
         Object[] pams = new Object[]{isShow, categoryId, startIndex, pageSize};
         if(ProductController.CategoryType.ALL.equals(categoryType)){
             pams = new Object[]{isShow, startIndex, pageSize};
@@ -91,7 +92,7 @@ public class ProductDao {
 
     public CreateProductRequest getEditDetail(int productId) {
         final String sql = String.format("select t1.id as id, t1.name as name ,size, second_category_id, sanzhung,show_able, code, stock,origin_price,cost_price,current_price,profile_img,lunbo_imgs,detail_imgs,sales_cnt, t2.name as supplierName , t2.id as  supplierId "+
-                " from %s as t1 left join %s as t2 on t1.zhuanqu_id = t2.id " +
+                " from %s as t1 left join %s as t2 on t1.supplier_id = t2.id " +
                 " where t1.id = ? ", VarProperties.PRODUCTS, VarProperties.PRODUCT_SUPPLIERS);
         return jdbcTemplate.query(sql, new Object[]{productId}, new CreateProductRequest.CreateProductRequestRowMapper()).stream().findFirst().orElse(null);
     }
@@ -115,15 +116,17 @@ public class ProductDao {
 
     public void update(CreateProductRequest product) {
 
-        final String sql = String.format("update %s set name = :name, size = :size, second_category_id = :second_category_id," +
-                " sanzhung = :sanzhung, code=:code, stock=:stock, origin_price=:origin_price," +
-                "cost_price=:cost_price, current_price=:current_price, profile_img=:profile_img, lunbo_imgs=:lunbo_imgs, " +
-                "detail_imgs=:detail_imgs, supplier_id=:supplier_id where id = :id", VarProperties.PRODUCTS);
+        final String sql = String.format("update %s set name = :name, size = :size, second_category_id = :second_category_id, first_category_id = :first_category_id" +
+                " ,sanzhung = :sanzhung, show_able = :show_able, code=:code, stock=:stock, origin_price=:origin_price , " +
+                " cost_price =:cost_price, current_price=:current_price, profile_img=:profile_img, lunbo_imgs=:lunbo_imgs, " +
+                " detail_imgs=:detail_imgs, supplier_id=:supplier_id where id = :id", VarProperties.PRODUCTS);
         HashMap<String, Object> parsms = new HashMap<>();
         parsms.put("name", product.getName());
         parsms.put("size", product.getSize());
         parsms.put("second_category_id", product.getSecondCategoryId());
+        parsms.put("first_category_id", product.getFirstCategoryId());
         parsms.put("sanzhung", product.isSanzhung());
+        parsms.put("show_able", product.isShowable());
         parsms.put("code", product.getCode());
         parsms.put("stock", product.getStock());
         parsms.put("origin_price", product.getOriginPrice());

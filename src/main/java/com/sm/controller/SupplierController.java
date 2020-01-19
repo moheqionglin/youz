@@ -25,7 +25,7 @@ import java.util.List;
  * @time 2020-01-11 19:54
  */
 @RestController
-@Api(tags={"product"})
+@Api(tags={"supplier"})
 @RequestMapping("/api/v1/")
 public class SupplierController {
     @Autowired

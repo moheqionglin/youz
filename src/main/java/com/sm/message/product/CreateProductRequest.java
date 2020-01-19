@@ -82,8 +82,8 @@ public class CreateProductRequest {
             if(existsColumn(resultSet, "sanzhung")){
                 product.setSanzhung(resultSet.getBoolean("sanzhung"));
             }
-            if(existsColumn(resultSet, "showable")){
-                product.setShowable(resultSet.getBoolean("showable"));
+            if(existsColumn(resultSet, "show_able")){
+                product.setShowable(resultSet.getBoolean("show_able"));
             }
             if(existsColumn(resultSet, "second_category_id")){
                 product.setSecondCategoryId(resultSet.getInt("second_category_id"));
@@ -94,14 +94,14 @@ public class CreateProductRequest {
             if(existsColumn(resultSet, "stock")){
                 product.setStock(resultSet.getInt("stock"));
             }
-            if(existsColumn(resultSet, "originPrice")){
-                product.setOriginPrice(resultSet.getBigDecimal("originPrice"));
+            if(existsColumn(resultSet, "origin_price")){
+                product.setOriginPrice(resultSet.getBigDecimal("origin_price"));
             }
-            if(existsColumn(resultSet, "currentPrice")){
-                product.setCurrentPrice(resultSet.getBigDecimal("currentPrice"));
+            if(existsColumn(resultSet, "current_price")){
+                product.setCurrentPrice(resultSet.getBigDecimal("current_price"));
             }
-            if(existsColumn(resultSet, "costPrice")){
-                product.setCostPrice(resultSet.getBigDecimal("costPrice"));
+            if(existsColumn(resultSet, "cost_price")){
+                product.setCostPrice(resultSet.getBigDecimal("cost_price"));
             }
             if(existsColumn(resultSet, "profile_img")){
                 product.setProfileImg(resultSet.getString("profile_img"));

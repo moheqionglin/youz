@@ -83,7 +83,7 @@ public class ProductController {
         productService.shangxiajia(productId, showable);
     }
 
-    @PutMapping(path = "/product/{productid1}/{sort1}/{productid2}/{sort2}sort/")
+    @PutMapping(path = "/product/{productid1}/{sort1}/{productid2}/{sort2}/sort")
     @PreAuthorize("hasAuthority('ADMIN')")
     @ApiOperation(value = "[商品排序] 入参是最终结果， 前端做交换")
     @ApiImplicitParams({
@@ -95,7 +95,7 @@ public class ProductController {
     public void sort(@Valid @NotNull @PathVariable("productid1") int productId1,
                        @Valid @NotNull @PathVariable("sort1") int sort1,
                      @Valid @NotNull @PathVariable("productid2") int productId2,
-                     @Valid @NotNull @PathVariable("productid2") int sort2){
+                     @Valid @NotNull @PathVariable("sort2") int sort2){
         productService.updateSort(productId1, sort1, productId2, sort2);
     }
 

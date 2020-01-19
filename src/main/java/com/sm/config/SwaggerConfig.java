@@ -39,6 +39,7 @@ public class SwaggerConfig {
             new Tag("lunbo", "轮播"),
             new Tag("search", "搜索"),
             new Tag("comment", "评论"),
+            new Tag("supplier", "供应商"),
 
         };
     }

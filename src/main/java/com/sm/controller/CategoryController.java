@@ -28,7 +28,7 @@ public class CategoryController {
     private CategoryService categoryService;
 
     @GetMapping(path = "/category/{parentId}/childlist")
-    @ApiOperation(value = "[根据父id获取所有分类] 如果parendId为0就是获取所有一级分类")
+    @ApiOperation(value = "[根据父id获取所有分类] 如果parendId为0就是获取所有一级分类, -1 代表获取所有二级分类")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "parentId", value = "parentId", required = true, paramType = "path", dataType = "Integer")
     })
