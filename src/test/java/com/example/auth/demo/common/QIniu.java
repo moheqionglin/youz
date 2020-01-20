@@ -17,9 +17,9 @@ public class QIniu {
     public void atest(){
         //https://developer.qiniu.com/kodo/sdk/1283/javascript
         //Region.region0() 华东
-        String accessKey = "amtEOsSrfMORu128wsKxhjUPJfaZlptyP3SbYt97";
-        String secretKey = "jijbGuNnZYO9AAtfh2QDdEeQuDV-F-trRlEIJCfO";
-        String bucketName = "suimeikeji";
+        String accessKey = "";
+        String secretKey = "-F-trRlEIJCfO";
+        String bucketName = "";
         String key = "tmp";
         Configuration cfg = new Configuration(Region.region0());
         UploadManager uploadManager = new UploadManager(cfg);

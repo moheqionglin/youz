@@ -27,9 +27,9 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 
     @Autowired
     private UserService userService;
-    @Value("{sm.wx.appid:wxdc49b5ed19221a05}")
+    @Value("{sm.wx.appid}")
     private String appid;
-    @Value("${sm.wx.appsec:98bfb0a3f0025ac71dc6d1bda3c939f0}")
+    @Value("${sm.wx.appsec}")
     private String sec;
     @Value("${sm.wx.grant_type:authorization_code}")
     private String grant_type;
