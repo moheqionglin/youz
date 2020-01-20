@@ -18,8 +18,9 @@ public enum  HttpYzCode {
     ORDER_JIANHUO_REPEAT(430, "订单已经被其他检货员认领"),
 
     ORDER_NO_JIANHUO(431, "订单没有检货员认领"),
-    ORDER_JIANHUO_NOT_CURRENT_ORDER(432, "自己不是该订单的拣货员");
+    ORDER_JIANHUO_NOT_CURRENT_ORDER(432, "自己不是该订单的拣货员"),
 
+    CATEGORY_HAS_CHILD(440, "分类下面有资源");
     private int code;
     private String messsage;
 

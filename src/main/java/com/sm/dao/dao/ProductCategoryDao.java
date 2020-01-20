@@ -104,4 +104,14 @@ public class ProductCategoryDao {
 
 
     }
+
+    public long countSecondCategoryByFirstCategoryId(int categoryid) {
+        final String sql = String.format("select count(1) from %s where parent_id = ?", VarProperties.PRODUCT_CATEGORY);
+        return jdbcTemplate.queryForObject(sql, new Object[]{categoryid}, Long.class);
+    }
+
+    public long countProdcutBySecondCategoryId(int categoryid) {
+        final String sql = String.format("select count(1) from %s where second_category_id = ?", VarProperties.PRODUCTS);
+        return jdbcTemplate.queryForObject(sql, new Object[]{categoryid}, Long.class);
+    }
 }

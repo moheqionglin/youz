@@ -31,6 +31,7 @@ public class ProductListItem {
     private BigDecimal zhuanquPrice;
     private boolean showAble;
     private int sort;
+
     public static class ProductListItemRowMapper implements RowMapper<ProductListItem> {
         @Override
         public ProductListItem mapRow(ResultSet resultSet, int i) throws SQLException {

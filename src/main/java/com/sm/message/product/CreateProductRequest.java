@@ -62,6 +62,7 @@ public class CreateProductRequest {
     @NotEmpty
     private List<String> detailImgs;
 
+    private String imgToken;
     public static class CreateProductRequestRowMapper  implements RowMapper<CreateProductRequest> {
 
         @Override
@@ -174,6 +175,14 @@ public class CreateProductRequest {
 
     public boolean isSanzhung() {
         return sanzhung;
+    }
+
+    public String getImgToken() {
+        return imgToken;
+    }
+
+    public void setImgToken(String imgToken) {
+        this.imgToken = imgToken;
     }
 
     public Integer getFirstCategoryId() {

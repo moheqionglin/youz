@@ -1,7 +1,12 @@
 package com.sm.service;
 
+import com.qiniu.util.Auth;
+import com.qiniu.util.StringMap;
 import com.sm.message.order.CartItemInfo;
 import com.sm.message.product.ProductListItem;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -12,7 +17,19 @@ import java.util.List;
  * @description
  * @time 2020-01-14 22:24
  */
+@Component
 public class ServiceUtil {
+    @Value("${q.n.bucket}")
+    String bucketName;
+
+    @Autowired
+    private Auth auth;
+    public String getNewImgToken(){
+        StringMap policy = new StringMap();
+        policy.put("insertOnly", 1);
+        return auth.uploadToken(bucketName, null, 3600 * 2, policy, true);
+    }
+
     public static String zhuanquName(int zhuanquId, boolean zhuanquEnable, Long zhuanquEndTime){
         if(!zhuanquEnable || zhuanquEndTime == null || new Date().getTime() > zhuanquEndTime){
             return "";

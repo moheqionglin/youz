@@ -1,5 +1,6 @@
 package com.sm.service;
 
+import com.qiniu.util.StringMap;
 import com.sm.controller.ProductController;
 import com.sm.dao.dao.ProductCategoryDao;
 import com.sm.dao.dao.ProductDao;
@@ -33,6 +34,10 @@ public class ProductService {
 
     @Autowired
     private SearchService searchService;
+
+
+    @Autowired
+    private ServiceUtil serviceUtil;
     /**
      * 获取不包含 下架商品的列表
      * @param isShow
@@ -119,7 +124,7 @@ public class ProductService {
                 request.setSecondCategoryName(ci.getChildItems().get(0).getName());
             }
         }
-
+        request.setImgToken(serviceUtil.getNewImgToken());
         return request;
     }
 

@@ -5,6 +5,11 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
+import com.qiniu.storage.Configuration;
+import com.qiniu.storage.Region;
+import com.qiniu.storage.UploadManager;
+import com.qiniu.util.Auth;
+import com.qiniu.util.StringMap;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -20,6 +25,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import javax.net.ssl.SSLContext;
+import javax.validation.Valid;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -40,6 +46,11 @@ public class YzApplication {
 	// 信息读取超时时间
 	@Value("${rest.read.timeout:6000}")
 	private Integer readTimeout;
+
+	@Value("${q.n.k}")
+	String accessKey ;
+	@Value("${q.n.s}")
+	String secretKey;
 
 	@Bean
 	public RestTemplate registerTemplate() {
@@ -93,6 +104,13 @@ public class YzApplication {
 		return messageConverters;
 	}
 
+	@Bean
+	public Auth qnAuth(){
+		Configuration cfg = new Configuration(Region.region0());
+		UploadManager uploadManager = new UploadManager(cfg);
+		Auth auth = Auth.create(accessKey, secretKey);
+		return auth;
+	}
 
 	public static void main(String[] args) {
 		SpringApplication.run(YzApplication.class, args);

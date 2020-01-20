@@ -1,12 +1,17 @@
 package com.sm.service;
 
+import com.sm.controller.CategoryController;
+import com.sm.controller.HttpYzCode;
 import com.sm.dao.dao.ProductCategoryDao;
+import com.sm.dao.dao.ProductDao;
 import com.sm.dao.domain.ProductCategory;
 import com.sm.message.product.CategoryItem;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -20,7 +25,8 @@ import java.util.stream.Collectors;
 public class CategoryService {
     @Autowired
     private ProductCategoryDao productCategoryDao;
-
+    @Autowired
+    private ProductDao productDao;
 
     public List<CategoryItem> getChildListByParentId(int parendId) {
         return productCategoryDao.getLCategoryByParentId(parendId).stream().map(pc -> new CategoryItem(pc)).collect(Collectors.toList());
@@ -34,8 +40,21 @@ public class CategoryService {
         productCategoryDao.update(productCategoryItem.generateProductCategory());
     }
 
-    public void delete(int categoryid) {
+    public ResponseEntity delete(CategoryController.CategoryDeleteType type, int categoryid) {
+        long cnt = 0;
+        switch (type){
+            case FIRST:
+                cnt = productCategoryDao.countSecondCategoryByFirstCategoryId(categoryid);
+                break;
+            case SECOND:
+                cnt = productCategoryDao.countProdcutBySecondCategoryId(categoryid);
+                break;
+        }
+        if(cnt > 0){
+            return ResponseEntity.status(HttpYzCode.CATEGORY_HAS_CHILD.getCode()).build();
+        }
         productCategoryDao.delete(categoryid);
+        return ResponseEntity.ok().build();
     }
 
     public CategoryItem getProductCategory(int catalogid) {
@@ -49,11 +68,18 @@ public class CategoryService {
     public List<CategoryItem> getAllCategory() {
         List<ProductCategory> allCategory = productCategoryDao.getAllCategory();
         List<CategoryItem> result = new ArrayList<>();
+        HashMap<Integer, Integer> id2ProductCnt = productDao.countBySecondCategoryId();
         Map<Integer, List<CategoryItem>> map = allCategory.stream().map(c -> new CategoryItem(c))
                 .collect(Collectors.groupingBy(CategoryItem::getParentId));
         result.addAll(map.get(0));
         result.stream().forEach(c -> {
             c.setChildItems(map.get(c.getId()));
+            if(c.getChildItems() != null){
+                c.getChildItems().stream().forEach(cc -> {
+                    Integer cnt = id2ProductCnt.get(cc.getId());
+                    cc.setProductCnt(cnt == null ? 0 : cnt);
+                });
+            }
         });
         return result;
     }

@@ -23,9 +23,10 @@ public class CategoryItem {
     private String image;
     @NotNull
     private int sort;
-    @NotNull
+
     private Integer parentId;
 
+    private int productCnt;
     List<CategoryItem> childItems = new ArrayList<>();
 
     public CategoryItem() {
@@ -64,6 +65,14 @@ public class CategoryItem {
 
     public String getImage() {
         return image;
+    }
+
+    public int getProductCnt() {
+        return productCnt;
+    }
+
+    public void setProductCnt(int productCnt) {
+        this.productCnt = productCnt;
     }
 
     public void setImage(String image) {

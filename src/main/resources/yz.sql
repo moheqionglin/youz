@@ -482,4 +482,8 @@ select * from product_suppliers
 
 select * from product_suppliers
 
-select * from product_category where id= 53
+select * from product_category where id = 15
+
+select second_category_id as id, count(1) as cnt from products group by second_category_id
+
+select * from products order by id desc

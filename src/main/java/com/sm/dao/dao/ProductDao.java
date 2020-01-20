@@ -149,14 +149,15 @@ public class ProductDao {
         }
 
 
-
-        final String sql = String.format("insert into %s (name,size,second_category_id,sanzhung,code,stock,origin_price,cost_price,current_price,supplier_id, sort, profile_img, lunbo_imgs ,detail_imgs) values(" +
-                ":name,:size,:second_category_id,:sanzhung,:code,:stock,:origin_price,:cost_price,:current_price,:supplier_id, :sort, :profile_img, :lunbo_imgs ,:detail_imgs)", VarProperties.PRODUCTS);
+        final String sql = String.format("insert into %s (name,size,first_category_id,second_category_id,show_able,sanzhung,code,stock,origin_price,cost_price,current_price,supplier_id, sort, profile_img, lunbo_imgs ,detail_imgs) values(" +
+                ":name,:size,:first_category_id, :second_category_id,:show_able,:sanzhung,:code,:stock,:origin_price,:cost_price,:current_price,:supplier_id, :sort, :profile_img, :lunbo_imgs ,:detail_imgs)", VarProperties.PRODUCTS);
         KeyHolder keyHolder = new GeneratedKeyHolder();
         MapSqlParameterSource sqlParameterSource = new MapSqlParameterSource();
         sqlParameterSource.addValue("name", product.getName());
         sqlParameterSource.addValue("size", product.getSize());
+        sqlParameterSource.addValue("first_category_id", product.getFirstCategoryId());
         sqlParameterSource.addValue("second_category_id", product.getSecondCategoryId());
+        sqlParameterSource.addValue("show_able", product.isShowable());
         sqlParameterSource.addValue("sanzhung", product.isSanzhung());
         sqlParameterSource.addValue("code", product.getCode());
         sqlParameterSource.addValue("stock", product.getStock());
@@ -270,5 +271,15 @@ public class ProductDao {
         }catch (Exception e){
             return null;
         }
+    }
+
+    public HashMap<Integer, Integer> countBySecondCategoryId() {
+        final String sql = String.format("select second_category_id as id, count(1) as cnt from %s group by second_category_id", VarProperties.PRODUCTS);
+        List<Map<String, Object>> maps = jdbcTemplate.queryForList(sql);
+        HashMap<Integer, Integer> result = new HashMap<>();
+        maps.stream().forEach(l -> {
+            result.put(Integer.valueOf(l.get("id").toString()), Integer.valueOf(l.get("cnt").toString()));
+        });
+        return result;
     }
 }

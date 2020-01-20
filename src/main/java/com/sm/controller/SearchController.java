@@ -45,8 +45,8 @@ public class SearchController {
     })
     public List<ProductListItem> adminSearch(@Valid @NotNull @RequestParam("page_size") int pageSize,
                                         @Valid @NotNull @RequestParam("page_num") int pageNum,
-                                        @Valid @RequestBody SearchRequest searchRequest){
-        return productService.adminSearch(searchRequest, pageSize, pageNum);
+                                        @Valid @RequestBody SearchRequest search){
+        return productService.adminSearch(search, pageSize, pageNum);
     }
 
     @GetMapping(path = "/search/list")

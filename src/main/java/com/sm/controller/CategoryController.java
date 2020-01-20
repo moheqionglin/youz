@@ -2,11 +2,14 @@ package com.sm.controller;
 
 import com.sm.message.product.CategoryItem;
 import com.sm.service.CategoryService;
+import com.sm.service.ServiceUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import org.hibernate.validator.constraints.URL;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,6 +30,9 @@ public class CategoryController {
     @Autowired
     private CategoryService categoryService;
 
+    @Autowired
+    private ServiceUtil serviceUtil;
+
     @GetMapping(path = "/category/{parentId}/childlist")
     @ApiOperation(value = "[根据父id获取所有分类] 如果parendId为0就是获取所有一级分类, -1 代表获取所有二级分类")
     @ApiImplicitParams({
@@ -43,9 +49,12 @@ public class CategoryController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "categoryItem", value = "categoryItem", required = true, paramType = "body", dataType = "CategoryItem")
     })
-    public void createCategory(@Valid @NotNull @PathVariable("userId") int userId,
-                              @Valid @RequestBody CategoryItem categoryItem){
+    public ResponseEntity createCategory(@Valid @RequestBody CategoryItem categoryItem){
+        if(categoryItem.getParentId() == null){
+            return ResponseEntity.badRequest().build();
+        }
         categoryService.create(categoryItem);
+        return ResponseEntity.ok().build();
     }
 
     @PutMapping(path = "/category")
@@ -54,19 +63,23 @@ public class CategoryController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "productCategoryItem", value = "productCategoryItem", required = true, paramType = "body", dataType = "CategoryItem")
     })
-    public void updateCategory(@Valid @NotNull @PathVariable("userId") int userId,
-                              @Valid @RequestBody CategoryItem productCategoryItem){
+    public ResponseEntity updateCategory( @Valid @RequestBody CategoryItem productCategoryItem){
+        if(productCategoryItem.getId() == null){
+            return ResponseEntity.badRequest().build();
+        }
         categoryService.update(productCategoryItem);
+        return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping(path = "/category/{categoryid}")
+    @DeleteMapping(path = "/category/{type}/{categoryid}")
     @PreAuthorize("hasAuthority('ADMIN')")
     @ApiOperation(value = "[删除category] ")
     @ApiImplicitParams({
+            @ApiImplicitParam(name = "type", value = "type", required = true, paramType = "path", dataType = "CategoryDeleteType"),
             @ApiImplicitParam(name = "categoryid", value = "categoryid", required = true, paramType = "path", dataType = "Integer")
     })
-    public void deleteCategory(@Valid @NotNull @PathVariable("categoryid") int categoryid){
-        categoryService.delete(categoryid);
+    public ResponseEntity deleteCategory(@Valid @NotNull @PathVariable("type") CategoryDeleteType type,  @Valid @NotNull @PathVariable("categoryid") int categoryid){
+        return categoryService.delete(type, categoryid);
     }
 
     @GetMapping(path = "/category/{catalogid}")
@@ -80,9 +93,20 @@ public class CategoryController {
     }
 
     @GetMapping(path = "/category/all")
+    @PreAuthorize("hasAuthority('ADMIN') ")
     @ApiOperation(value = "[获取所有catalog] ")
     public List<CategoryItem> getAllProductCategory(){
-
         return categoryService.getAllCategory();
+    }
+
+    @GetMapping(path = "/category/imgtoken")
+    @PreAuthorize("hasAuthority('ADMIN') ")
+    @ApiOperation(value = "[ ] ")
+    public String gett(){
+        return serviceUtil.getNewImgToken();
+    }
+    public static enum CategoryDeleteType{
+        FIRST,
+        SECOND
     }
 }
