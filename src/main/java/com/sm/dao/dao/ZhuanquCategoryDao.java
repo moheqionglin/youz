@@ -11,6 +11,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -56,5 +57,10 @@ public class ZhuanquCategoryDao {
     public void changeAble(int categoryid, boolean ableType) {
         String sql = String.format("update %s set enable = ? where id = ?", VarProperties.PRODUCT_ZHUANQU_CATEGORY);
         jdbcTemplate.update(sql, new Object[]{ableType, categoryid});
+    }
+
+    public long countProductByZhuanQuIt(int categoryid) {
+        final String sql = String.format("select count(1) from %s where zhuanqu_id = ? and zhuanqu_endTime < ?", VarProperties.PRODUCTS);
+        return jdbcTemplate.queryForObject(sql, new Object[]{categoryid, new Date().getTime()}, Long.class);
     }
 }

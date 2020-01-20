@@ -24,6 +24,11 @@ public class ServiceUtil {
 
     @Autowired
     private Auth auth;
+
+    public static boolean isKanjia(int categoryid) {
+        return categoryid == 1;
+    }
+
     public String getNewImgToken(){
         StringMap policy = new StringMap();
         policy.put("insertOnly", 1);

@@ -167,8 +167,7 @@ public class ProductService {
     }
     public List<ProductListItem> search(Integer userid, String term, int pageSize, int pageNum) {
         SearchRequest searchRequest = new SearchRequest();
-        searchRequest.setFirstCatalog(null);
-        searchRequest.setSecondCatalog(null);
+        searchRequest.setType(SearchRequest.SearchType.ALL);
         searchRequest.setShow(true);
         searchRequest.setSearchTerm(term);
         if(userid != null){

@@ -21,6 +21,16 @@ public class TejiaProductItem {
     @NotNull
     private BigDecimal tejiaPrice;
 
+    private Integer maxKanjiaPerson;
+
+    public Integer getMaxKanjiaPerson() {
+        return maxKanjiaPerson;
+    }
+
+    public void setMaxKanjiaPerson(Integer maxKanjiaPerson) {
+        this.maxKanjiaPerson = maxKanjiaPerson;
+    }
+
     public Integer getProductId() {
         return productId;
     }

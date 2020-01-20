@@ -184,7 +184,7 @@ public class ProductDao {
     }
 
     public void deleteCategoryProduct(int productId) {
-        final String sql = String.format("update %s set zhuanqu_id = null , zhuanqu_price = null, zhuanqu_endTime = null , max_kanjia_person = null? where id = ?", VarProperties.PRODUCTS);
+        final String sql = String.format("update %s set zhuanqu_id = 0 , zhuanqu_price = null, zhuanqu_endTime = null , max_kanjia_person = null where id = ?", VarProperties.PRODUCTS);
         jdbcTemplate.update(sql, new Object[]{productId});
     }
 
@@ -234,22 +234,26 @@ public class ProductDao {
         List<Object> params = new ArrayList<>();
         params.add(searchRequest.isShow());
         params.add("%"+searchRequest.getSearchTerm()+"%");
-        String filterByFirstCategory = "";
-        String filterBySecondCategory = "";
-        if(searchRequest.getFirstCatalog() != null){
-            filterByFirstCategory = " and first_category_id = ?";
-            params.add(searchRequest.getFirstCatalog());
-        }else if(searchRequest.getSecondCatalog() != null){
-            filterBySecondCategory = " and second_category_id = ?";
-            params.add(searchRequest.getSecondCatalog());
+        String filterByCategory = "";
+        if(SearchRequest.SearchType.FIRST.equals(searchRequest.getType())){
+            filterByCategory = " and first_category_id = ?";
+            params.add(searchRequest.getCategoryId());
+        }else if(SearchRequest.SearchType.SECOND.equals(searchRequest.getType())){
+            filterByCategory = " and second_category_id = ?";
+            params.add(searchRequest.getCategoryId());
+        }else if (SearchRequest.SearchType.ZHUAN_QU.equals(searchRequest.getType())){
+            filterByCategory = " and zhuanqu_id = ?";
+            params.add(searchRequest.getCategoryId());
+        }else if (SearchRequest.SearchType.ALL_NOT_ZHUANQU.equals(searchRequest.getType())){
+            filterByCategory = " and zhuanqu_id <=0  ";
         }
 
         params.add(startIndex);
         params.add(pageSize);
         final String sql = String.format("select t1.id as id, t1.name as name ,sanzhung,show_able,stock,origin_price,current_price,profile_img,sales_cnt, zhuanqu_id, t2.enable as zhuanquenable, zhuanqu_price , zhuanqu_endTime" +adminPageColumns +
                 " from %s as t1 left join %s as t2 on t1.zhuanqu_id = t2.id " +
-                " where t1.show_able = ? and t1.name like ? %s %s order by t1.sort asc limit ?, ?", VarProperties.PRODUCTS, VarProperties.PRODUCT_ZHUANQU_CATEGORY,
-                filterByFirstCategory, filterBySecondCategory);
+                " where t1.show_able = ? and t1.name like ? %s order by t1.sort asc limit ?, ?", VarProperties.PRODUCTS, VarProperties.PRODUCT_ZHUANQU_CATEGORY,
+                filterByCategory);
 
         return jdbcTemplate.query(sql, params.toArray(), new ProductListItem.ProductListItemRowMapper());
     }

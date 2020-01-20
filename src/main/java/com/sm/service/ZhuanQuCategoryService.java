@@ -1,5 +1,6 @@
 package com.sm.service;
 
+import com.sm.controller.HttpYzCode;
 import com.sm.dao.dao.ProductDao;
 import com.sm.dao.dao.ZhuanquCategoryDao;
 import com.sm.dao.domain.ProductZhuanQuCategory;
@@ -8,6 +9,7 @@ import com.sm.message.product.ProductListItem;
 import com.sm.message.product.TejiaProductItem;
 import com.sm.message.product.ZhuanquCategoryItem;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -45,8 +47,12 @@ public class ZhuanQuCategoryService {
         tejiaCategoryDao.update(productCategoryItem);
     }
 
-    public void delete(int categoryid) {
+    public ResponseEntity delete(int categoryid) {
+        if(tejiaCategoryDao.countProductByZhuanQuIt(categoryid) > 0){
+            return ResponseEntity.status(HttpYzCode.CATEGORY_HAS_CHILD.getCode()).build();
+        }
         tejiaCategoryDao.delete(categoryid);
+        return ResponseEntity.ok().build();
     }
 
     public void disableCategory(int categoryid, boolean ableType) {

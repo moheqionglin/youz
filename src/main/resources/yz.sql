@@ -122,7 +122,7 @@ create table products(
     sales_cnt int default 0,
     comment_cnt int default 0,
 
-    zhuanqu_id int comment '专区ID',
+    zhuanqu_id int default 0 comment '专区ID',
     zhuanqu_price decimal(10,2) comment '专区价格(砍价底价)',
     zhuanqu_endTime bigint comment '特价结束时间',
     max_kanjia_person int default 0 comment '最多支持多少人砍价',
@@ -479,11 +479,15 @@ select sort, id , show_able from products order by sort asc
 select * from products where name like '%删除%'
 select * from products order by id desc where second_category_id = 105
 select * from product_suppliers
-
+alter table products col
 select * from product_suppliers
 
 select * from product_category where id = 15
-
+select * from product_zhuanqu_category
 select second_category_id as id, count(1) as cnt from products group by second_category_id
 
-select * from products order by id desc
+select * from products where name = '伊然 零脂肪柚子味饮料500ml买1送1'
+
+
+select * from products where zhuanqu_id > 0
+

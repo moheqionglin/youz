@@ -31,6 +31,7 @@ public class ProductListItem {
     private BigDecimal zhuanquPrice;
     private boolean showAble;
     private int sort;
+    private int maxKanjiaPerson;
 
     public static class ProductListItemRowMapper implements RowMapper<ProductListItem> {
         @Override
@@ -47,6 +48,9 @@ public class ProductListItem {
             }
             if(existsColumn(resultSet, "sort")){
                 product.setSort(resultSet.getInt("sort"));
+            }
+            if(existsColumn(resultSet, "max_kanjia_person")){
+                product.setMaxKanjiaPerson(resultSet.getInt("max_kanjia_person"));
             }
             if(existsColumn(resultSet, "size")){
                 product.setSize(resultSet.getString("size"));
@@ -95,6 +99,14 @@ public class ProductListItem {
                 return false;
             }
         }
+    }
+
+    public int getMaxKanjiaPerson() {
+        return maxKanjiaPerson;
+    }
+
+    public void setMaxKanjiaPerson(int maxKanjiaPerson) {
+        this.maxKanjiaPerson = maxKanjiaPerson;
     }
 
     public boolean isShowAble() {

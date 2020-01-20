@@ -19,12 +19,13 @@ public class ZhuanquCategoryItem {
     private String name;
     @Length(max = 200)
     private String image;
-    @NotNull
     private boolean deleteAble;
-    @NotNull
     private boolean enable;
 
     private List<ProductListItem> top6 = new ArrayList<>();
+
+    public ZhuanquCategoryItem() {
+    }
 
     public ZhuanquCategoryItem(ProductZhuanQuCategory t) {
         this.id = t.getId();
@@ -42,6 +43,7 @@ public class ZhuanquCategoryItem {
         t.setDeleteable(this.deleteAble);
         return t;
     }
+
     public Integer getId() {
         return id;
     }

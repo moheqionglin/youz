@@ -5,12 +5,15 @@ import com.sm.message.product.ProductListItem;
 import com.sm.message.product.TejiaProductItem;
 import com.sm.message.product.ZhuanquCategoryItem;
 import com.sm.service.ProductService;
+import com.sm.service.ServiceUtil;
 import com.sm.service.ZhuanQuCategoryService;
+import com.sm.utils.SmUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -52,8 +55,8 @@ public class ZhuanQuCategoryController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "category", value = "category", required = true, paramType = "body", dataType = "ZhuanquCategoryItem")
     })
-    public Integer createCategory(@Valid @RequestBody ZhuanquCategoryItem productZhuanquCategoryItem){
-        return zhuanQuCategoryService.create(productZhuanquCategoryItem);
+    public Integer createCategory(@Valid @RequestBody ZhuanquCategoryItem category){
+        return zhuanQuCategoryService.create(category);
     }
 
     @PutMapping(path = "/zhuanqucategory")
@@ -62,8 +65,12 @@ public class ZhuanQuCategoryController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "category", value = "category", required = true, paramType = "body", dataType = "ZhuanquCategoryItem")
     })
-    public void updateCategory(@Valid @RequestBody ZhuanquCategoryItem productCategoryItem){
-        zhuanQuCategoryService.update(productCategoryItem);
+    public ResponseEntity updateCategory(@Valid @RequestBody ZhuanquCategoryItem category){
+        if(category.getId() == null){
+            return ResponseEntity.badRequest().build();
+        }
+        zhuanQuCategoryService.update(category);
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping(path = "/zhuanqucategory/{categoryid}")
@@ -72,8 +79,8 @@ public class ZhuanQuCategoryController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "categoryid", value = "categoryid", required = true, paramType = "path", dataType = "Integer")
     })
-    public void deleteCategory(@Valid @NotNull @PathVariable("categoryid") int categoryid){
-        zhuanQuCategoryService.delete(categoryid);
+    public ResponseEntity deleteCategory(@Valid @NotNull @PathVariable("categoryid") int categoryid){
+        return zhuanQuCategoryService.delete(categoryid);
     }
 
     @PutMapping(path = "/zhuanqucategory/{categoryid}/{ableType}")
@@ -95,9 +102,16 @@ public class ZhuanQuCategoryController {
             @ApiImplicitParam(name = "categoryid", value = "categoryid", required = true, paramType = "path", dataType = "Integer"),
             @ApiImplicitParam(name = "product", value = "product", required = true, paramType = "body", dataType = "TejiaProductItem")
     })
-    public void addTejiaCategoryProduct(@Valid @NotNull @PathVariable("categoryid") int categoryid,
-                                        @Valid @RequestBody TejiaProductItem tejiaProductItem){
-        zhuanQuCategoryService.addCategoryProduct(categoryid, tejiaProductItem);
+    public ResponseEntity addTejiaCategoryProduct(@Valid @NotNull @PathVariable("categoryid") int categoryid,
+                                        @Valid @RequestBody TejiaProductItem product){
+        if(ServiceUtil.isKanjia(categoryid) && product.getMaxKanjiaPerson() == null || product.getMaxKanjiaPerson() <=0){
+            return ResponseEntity.badRequest().build();
+        }
+        if(product.getCategoryId() != categoryid){
+            return ResponseEntity.badRequest().build();
+        }
+        zhuanQuCategoryService.addCategoryProduct(categoryid, product);
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping(path = "/zhuanqucategory/{categoryid}/kanjia/product")

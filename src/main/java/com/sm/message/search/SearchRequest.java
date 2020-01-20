@@ -16,9 +16,18 @@ public class SearchRequest {
     @NotNull
     private boolean show;
 
-    private Integer firstCatalog;
-    private Integer secondCatalog;
+    private Integer categoryId;
+    @NotNull
+    private SearchType type;
 
+
+    public static enum SearchType {
+        ALL,
+        FIRST,
+        SECOND,
+        ALL_NOT_ZHUANQU,
+        ZHUAN_QU
+    }
     public String getSearchTerm() {
         return searchTerm;
     }
@@ -35,19 +44,19 @@ public class SearchRequest {
         this.show = show;
     }
 
-    public Integer getFirstCatalog() {
-        return firstCatalog;
+    public Integer getCategoryId() {
+        return categoryId;
     }
 
-    public void setFirstCatalog(Integer firstCatalog) {
-        this.firstCatalog = firstCatalog;
+    public void setCategoryId(Integer categoryId) {
+        this.categoryId = categoryId;
     }
 
-    public Integer getSecondCatalog() {
-        return secondCatalog;
+    public SearchType getType() {
+        return type;
     }
 
-    public void setSecondCatalog(Integer secondCatalog) {
-        this.secondCatalog = secondCatalog;
+    public void setType(SearchType type) {
+        this.type = type;
     }
 }
