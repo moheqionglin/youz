@@ -3,10 +3,10 @@ package com.sm.service;
 import com.alibaba.fastjson.JSONObject;
 import com.sm.config.ResponseUserToken;
 import com.sm.config.UserDetail;
+import com.sm.controller.HttpYzCode;
 import com.sm.dao.dao.TokenDao;
 import com.sm.dao.domain.UserToken;
 import com.sm.exception.CustomException;
-import com.sm.message.ResultCode;
 import com.sm.message.ResultJson;
 import com.sm.message.WxCode2SessionResponse;
 import com.sm.utils.JwtUtils;
@@ -122,7 +122,7 @@ public class AuthServiceImpl {
             //该方法会去调用userDetailsService.loadUserByUsername()去验证用户名和密码，如果正确，则存储该用户名密码到“security 的 context中”
             return authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(openid, openid));
         } catch (DisabledException | BadCredentialsException e) {
-            throw new CustomException(ResultJson.failure(ResultCode.LOGIN_ERROR, e.getMessage()));
+            throw new CustomException(ResultJson.failure(HttpYzCode.LOGIN_ERROR, e.getMessage()));
         }
     }
 }

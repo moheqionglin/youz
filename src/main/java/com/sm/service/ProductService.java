@@ -4,6 +4,7 @@ import com.qiniu.util.StringMap;
 import com.sm.controller.ProductController;
 import com.sm.dao.dao.ProductCategoryDao;
 import com.sm.dao.dao.ProductDao;
+import com.sm.dao.dao.ShoppingCartDao;
 import com.sm.message.PageResult;
 import com.sm.message.order.OrderCommentsRequest;
 import com.sm.message.product.*;
@@ -29,6 +30,8 @@ public class ProductService {
     @Autowired
     private ProductDao productDao;
 
+    @Autowired
+    private ShoppingCartDao shoppingCartDao;
     @Autowired
     private ProductCategoryDao productCategoryDao;
 
@@ -137,8 +140,10 @@ public class ProductService {
         productDao.shangxiajia(productId, showable);
     }
 
+    @Transactional
     public void delete(int productId) {
         productDao.delete(productId);
+        shoppingCartDao.deleteCartByPid(productId);
     }
 
     public void update(CreateProductRequest product) {

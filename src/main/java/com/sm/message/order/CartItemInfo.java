@@ -19,7 +19,6 @@ public class CartItemInfo {
     private Integer id;
 
     private ProductListItem product;
-    @NotNull
     private Integer userId;
     @NotNull
     private int productCnt;
@@ -28,6 +27,9 @@ public class CartItemInfo {
     private boolean kanjiaProduct;
     @NotNull
     private boolean selected;
+
+    public CartItemInfo() {
+    }
 
     public CartItemInfo(ShoppingCart sc, ProductListItem pli) {
         this.product = pli;

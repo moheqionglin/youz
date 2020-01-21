@@ -1,6 +1,8 @@
 package com.sm.message;
 
 
+import com.sm.controller.HttpYzCode;
+
 import java.io.Serializable;
 
 /**
@@ -13,35 +15,39 @@ public class ResultJson<T> implements Serializable {
     private int code;
     private String msg;
     private T data;
+    private  HttpYzCode hcode;
 
     public static ResultJson ok() {
         return ok("");
     }
 
     public static ResultJson ok(Object o) {
-        return new ResultJson(ResultCode.SUCCESS, o);
+        return new ResultJson(HttpYzCode.SUCCESS, o);
     }
 
-    public static ResultJson failure(ResultCode code) {
+    public static ResultJson failure(HttpYzCode code) {
         return failure(code, "");
     }
 
-    public static ResultJson failure(ResultCode code, Object o) {
+    public static ResultJson failure(HttpYzCode code, Object o) {
         return new ResultJson(code, o);
     }
 
-    public ResultJson (ResultCode resultCode) {
+    private ResultJson (HttpYzCode resultCode) {
+        hcode = resultCode;
         setResultCode(resultCode);
     }
 
-    public ResultJson (ResultCode resultCode,T data) {
+    private ResultJson (HttpYzCode resultCode,T data) {
+        hcode = resultCode;
         setResultCode(resultCode);
         this.data = data;
     }
 
-    public void setResultCode(ResultCode resultCode) {
+    private void setResultCode(HttpYzCode resultCode) {
+        hcode = resultCode;
         this.code = resultCode.getCode();
-        this.msg = resultCode.getMsg();
+        this.msg = resultCode.getMesssage();
     }
 
     public int getCode() {
@@ -66,6 +72,14 @@ public class ResultJson<T> implements Serializable {
 
     public void setData(T data) {
         this.data = data;
+    }
+
+    public HttpYzCode getHcode() {
+        return hcode;
+    }
+
+    public void setHcode(HttpYzCode hcode) {
+        this.hcode = hcode;
     }
 
     @Override

@@ -69,4 +69,9 @@ public class ShoppingCartService {
     public boolean validStock(int cartItemId) {
         return shoppingCartDao.validStock(cartItemId);
     }
+
+    public void updateSelected(Integer userid, int cartId, boolean selected) {
+        shoppingCartDao.updateSelected(userid, cartId, selected);
+
+    }
 }

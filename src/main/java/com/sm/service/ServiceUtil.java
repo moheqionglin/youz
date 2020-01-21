@@ -56,7 +56,7 @@ public class ServiceUtil {
     }
 
     public static BigDecimal calcCartTotalPrice(List<CartItemInfo> cartItems) {
-        return cartItems.stream().filter(c -> c.isSelected()).map(c -> calcCartItemPrice(c)).reduce(BigDecimal.ZERO, BigDecimal::add);
+        return cartItems.stream().filter(c -> c.isSelected()).filter(c -> c.getProduct() != null).map(c -> calcCartItemPrice(c)).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     public static BigDecimal calcCartTotalCost(List<CartItemInfo> cartItems) {
@@ -65,6 +65,9 @@ public class ServiceUtil {
 
     public static BigDecimal calcCartItemPrice(CartItemInfo c) {
         ProductListItem product = c.getProduct();
+        if(product == null){
+            return BigDecimal.ZERO;
+        }
         if(c.isKanjiaProduct() ){
             if(c.getProductCnt() == 1){
                 return c.getCartPrice();

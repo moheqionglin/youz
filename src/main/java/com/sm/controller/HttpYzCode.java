@@ -6,6 +6,20 @@ package com.sm.controller;
  * @time 2020-01-14 21:31
  */
 public enum  HttpYzCode {
+    SUCCESS(200, "成功"),
+
+    BAD_REQUEST(400, "参数或者语法不对"),
+    UNAUTHORIZED(401, "认证失败"),
+    LOGIN_ERROR(401, "登陆失败，用户名或密码无效"),
+    FORBIDDEN(403, "禁止访问"),
+    NOT_FOUND(404, "请求的资源不存在"),
+    OPERATE_ERROR(405, "操作失败，请求操作的资源不存在"),
+
+
+    SERVER_ERROR(500, "服务器内部错误"),
+
+
+
     CART_CNT_EXCEED_LIMIT(406, "购物车超过30个"),
     EXCEED_STOCK(407, "库存不足"),
     PRODUCT_XIAJIA(408, "产品下架"),

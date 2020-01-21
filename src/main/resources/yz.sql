@@ -158,7 +158,7 @@ create table shopping_cart(
     id int auto_increment primary key,
     user_id int not null ,
     product_id int not null ,
-    product_cnt varchar(4000) not null ,
+    product_cnt int not null ,
     cart_price decimal(10,2),
     kanjia_product boolean default false,
     selected boolean default true,
@@ -166,6 +166,7 @@ create table shopping_cart(
 	modified_time timestamp  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
+CREATE UNIQUE INDEX sc_uid_pid_idx ON shopping_cart (user_id,product_id);
 
 -- 订单表：  订单号 |  主订单金额 | 主订单状态 | 主订单已支付金额 | 主订单使用余额金额 |
 -- 主订单使用佣金金额 | 差价订单金额 | 差价订单状态 | 差价订单已支付金额 | 差价订单使用余额金额 |
@@ -481,7 +482,7 @@ select * from products order by id desc where second_category_id = 105
 select * from product_suppliers
 alter table products col
 select * from product_suppliers
-
+select  * from my_search
 select * from product_category where id = 15
 select * from product_zhuanqu_category
 select second_category_id as id, count(1) as cnt from products group by second_category_id
@@ -491,3 +492,26 @@ select * from products where name = '伊然 零脂肪柚子味饮料500ml买1送
 
 select * from products where zhuanqu_id > 0
 
+select * from shopping_cart
+
+select id from shopping_cart where user_id = 1 and product_id = 1721
+
+select t1.id     as id,
+       t1.name   as name,
+       sanzhung,
+       stock,
+       show_able,
+       origin_price,
+       current_price,
+       profile_img,
+       sales_cnt,
+       zhuanqu_id,
+       t2.enable as zhuanquenable,
+       zhuanqu_price
+from products as t1
+         left join product_zhuanqu_category as t2 on t1.zhuanqu_id = t2.id
+where t1.id in (:ids)
+
+delete from shopping_cart where user_id = ? and id in (?)
+
+ select count(1) as pid from shopping_cart t1 left join products t2 on t1.product_id = t2.id where t2.id is not null

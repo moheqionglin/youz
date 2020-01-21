@@ -1,12 +1,14 @@
 package com.sm.controller;
 
 import com.sm.config.UserDetail;
+import com.sm.message.ResultJson;
 import com.sm.message.order.CartInfo;
 import com.sm.message.order.CartItemInfo;
 import com.sm.service.ServiceUtil;
 import com.sm.service.ShoppingCartService;
 import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -64,19 +66,23 @@ public class ShoppingCartController {
     })
     @ApiResponses(value={@ApiResponse(code=406, message="购物车超过30个"), @ApiResponse(code=407, message="库存不足") })
     @Transactional
-    public ResponseEntity<CartInfo> addCart(@Valid @RequestBody CartItemInfo cartItemInfo){
+    public ResultJson<Long> addCart(@Valid @RequestBody CartItemInfo cartItemInfo){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
         int userId = userDetail.getId();
-        if(shoppingCartService.getCartItemsCount(userId) > 30){
-            return ResponseEntity.status(HttpYzCode.CART_CNT_EXCEED_LIMIT.getCode()).build();
+        if(shoppingCartService.getCartItemsCount(userId) >= 30){
+            return ResultJson.failure(HttpYzCode.CART_CNT_EXCEED_LIMIT);
         }
         Integer cartItemId = shoppingCartService.getCartItemId(userId, cartItemInfo.getProduct().getId());
         if(cartItemId != null){
-            return this.updateCount(cartItemId, CountAction.ADD);
+            ResultJson<CartInfo> cie = this.updateCount(cartItemId, CountAction.ADD);
+            if(!HttpYzCode.SUCCESS.equals(cie.getHcode())){
+                return ResultJson.failure(cie.getHcode());
+            }
+        }else{
+            shoppingCartService.addNewCart(userId, cartItemInfo);
         }
-        shoppingCartService.addNewCart(userId, cartItemInfo);
-        return ResponseEntity.ok(this.getAllCartItems());
+        return ResultJson.ok(this.getCartItemsCount());
     }
 
     @PutMapping(path = "/cart/count")
@@ -87,29 +93,42 @@ public class ShoppingCartController {
             @ApiImplicitParam(name = "action", value = "action", required = true, paramType = "query", dataType = "CountAction")
     })
     @ApiResponses(value={@ApiResponse(code=407, message="库存不足") })
-    public ResponseEntity<CartInfo> updateCount(@Valid @NotNull @RequestParam("cartId") int cartItemId,
+    public ResultJson updateCount(@Valid @NotNull @RequestParam("cartId") int cartItemId,
                             @Valid @NotNull @RequestParam("action") CountAction action){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
         if(CountAction.ADD.equals(action) && !shoppingCartService.validStock(cartItemId)){
-            return ResponseEntity.status(HttpYzCode.EXCEED_STOCK.getCode()).build();
+            return ResultJson.failure(HttpYzCode.EXCEED_STOCK);
         }
         shoppingCartService.updateCount(userDetail.getId(), cartItemId, action);
-        return ResponseEntity.ok(this.getAllCartItems());
+        return ResultJson.ok();
     }
 
     @DeleteMapping(path = "/cart")
     @PreAuthorize("hasAuthority('BUYER') ")
     @ApiOperation(value = "[删除购物车] ")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "cartItems", value = "cartItems", required = true, paramType = "query", allowMultiple=true, dataType = "Integer")
+            @ApiImplicitParam(name = "cartItems", value = "cartItems", required = true, paramType = "body", allowMultiple=true, dataType = "Integer")
     })
-    public CartInfo deleteCartItem(@Valid @NotEmpty @RequestParam("cartItems") List<Integer> cartItemIds){
+    public void deleteCartItem(@Valid @NotEmpty @RequestBody List<Integer> cartItemIds){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
-
         shoppingCartService.deleteCartItem(userDetail.getId(), cartItemIds);
-        return this.getAllCartItems();
+    }
+
+    @PutMapping(path = "/cart/{cartId}/checked/{selected}")
+    @PreAuthorize("hasAuthority('BUYER') ")
+    @ApiOperation(value = "选中与否")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "cartId", value = "cartId", required = true, paramType = "path", dataType = "Integer"),
+            @ApiImplicitParam(name = "selected", value = "selected", required = true, paramType = "path", dataType = "Boolean")
+    })
+    public ResultJson updateSelected(@Valid @NotNull @PathVariable("cartId") int cartId,
+                                  @Valid @NotNull @PathVariable("selected") boolean selected){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
+        shoppingCartService.updateSelected(userDetail.getId(), cartId, selected);
+        return ResultJson.ok();
     }
 
     public static enum CountAction{

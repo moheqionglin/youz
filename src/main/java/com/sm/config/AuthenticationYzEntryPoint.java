@@ -1,6 +1,6 @@
 package com.sm.config;
 
-import com.sm.message.ResultCode;
+import com.sm.controller.HttpYzCode;
 import com.sm.message.ResultJson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,11 +29,11 @@ public class AuthenticationYzEntryPoint implements AuthenticationEntryPoint, Ser
                          AuthenticationException authException) throws IOException {
         //验证为未登陆状态会进入此方法，认证错误
         logger.info("匿名用户 无权限资源时的异常 ：" + authException.getMessage());
-        response.setStatus(ResultCode.FORBIDDEN.getCode());
+        response.setStatus(HttpYzCode.FORBIDDEN.getCode());
         response.setCharacterEncoding("UTF-8");
         response.setContentType("application/json; charset=utf-8");
         PrintWriter printWriter = response.getWriter();
-        String body = ResultJson.failure(ResultCode.FORBIDDEN, authException.getMessage()).toString();
+        String body = ResultJson.failure(HttpYzCode.FORBIDDEN, authException.getMessage()).toString();
         printWriter.write(body);
         printWriter.flush();
     }

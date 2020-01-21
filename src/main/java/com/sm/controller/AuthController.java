@@ -1,7 +1,6 @@
 package com.sm.controller;
 
 import com.sm.config.ResponseUserToken;
-import com.sm.message.ResultCode;
 import com.sm.message.ResultJson;
 import com.sm.service.AuthServiceImpl;
 import io.swagger.annotations.Api;
@@ -50,7 +49,7 @@ public class AuthController {
     public ResultJson logout(HttpServletRequest request){
         String token = request.getHeader(tokenHeader);
         if (token == null) {
-            return ResultJson.failure(ResultCode.UNAUTHORIZED);
+            return ResultJson.failure(HttpYzCode.UNAUTHORIZED);
         }
         authService.logout(token);
         return ResultJson.ok();

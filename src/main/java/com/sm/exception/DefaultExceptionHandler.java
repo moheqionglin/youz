@@ -1,6 +1,6 @@
 package com.sm.exception;
 
-import com.sm.message.ResultCode;
+import com.sm.controller.HttpYzCode;
 import com.sm.message.ResultJson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +34,6 @@ public class DefaultExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResultJson handleMethodArgumentNotValidException(MethodArgumentNotValidException e){
         log.error(e.getBindingResult().getFieldError().getField() + e.getBindingResult().getFieldError().getDefaultMessage());
-        return ResultJson.failure(ResultCode.BAD_REQUEST, e.getBindingResult().getFieldError().getDefaultMessage());
+        return ResultJson.failure(HttpYzCode.BAD_REQUEST, e.getBindingResult().getFieldError().getDefaultMessage());
     }
 }

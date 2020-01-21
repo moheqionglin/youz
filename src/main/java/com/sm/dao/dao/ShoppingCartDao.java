@@ -11,6 +11,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -35,7 +36,7 @@ public class ShoppingCartDao {
     }
 
     public Long getCartItemsCount(Integer userID) {
-        final String sql = String.format("select count(1) from %s where user_id = ?", VarProperties.SHOPPING_CART);
+        final String sql = String.format(" select count(1) as pid from %s t1 left join %s t2 on t1.product_id = t2.id where t1.user_id = ? and t2.id is not null ", VarProperties.SHOPPING_CART, VarProperties.PRODUCTS);
         return jdbcTemplate.queryForObject(sql, new Object[]{userID}, Long.class);
     }
 
@@ -54,7 +55,7 @@ public class ShoppingCartDao {
     }
 
     public Integer getCartItemId(int userId, Integer productId) {
-        final String sql1 = String.format("select id from $s where user_id = ? and product_id = ?", VarProperties.SHOPPING_CART);
+        final String sql1 = String.format("select id from %s where user_id = ? and product_id = ?", VarProperties.SHOPPING_CART);
         try{
             return jdbcTemplate.queryForObject(sql1, new Object[]{userId, productId}, Integer.class);
         }catch (Exception e){
@@ -75,19 +76,32 @@ public class ShoppingCartDao {
     }
 
     public void deleteCartItem(int userId, List<Integer> cartItemIds) {
-        final String sql = String.format("delete from %s where user_id = ? and id in (?)", VarProperties.SHOPPING_CART);
-        jdbcTemplate.update(sql, new Object[]{userId, cartItemIds});
+        final String sql = String.format("delete from %s where user_id = :uid and id in (:ids)", VarProperties.SHOPPING_CART);
+        HashMap<String, Object> pams = new HashMap<>();
+        pams.put("uid", userId);
+        pams.put("ids", cartItemIds);
+        namedParameterJdbcTemplate.update(sql, pams);
     }
 
     public boolean validStock(int cartItemId) {
-        final String sql = String.format("select stock, cartCnt from %s t1 left join %s t2 on t1.product_id = t2.id where t1.id = ?", VarProperties.SHOPPING_CART, VarProperties.PRODUCTS);
+        final String sql = String.format("select stock, product_cnt from %s t1 left join %s t2 on t1.product_id = t2.id where t1.id = ?", VarProperties.SHOPPING_CART, VarProperties.PRODUCTS);
         try{
             Map<String, Object> stringObjectMap = jdbcTemplate.queryForMap(sql, new Object[]{cartItemId});
             int stock = (int) stringObjectMap.get("stock");
-            int cartCnt = (int) stringObjectMap.get("cartCnt");
+            int cartCnt = (int) stringObjectMap.get("product_cnt");
             return stock > cartCnt;
         }catch (Exception e){
             return false;
         }
+    }
+
+    public void deleteCartByPid(int productId) {
+        final String sql = String.format("delete from %s where product_id = ?", VarProperties.SHOPPING_CART);
+        jdbcTemplate.update(sql, new Object[]{productId});
+    }
+
+    public void updateSelected(Integer userid, int cartId, boolean selected) {
+        final String sql = String.format("update %s set selected = ? where user_id = ? and id = ? ", VarProperties.SHOPPING_CART);
+        jdbcTemplate.update(sql, new Object[]{selected, userid, cartId});
     }
 }

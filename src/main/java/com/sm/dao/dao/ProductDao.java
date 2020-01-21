@@ -189,9 +189,9 @@ public class ProductDao {
     }
 
     public List<ProductListItem> getAllContanisXiajiaProductsByIds(List<Integer> ids) {
-        final String sql = String.format("select t1.id as id, t1.name as name ,sanzhung,stock,show_able,origin_price,current_price,profile_img,sales_cnt, zhuanqu_id, t2.enable as zhuanquenable, zhuanqu_price " +
+        final String sql = String.format("select t1.id as id, t1.name as name ,sanzhung,stock,show_able,origin_price,current_price,profile_img,sales_cnt, zhuanqu_id, size, t2.enable as zhuanquenable, zhuanqu_price " +
                 " from %s as t1 left join %s as t2 on t1.zhuanqu_id = t2.id " +
-                " where id in (:ids)", VarProperties.PRODUCTS, VarProperties.PRODUCT_ZHUANQU_CATEGORY);
+                " where t1.id in (:ids)", VarProperties.PRODUCTS, VarProperties.PRODUCT_ZHUANQU_CATEGORY);
         return namedParameterJdbcTemplate.query(sql, Collections.singletonMap("ids", ids), new ProductListItem.ProductListItemRowMapper());
     }
 
