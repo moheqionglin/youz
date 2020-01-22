@@ -47,6 +47,8 @@ public class OrderService {
 
     @Autowired
     private ProductService productService;
+    @Autowired
+    private OrderService orderService;
     /**
      *   5. 删除购物车
      * @param userID
@@ -145,13 +147,18 @@ public class OrderService {
         return ResultJson.ok(createOrderInfo.getOrderNum());
     }
 
+    public SimpleOrder getSimpleOrder(String orderNum){
+        return orderDao.getSimpleOrder(orderNum);
+    }
     public ResultJson actionOrder(int userId, String orderNum, OrderController.ActionOrderType actionType) {
         SimpleOrder simpleOrder = orderDao.getSimpleOrder(orderNum);
         if(simpleOrder == null || !simpleOrder.getUserId().equals(userId)){
             return ResultJson.failure(HttpYzCode.ORDER_NOT_EXISTS);
         }
-        if(!(OrderController.BuyerOrderStatus.WAIT_PAY.toString().equalsIgnoreCase(simpleOrder.getStatus()) && OrderController.ActionOrderType.CANCEL_MANUAL.equals(actionType))
-        || (OrderController.BuyerOrderStatus.WAIT_RECEIVE.toString().equalsIgnoreCase(simpleOrder.getStatus()) && OrderController.ActionOrderType.RECEIVE.equals(actionType))){
+        if(!(OrderController.BuyerOrderStatus.WAIT_PAY.toString().equalsIgnoreCase(simpleOrder.getStatus())
+                && OrderController.ActionOrderType.CANCEL_MANUAL.equals(actionType))
+        && !(OrderController.BuyerOrderStatus.WAIT_RECEIVE.toString().equalsIgnoreCase(simpleOrder.getStatus())
+                && OrderController.ActionOrderType.RECEIVE.equals(actionType))){
             return ResultJson.failure(HttpYzCode.ORDER_STATUS_ERROR);
         }
         OrderController.BuyerOrderStatus bysta = null;
@@ -176,7 +183,7 @@ public class OrderService {
          || OrderController.BuyerOrderStatus.WAIT_COMMENT.toString().equalsIgnoreCase(simpleOrder.getStatus()))){
             return ResultJson.failure(HttpYzCode.ORDER_STATUS_ERROR);
         }
-        if(!simpleOrder.getDrawbackStatus().equals(OrderController.DrawbackStatus.NONE)){
+        if(!OrderController.DrawbackStatus.NONE.toString().equals(simpleOrder.getDrawbackStatus())){
             return ResultJson.failure(HttpYzCode.ORDER_DRAWBACK_REPEAT_ERROR);
         }
         orderDao.actionDrawbackStatus(orderNum, OrderController.DrawbackStatus.WAIT_APPROVE);
@@ -244,6 +251,7 @@ public class OrderService {
         return ResultJson.ok(orderDetailInfo);
     }
 
+    @Transactional
     public void commentOrder(int userId, String orderNum, List<OrderCommentsRequest> orderCommentsRequest) {
         List<Integer> ids = orderCommentsRequest.stream().map(r -> r.getOrderItemId()).collect(Collectors.toList());
         List<SimpleOrderItem> oids = orderDao.getSimpleOrderItem(ids);
@@ -256,6 +264,7 @@ public class OrderService {
         });
         productService.createComment(userId, orderCommentsRequest);
         productService.addCommentCount(orderCommentsRequest.stream().map(o -> o.getProductId()).collect(Collectors.toList()));
+        orderDao.finishOrder(orderNum);
     }
 
     public List<OrderListItemInfo> getAdminOrderList(OrderAdminController.AdminOrderStatus orderType, int pageSize, int pageNum) {
@@ -264,31 +273,46 @@ public class OrderService {
         return os;
     }
 
-    public void adminActionOrder(int userId, String orderNum, OrderAdminController.AdminActionOrderType actionType, String attach) {
+    public ResultJson adminActionOrder(int userId, String orderNum, OrderAdminController.AdminActionOrderType actionType, String attach) {
+        SimpleOrder simpleOrder = orderDao.getSimpleOrder(orderNum);
+        if(simpleOrder == null || !simpleOrder.getUserId().equals(userId)){
+            return ResultJson.failure(HttpYzCode.ORDER_NOT_EXISTS);
+        }
         switch (actionType){
             case SEND:
                 orderDao.fahuo(userId, orderNum);
                 break;
             case DRAWBACK_APPROVE_PASS:
-                orderDao.adminApproveDrawback(userId, orderNum, OrderController.DrawbackStatus.APPROVE_PASS, attach);
+                orderDao.adminApproveDrawback(userId, simpleOrder.getId(), orderNum, OrderController.DrawbackStatus.APPROVE_PASS, attach);
                 break;
             case DRAWBACK_APPROVE_FAIL:
-                orderDao.adminApproveDrawback(userId, orderNum, OrderController.DrawbackStatus.APPROVE_REJECT, attach);
+                orderDao.adminApproveDrawback(userId, simpleOrder.getId(), orderNum, OrderController.DrawbackStatus.APPROVE_REJECT, attach);
                 break;
         }
-
+        return ResultJson.ok();
     }
 
     public ResultJson updateChajiaOrder(String orderNum, ChaJiaOrderItemRequest chajia) {
         SimpleOrder simpleOrder = orderDao.getSimpleOrder(orderNum);
-        if(simpleOrder == null || chajia.getOrderId().equals(simpleOrder.getId())){
+        if(simpleOrder == null){
             return ResultJson.failure(HttpYzCode.ORDER_NOT_EXISTS);
         }
         if( OrderAdminController.JianHYOrderStatus.NOT_JIANHUO.toString().equals(simpleOrder.getJianhuoStatus())
         || simpleOrder.getJianhuoyuanId() == null ){
             return ResultJson.failure(HttpYzCode.ORDER_NO_JIANHUO);
         }
-        orderDao.updateChajiaOrder(simpleOrder.getId(), chajia);
+
+        SimpleOrderItem simpleOrderItem = orderDao.getSimpleOrderItem(chajia.getId());
+        if(simpleOrderItem == null){
+            return ResultJson.failure(HttpYzCode.ORDER_NOT_EXISTS);
+        }
+        if(simpleOrderItem.isProductSanZhuang() && (chajia.getChajiaTotalPrice() == null || chajia.getChajiaTotalPrice().compareTo(BigDecimal.ZERO) <= 0 || StringUtils.isBlank(chajia.getChajiaTotalWeight())) ){
+            return ResultJson.failure(HttpYzCode.BAD_REQUEST);
+        }
+        if(simpleOrderItem.isProductSanZhuang()){
+            orderDao.updateChajiaOrder(simpleOrder.getId(), chajia);
+        }
+       orderDao.finishJianhuoItem(simpleOrder.getId(), chajia.getId());
         return ResultJson.ok();
     }
 
@@ -344,5 +368,17 @@ public class OrderService {
         List<OrderListItemInfo> orderListForJianHuoyuan = orderDao.getOrderListForJianHuoyuan(orderType, pageSize, pageNum);
         fillOrderItemImg(orderListForJianHuoyuan);
         return orderListForJianHuoyuan;
+    }
+
+    public ResultJson cancelDrawback(int uid, String orderNum) {
+        SimpleOrder simpleOrder = orderDao.getSimpleOrder(orderNum);
+        if(simpleOrder == null){
+            return ResultJson.failure(HttpYzCode.ORDER_NOT_EXISTS);
+        }
+        if(!OrderController.DrawbackStatus.WAIT_APPROVE.toString().equals(simpleOrder.getDrawbackStatus())){
+            return ResultJson.failure(HttpYzCode.ORDER_STATUS_ERROR);
+        }
+        orderDao.cancelDrawback(orderNum, simpleOrder.getId());
+        return ResultJson.ok();
     }
 }

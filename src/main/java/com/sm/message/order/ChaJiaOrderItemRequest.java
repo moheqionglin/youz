@@ -13,11 +13,7 @@ import java.math.BigDecimal;
 public class ChaJiaOrderItemRequest {
     @NotNull
     private Integer id;
-    @NotNull
-    private Integer orderId;
-    @NotNull
     private String chajiaTotalWeight;
-    @NotNull
     private BigDecimal chajiaTotalPrice;
 
     public Integer getId() {
@@ -26,14 +22,6 @@ public class ChaJiaOrderItemRequest {
 
     public void setId(Integer id) {
         this.id = id;
-    }
-
-    public Integer getOrderId() {
-        return orderId;
-    }
-
-    public void setOrderId(Integer orderId) {
-        this.orderId = orderId;
     }
 
     public String getChajiaTotalWeight() {

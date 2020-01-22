@@ -87,7 +87,7 @@ public class PaymentService {
 				LOGGER.info("【小程序支付】统一下单成功，返回参数:" + resultMap);
 			} else {
 				resultMap.put("returnCode", resMap.get("return_code"));
-				resultMap.put("returnMsg", resMap.get("return_msg"));
+				resultMap.put("returnMsg", resMap.get("err_code_des"));
 				LOGGER.info("【小程序支付】统一下单失败，失败原因:" + resMap.get("return_msg"));
 			}
 		}

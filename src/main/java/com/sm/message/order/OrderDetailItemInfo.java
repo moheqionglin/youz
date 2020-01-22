@@ -13,6 +13,7 @@ import java.sql.Timestamp;
  * @time 2020-01-15 22:24
  */
 public class OrderDetailItemInfo {
+    private Integer id;
     private Integer orderId;
     private Integer productId;
     private String productName;
@@ -32,6 +33,9 @@ public class OrderDetailItemInfo {
         @Override
         public OrderDetailItemInfo mapRow(ResultSet resultSet, int i) throws SQLException {
             OrderDetailItemInfo item = new OrderDetailItemInfo();
+            if(existsColumn(resultSet, "id")){
+                item.setId(resultSet.getInt("id"));
+            }
             if(existsColumn(resultSet, "order_id")){
                 item.setOrderId(resultSet.getInt("order_id"));
             }
@@ -80,6 +84,14 @@ public class OrderDetailItemInfo {
                 return false;
             }
         }
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public Integer getOrderId() {

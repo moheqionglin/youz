@@ -67,10 +67,10 @@ public class CommentController {
             @ApiImplicitParam(name = "append", value = "append", required = true, paramType = "body", dataType = "AppendCommentRequest")
     })
     public void appendComment(@Valid @NotNull @PathVariable("id") String id,
-                             @Valid @NotEmpty @RequestBody AppendCommentRequest appendCommentRequest){
+                             @Valid @NotEmpty @RequestBody AppendCommentRequest append){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
-        commentService.appendComment(userDetail.getId(), id, appendCommentRequest);
+        commentService.appendComment(userDetail.getId(), id, append);
 
     }
 }

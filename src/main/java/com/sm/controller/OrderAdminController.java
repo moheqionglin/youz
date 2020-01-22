@@ -86,14 +86,15 @@ public class OrderAdminController {
             @ApiImplicitParam(name = "orderNum", value = "orderNum", required = true, paramType = "query", dataType = "String"),
             @ApiImplicitParam(name = "attach", value = "attach", required = true, paramType = "body", dataType = "String"),
     })
-    public void adminActionOrder(@Valid @NotNull @PathVariable("actionType") AdminActionOrderType actionType,
+    @ApiResponses(value={@ApiResponse(code= 420, message="订单不存在")})
+    public ResultJson adminActionOrder(@Valid @NotNull @PathVariable("actionType") AdminActionOrderType actionType,
                             @Valid @NotNull @RequestParam("orderNum") String orderNum,
                             @RequestBody String attach){
         //订单状态待支付
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
         //admin点击发货的时候，开始计算总的差价订单的金额。
-        orderService.adminActionOrder(userDetail.getId(), orderNum, actionType, attach);
+        return orderService.adminActionOrder(userDetail.getId(), orderNum, actionType, attach);
     }
 
     @PutMapping(path = "/ajorder/chajia")
@@ -126,24 +127,24 @@ public class OrderAdminController {
         return orderService.startJianhuo(userDetail.getId(), orderNum);
     }
 
-    @PutMapping(path = "/ajorder/jianhuo/item/finish")
-    @PreAuthorize("hasAuthority('ADMIN') OR hasAuthority('JIANHUO') ")
-    @ApiOperation(value = "[订单状态]拣货员确认某个item完成拣货 ")
-    @ApiImplicitParams(value = {
-            @ApiImplicitParam(name = "orderNum", value = "orderNum", required = true, paramType = "query", dataType = "String"),
-            @ApiImplicitParam(name = "id", value = "id", required = true, paramType = "query", dataType = "Integer"),
-    })
-    @ApiResponses(value={@ApiResponse(code= 420, message="订单不存在"),
-            @ApiResponse(code= 431, message="订单没有检货员认领"),
-            @ApiResponse(code= 432, message="自己不是该订单的拣货员")})
-    public ResultJson finishJianhuoItem(@Valid @NotNull @RequestParam("orderNum") String orderNum,
-                                  @Valid @NotNull @RequestParam("id") Integer id){
-        //订单状态待支付
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
-        //订单状态待支付
-        return orderService.finishJianhuoItem(userDetail.getId(), orderNum, id);
-    }
+//    @PutMapping(path = "/ajorder/jianhuo/item/finish")
+//    @PreAuthorize("hasAuthority('ADMIN') OR hasAuthority('JIANHUO') ")
+//    @ApiOperation(value = "[订单状态]拣货员确认某个item完成拣货 ")
+//    @ApiImplicitParams(value = {
+//            @ApiImplicitParam(name = "orderNum", value = "orderNum", required = true, paramType = "query", dataType = "String"),
+//            @ApiImplicitParam(name = "id", value = "id", required = true, paramType = "query", dataType = "Integer"),
+//    })
+//    @ApiResponses(value={@ApiResponse(code= 420, message="订单不存在"),
+//            @ApiResponse(code= 431, message="订单没有检货员认领"),
+//            @ApiResponse(code= 432, message="自己不是该订单的拣货员")})
+//    public ResultJson finishJianhuoItem(@Valid @NotNull @RequestParam("orderNum") String orderNum,
+//                                  @Valid @NotNull @RequestParam("id") Integer id){
+//        //订单状态待支付
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//        final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
+//        //订单状态待支付
+//        return orderService.finishJianhuoItem(userDetail.getId(), orderNum, id);
+//    }
 
     @PutMapping(path = "/ajorder/jianhuo/finish")
     @PreAuthorize("hasAuthority('ADMIN') OR hasAuthority('JIANHUO') ")

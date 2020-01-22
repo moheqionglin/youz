@@ -11,6 +11,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.constraints.Null;
 import java.math.BigDecimal;
@@ -112,7 +113,7 @@ public class OrderDao {
     }
 
     public SimpleOrder getSimpleOrder(String orderNum){
-        final String sql = String.format("select id,user_id,status,order_num drawback_status ,jianhuoyuan_id, jianhuo_status from %s where order_num = ?", VarProperties.ORDER);
+        final String sql = String.format("select id,user_id,status,order_num, drawback_status ,jianhuoyuan_id, chajia_need_pay_money,chajia_status,need_pay_money,jianhuo_status from %s where order_num = ?", VarProperties.ORDER);
         return jdbcTemplate.query(sql, new Object[]{orderNum}, new SimpleOrder.SimpleOrderRowMapper()).stream().findFirst().orElse(null);
     }
     public boolean existsOrder(Integer userId, String orderNum) {
@@ -177,7 +178,7 @@ public class OrderDao {
     }
 
     public List<OrderDetailItemInfo> getOrderDetailItem(Integer id) {
-        final String sql = String.format( "select order_id,product_id,product_name,product_profile_img,product_size,product_cnt,product_total_price,product_total_price,product_sanzhuang,chajia_total_weight,chajia_total_price,jianhuo_success,jianhuo_time from %s where order_id = ? ", VarProperties.ORDERS_ITEM);
+        final String sql = String.format( "select id,order_id,product_id,product_name,product_profile_img,product_size,product_cnt,product_total_price,product_total_price,product_sanzhuang,chajia_total_weight,chajia_total_price,jianhuo_success,jianhuo_time from %s where order_id = ? ", VarProperties.ORDERS_ITEM);
         return jdbcTemplate.query(sql, new Object[]{id}, new OrderDetailItemInfo.OrderDetailItemInfoRowMapper());
     }
 
@@ -203,24 +204,29 @@ public class OrderDao {
         jdbcTemplate.update(sql, new Object[]{orderNum});
     }
 
-    public void adminApproveDrawback(int approveUserId, String orderNum, OrderController.DrawbackStatus actionType, String attach) {
-        final String sql = String.format("update %s set drawback_status = ? , approve_user_id = ?, approve_comment= ?, where order_num = ? ", VarProperties.ORDER);
-        jdbcTemplate.update(sql, new Object[]{actionType.toString(), approveUserId, attach, orderNum});
+    @Transactional
+    public void adminApproveDrawback(int approveUserId, Integer orderId, String orderNum, OrderController.DrawbackStatus actionType, String attach) {
+        final String sql1 = String.format("update %s set drawback_status = ? where order_num= ?", VarProperties.ORDER);
+        jdbcTemplate.update(sql1, new Object[]{actionType.toString(), orderNum});
+
+        final String sql = String.format("update %s set  approve_user_id = ?, approve_comment= ? where order_id = ? ", VarProperties.ORDER_DRAWBACK);
+        jdbcTemplate.update(sql, new Object[]{ approveUserId, attach, orderId});
     }
 
     public void updateChajiaOrder(Integer orderID, ChaJiaOrderItemRequest chajia) {
         final String sql = String.format("update %s set chajia_total_weight = ?, chajia_total_price = ? where order_id = ? and id = ?", VarProperties.ORDERS_ITEM);
         jdbcTemplate.update(sql, new Object[]{chajia.getChajiaTotalWeight(), chajia.getChajiaTotalPrice(), orderID, chajia.getId()});
+
     }
 
     public void startJianhuo(int userId, Integer orderId) {
-        final String sql = String.format("update %s set jianhuoyuan_id =? and jianhuo_status = ? where id = ?", VarProperties.ORDER);
-        jdbcTemplate.update(sql, new Object[]{userId, OrderAdminController.JianHYOrderStatus.ING_JIANHUO, orderId});
+        final String sql = String.format("update %s set jianhuoyuan_id =? , jianhuo_status = ? where id = ?", VarProperties.ORDER);
+        jdbcTemplate.update(sql, new Object[]{userId, OrderAdminController.JianHYOrderStatus.ING_JIANHUO.toString(), orderId});
     }
 
     public void finishJianhuo(int userId, Integer orderId) {
-        final String sql = String.format("update %s set jianhuoyuan_id =? and jianhuo_status = ? where id = ?", VarProperties.ORDER);
-        jdbcTemplate.update(sql, new Object[]{userId, OrderAdminController.JianHYOrderStatus.HAD_JIANHUO, orderId});
+        final String sql = String.format("update %s set jianhuoyuan_id =? , jianhuo_status = ? where id = ?", VarProperties.ORDER);
+        jdbcTemplate.update(sql, new Object[]{userId, OrderAdminController.JianHYOrderStatus.HAD_JIANHUO.toString(), orderId});
     }
 
     public void finishJianhuoItem(Integer id, Integer orderItemId) {
@@ -259,7 +265,28 @@ public class OrderDao {
         if(ids == null || ids.isEmpty()){
             return new ArrayList<>(1);
         }
-        final String sql = String.format("select id,product_name,product_profile_img,product_size from %s where id in (:ids)", VarProperties.ORDERS_ITEM);
+        final String sql = String.format("select id,product_name,product_profile_img,product_size,product_sanzhuang from %s where id in (:ids)", VarProperties.ORDERS_ITEM);
         return namedParameterJdbcTemplate.query(sql, Collections.singletonMap("ids", ids), new SimpleOrderItem.SimpleOrderItemRowMapper());
+    }
+    public SimpleOrderItem getSimpleOrderItem(Integer id) {
+        if(id == null ){
+            return null;
+        }
+        final String sql = String.format("select id,product_name,product_profile_img,product_size,product_sanzhuang from %s where id =?", VarProperties.ORDERS_ITEM);
+        return jdbcTemplate.query(sql, new Object[]{id}, new SimpleOrderItem.SimpleOrderItemRowMapper()).stream().findFirst().orElse(null);
+    }
+
+    public void finishOrder(String orderNum) {
+        final String sql = String.format("update %s set status = ? where order_num = ?", VarProperties.ORDER);
+        jdbcTemplate.update(sql, new Object[]{OrderController.BuyerOrderStatus.FINISH.toString(), orderNum });
+    }
+
+    @Transactional
+    public void cancelDrawback(String orderNum, Integer orderId) {
+        final String sql = String.format("update %s set drawback_status = ? where order_num =?", VarProperties.ORDER);
+        jdbcTemplate.update(sql, new Object[]{OrderController.DrawbackStatus.NONE.toString(), orderNum});
+        final String sql1 = String.format("delete from %s where order_id = ?", VarProperties.ORDER_DRAWBACK);
+
+        jdbcTemplate.update(sql1, new Object[]{orderId});
     }
 }

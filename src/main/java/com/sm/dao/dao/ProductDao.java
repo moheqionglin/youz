@@ -214,7 +214,7 @@ public class ProductDao {
                 .map(o -> new Object[]{userId,
                         o.getProductId(),
                         o.isGood(),
-                        o.getMessage(),
+                        o.getComment(),
                         o.getImages() != null ? o.getImages().stream().collect(Collectors.joining("|")) : "",
                         o.getProductName(),
                         o.getProductProfileImg(),

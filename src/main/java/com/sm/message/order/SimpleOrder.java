@@ -2,6 +2,7 @@ package com.sm.message.order;
 
 import org.springframework.jdbc.core.RowMapper;
 
+import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -18,6 +19,9 @@ public class SimpleOrder {
     private String drawbackStatus;
     private String jianhuoStatus;
     private Integer jianhuoyuanId;
+    private BigDecimal needPayMoney;
+    private BigDecimal chajiaNeedPayMoney;
+    private String chajiaStatus;
 
     public static class SimpleOrderRowMapper implements RowMapper<SimpleOrder>{
 
@@ -39,7 +43,15 @@ public class SimpleOrder {
             if(existsColumn(resultSet, "drawback_status")){
                 simpleOrder.setDrawbackStatus(resultSet.getString("drawback_status"));
             }
-
+            if(existsColumn(resultSet, "chajia_status")){
+                simpleOrder.setChajiaStatus(resultSet.getString("chajia_status"));
+            }
+            if(existsColumn(resultSet, "chajia_need_pay_money")){
+                simpleOrder.setChajiaNeedPayMoney(resultSet.getBigDecimal("chajia_need_pay_money"));
+            }
+            if(existsColumn(resultSet, "need_pay_money")){
+                simpleOrder.setNeedPayMoney(resultSet.getBigDecimal("need_pay_money"));
+            }
             if(existsColumn(resultSet, "jianhuoyuan_id")){
                 simpleOrder.setJianhuoyuanId(resultSet.getInt("jianhuoyuan_id"));
             }
@@ -62,6 +74,30 @@ public class SimpleOrder {
 
     public String getOrderNum() {
         return orderNum;
+    }
+
+    public BigDecimal getNeedPayMoney() {
+        return needPayMoney;
+    }
+
+    public void setNeedPayMoney(BigDecimal needPayMoney) {
+        this.needPayMoney = needPayMoney;
+    }
+
+    public BigDecimal getChajiaNeedPayMoney() {
+        return chajiaNeedPayMoney;
+    }
+
+    public void setChajiaNeedPayMoney(BigDecimal chajiaNeedPayMoney) {
+        this.chajiaNeedPayMoney = chajiaNeedPayMoney;
+    }
+
+    public String getChajiaStatus() {
+        return chajiaStatus;
+    }
+
+    public void setChajiaStatus(String chajiaStatus) {
+        this.chajiaStatus = chajiaStatus;
     }
 
     public void setOrderNum(String orderNum) {

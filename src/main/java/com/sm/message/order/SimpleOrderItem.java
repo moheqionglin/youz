@@ -15,7 +15,7 @@ public class SimpleOrderItem {
     private String productName ;
     private String productProfileImg;
     private String productSize;
-
+    private boolean productSanZhuang;
     public static class SimpleOrderItemRowMapper implements RowMapper<SimpleOrderItem> {
         @Override
         public SimpleOrderItem mapRow(ResultSet resultSet, int i) throws SQLException {
@@ -32,6 +32,9 @@ public class SimpleOrderItem {
             if(existsColumn(resultSet, "product_size")){
                 simpleOrder.setProductSize(resultSet.getString("product_size"));
             }
+            if(existsColumn(resultSet, "product_sanzhuang")){
+                simpleOrder.setProductSanZhuang(resultSet.getBoolean("product_sanzhuang"));
+            }
             return simpleOrder;
         }
         private boolean existsColumn(ResultSet rs, String column) {
@@ -44,6 +47,14 @@ public class SimpleOrderItem {
     }
     public String getProductName() {
         return productName;
+    }
+
+    public boolean isProductSanZhuang() {
+        return productSanZhuang;
+    }
+
+    public void setProductSanZhuang(boolean productSanZhuang) {
+        this.productSanZhuang = productSanZhuang;
     }
 
     public Integer getOrderItemId() {

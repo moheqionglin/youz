@@ -18,7 +18,7 @@ public class OrderCommentsRequest {
     @NotNull
     private boolean good;
     @NotNull
-    private String message;
+    private String comment;
     private List<String> images;
 
     //前端不用传递
@@ -74,12 +74,12 @@ public class OrderCommentsRequest {
         this.productSize = productSize;
     }
 
-    public String getMessage() {
-        return message;
+    public String getComment() {
+        return comment;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public void setComment(String comment) {
+        this.comment = comment;
     }
 
     public List<String> getImages() {

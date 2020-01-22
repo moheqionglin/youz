@@ -10,7 +10,6 @@ import java.util.List;
  * @time 2020-01-12 22:52
  */
 public class DrawbackRequest {
-    @NotNull
     private Integer userId;
     @NotNull
     private String orderNum;

@@ -1,5 +1,6 @@
 package com.sm.message.order;
 
+import com.sm.controller.OrderAdminController;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.math.BigDecimal;
@@ -23,7 +24,7 @@ public class DrawBackAmount {
     private BigDecimal needPayMoney;
     private BigDecimal hadPayMoney;
 
-    private boolean chajiaStatus;
+    private String chajiaStatus;
     private BigDecimal chajiaPrice;
     private BigDecimal chajiaUseYongjin;
     private BigDecimal chajiaUseYue;
@@ -31,47 +32,47 @@ public class DrawBackAmount {
     private BigDecimal chajiaHadPayMoney;
 
     public void calcDisplayTotal(){
-        this.displayTotalAmount = this.hadPayMoney.add(this.chajiaStatus ? this.chajiaHadPayMoney : BigDecimal.ZERO);
-        this.displayTotalYue = this.useYue.add(this.chajiaStatus ? this.chajiaUseYue : BigDecimal.ZERO);
-        this.displayTotalYongjin = this.useYongjin.add(this.chajiaStatus ? this.chajiaUseYongjin : BigDecimal.ZERO);
+        this.displayTotalAmount = this.hadPayMoney.add(OrderAdminController.ChaJiaOrderStatus.HAD_PAY.toString().equals(this.chajiaStatus) && this.chajiaHadPayMoney != null ? this.chajiaHadPayMoney : BigDecimal.ZERO);
+        this.displayTotalYue = this.useYue;
+        this.displayTotalYongjin = this.useYongjin;
     }
 
     public static class DrawBackAmountRowMapper implements RowMapper<DrawBackAmount> {
         @Override
         public DrawBackAmount mapRow(ResultSet resultSet, int i) throws SQLException {
             DrawBackAmount drawBackAmount = new DrawBackAmount();
-            if(existsColumn(resultSet, "totalPrice")){
-                drawBackAmount.setTotalPrice(resultSet.getBigDecimal("totalPrice"));
+            if(existsColumn(resultSet, "total_price")){
+                drawBackAmount.setTotalPrice(resultSet.getBigDecimal("total_price"));
             }
-            if(existsColumn(resultSet, "useYongjin")){
-                drawBackAmount.setUseYongjin(resultSet.getBigDecimal("useYongjin"));
+            if(existsColumn(resultSet, "use_yongjin")){
+                drawBackAmount.setUseYongjin(resultSet.getBigDecimal("use_yongjin"));
             }
-            if(existsColumn(resultSet, "useYue")){
-                drawBackAmount.setUseYue(resultSet.getBigDecimal("useYue"));
+            if(existsColumn(resultSet, "use_yue")){
+                drawBackAmount.setUseYue(resultSet.getBigDecimal("use_yue"));
             }
-            if(existsColumn(resultSet, "needPayMoney")){
-                drawBackAmount.setNeedPayMoney(resultSet.getBigDecimal("needPayMoney"));
+            if(existsColumn(resultSet, "need_pay_money")){
+                drawBackAmount.setNeedPayMoney(resultSet.getBigDecimal("need_pay_money"));
             }
-            if(existsColumn(resultSet, "hadPayMoney")){
-                drawBackAmount.setHadPayMoney(resultSet.getBigDecimal("hadPayMoney"));
+            if(existsColumn(resultSet, "had_pay_money")){
+                drawBackAmount.setHadPayMoney(resultSet.getBigDecimal("had_pay_money"));
             }
-            if(existsColumn(resultSet, "chajiaStatus")){
-                drawBackAmount.setChajiaStatus(resultSet.getBoolean("chajiaStatus"));
+            if(existsColumn(resultSet, "chajia_status")){
+                drawBackAmount.setChajiaStatus(resultSet.getString("chajia_status"));
             }
-            if(existsColumn(resultSet, "chajiaPrice")){
-                drawBackAmount.setChajiaPrice(resultSet.getBigDecimal("chajiaPrice"));
+            if(existsColumn(resultSet, "chajia_price")){
+                drawBackAmount.setChajiaPrice(resultSet.getBigDecimal("chajia_price"));
             }
-            if(existsColumn(resultSet, "chajiaUseYongjin")){
-                drawBackAmount.setChajiaUseYongjin(resultSet.getBigDecimal("chajiaUseYongjin"));
+            if(existsColumn(resultSet, "chajia_use_yongjin")){
+                drawBackAmount.setChajiaUseYongjin(resultSet.getBigDecimal("chajia_use_yongjin"));
             }
-            if(existsColumn(resultSet, "chajiaUseYue")){
-                drawBackAmount.setChajiaUseYue(resultSet.getBigDecimal("chajiaUseYue"));
+            if(existsColumn(resultSet, "chajia_use_yue")){
+                drawBackAmount.setChajiaUseYue(resultSet.getBigDecimal("chajia_use_yue"));
             }
-            if(existsColumn(resultSet, "chajiaNeedPayMoney")){
-                drawBackAmount.setChajiaNeedPayMoney(resultSet.getBigDecimal("chajiaNeedPayMoney"));
+            if(existsColumn(resultSet, "chajia_need_pay_money")){
+                drawBackAmount.setChajiaNeedPayMoney(resultSet.getBigDecimal("chajia_need_pay_money"));
             }
-            if(existsColumn(resultSet, "chajiaHadPayMoney")){
-                drawBackAmount.setChajiaHadPayMoney(resultSet.getBigDecimal("chajiaHadPayMoney"));
+            if(existsColumn(resultSet, "chajia_had_pay_money")){
+                drawBackAmount.setChajiaHadPayMoney(resultSet.getBigDecimal("chajia_had_pay_money"));
             }
             return drawBackAmount;
         }
@@ -149,11 +150,11 @@ public class DrawBackAmount {
         this.hadPayMoney = hadPayMoney;
     }
 
-    public boolean isChajiaStatus() {
+    public String getChajiaStatus() {
         return chajiaStatus;
     }
 
-    public void setChajiaStatus(boolean chajiaStatus) {
+    public void setChajiaStatus(String chajiaStatus) {
         this.chajiaStatus = chajiaStatus;
     }
 

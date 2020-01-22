@@ -66,7 +66,8 @@ public class OrderController {
             @ApiImplicitParam(name = "actionType", value = "actionType", required = true, paramType = "path", dataType = "ActionOrderType"),
             @ApiImplicitParam(name = "orderNum", value = "orderNum", required = true, paramType = "query", dataType = "String")
     })
-    @ApiResponses(value={@ApiResponse(code= 420, message="订单不存在"), @ApiResponse(code=421, message="订单状态不对")})
+    @ApiResponses(value={@ApiResponse(code= 420, message="订单不存在"),
+            @ApiResponse(code=421, message="订单状态不对")})
     public ResultJson actionOrder(@Valid @NotNull @PathVariable("actionType") ActionOrderType actionType,
                             @Valid @NotNull @RequestParam("orderNum") String orderNum){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -87,7 +88,7 @@ public class OrderController {
     public ResultJson drawbackOrder(@Valid @NotNull @RequestBody DrawbackRequest drawbackRequest){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
-
+        drawbackRequest.setUserId(userDetail.getId());
         //订单状态待支付
         return orderService.drawbackOrder(userDetail.getId(), drawbackRequest);
     }
@@ -122,6 +123,19 @@ public class OrderController {
         return orderService.getDrawbackOrderDetail(userDetail.getId(), orderNum);
     }
 
+    @GetMapping(path = "/order/drawbackOrder/{orderNum}/cancel")
+    @PreAuthorize("hasAuthority('BUYER') ")
+    @ApiOperation(value = "[取消退款申请]")
+    @ApiImplicitParams(value = {
+            @ApiImplicitParam(name = "orderNum", value = "orderNum", required = true, paramType = "path", dataType = "String")
+    })
+    @ApiResponses(value={@ApiResponse(code= 420, message="订单不存在"), @ApiResponse(code= 420, message="订单不存在")})
+    public ResultJson cancelDrawback(@Valid @NotNull @PathVariable("orderNum") String orderNum){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
+
+        return orderService.cancelDrawback(userDetail.getId(), orderNum);
+    }
 
     @GetMapping(path = "/order/{orderType}/list")
     @PreAuthorize("hasAuthority('BUYER') ")
@@ -165,10 +179,10 @@ public class OrderController {
             @ApiImplicitParam(name = "orderComments", value = "orderComments", required = true, paramType = "body", dataType = "OrderCommentsRequest")
     })
     public void commentOrder(@Valid @NotNull @PathVariable("orderNum") String orderNum,
-                             @Valid @NotEmpty @RequestBody List<OrderCommentsRequest> orderCommentsRequest){
+                             @Valid @NotEmpty @RequestBody List<OrderCommentsRequest> orderComments){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
-        orderService.commentOrder(userDetail.getId(), orderNum, orderCommentsRequest);
+        orderService.commentOrder(userDetail.getId(), orderNum, orderComments);
 
     }
 
