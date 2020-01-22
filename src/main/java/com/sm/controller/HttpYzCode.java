@@ -25,6 +25,7 @@ public enum  HttpYzCode {
     PRODUCT_XIAJIA(408, "产品下架"),
     YONGJIN_YUE_NOT_ENOUGH(409, "余额佣金不足"),
     ADDRESS_NOT_EXISTS(410, "地址不存在"),
+    YONGJIN_YUE_PRICE_ERROR(411, "佣金余额错误"),
 
     ORDER_NOT_EXISTS(420, "订单不存在"),
     ORDER_STATUS_ERROR(421, "订单状态不对"),
@@ -34,7 +35,10 @@ public enum  HttpYzCode {
     ORDER_NO_JIANHUO(431, "订单没有检货员认领"),
     ORDER_JIANHUO_NOT_CURRENT_ORDER(432, "自己不是该订单的拣货员"),
 
-    CATEGORY_HAS_CHILD(440, "分类下面有资源");
+    CATEGORY_HAS_CHILD(440, "分类下面有资源"),
+
+    TIXIAN_AMOUNT_LESS(450, "提现金额小于1"),
+    YONGJIN_BILI_TOO_MAX(460, "佣金比例应该小于1");
     private int code;
     private String messsage;
 

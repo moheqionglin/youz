@@ -1,12 +1,13 @@
 package com.example.auth.demo.services;
 
 import com.example.auth.demo.BaseTest;
-import com.sm.message.PageResult;
 import com.sm.message.address.AddressDetailInfo;
 import com.sm.message.address.AddressListItem;
 import com.sm.service.AddressService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.List;
 
 /**
  * @author wanli.zhou
@@ -46,7 +47,7 @@ public class AddressServiceTeset extends BaseTest {
 
     @Test
     public void listTest(){
-        PageResult<AddressListItem> addressPaged = addressService.getAddressPaged(9, 1, 3);
+        List<AddressListItem> addressPaged = addressService.getAddressPaged(9);
         System.out.println(addressPaged);
 
     }

@@ -30,8 +30,12 @@ public class ShoppingCartDao {
     @Autowired
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
-    public List<ShoppingCart> getAllCartItem(int userId) {
-        final String sql = String.format("select id, user_id, product_id, product_cnt, selected, cart_price, kanjia_product from %s where user_id = ?", VarProperties.SHOPPING_CART);
+    public List<ShoppingCart> getAllCartItem(int userId, boolean selected) {
+        String selectedSql = "";
+        if(selected){
+            selectedSql = " and selected = true ";
+        }
+        final String sql = String.format("select id, user_id, product_id, product_cnt, selected, cart_price, kanjia_product from %s where user_id = ? %s ", VarProperties.SHOPPING_CART, selectedSql);
         return jdbcTemplate.query(sql, new Object[]{userId}, new ShoppingCartRowMapper());
     }
 

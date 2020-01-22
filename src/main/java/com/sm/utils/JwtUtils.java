@@ -23,7 +23,7 @@ public class JwtUtils {
 
     private static final String CLAIM_KEY_USER_ID = "user_id";
     private static final String CLAIM_KEY_AUTHORITIES = "roles";
-
+    private static final String CLAIM_KEY_OPEN_CODE = "oc";
 
     @Value("${jwt.secret}")
     private String secret;
@@ -44,7 +44,7 @@ public class JwtUtils {
             String username = claims.getSubject();
             String roleNames = claims.get(CLAIM_KEY_AUTHORITIES).toString();
             List<Role> roles = JSONObject.parseArray(roleNames).stream().map(r -> new Role(r.toString())).collect(Collectors.toList());
-            userDetail = new UserDetail(userId, username, roles, "");
+            userDetail = new UserDetail(userId, username, roles, "", claims.get(CLAIM_KEY_OPEN_CODE).toString());
         } catch (Exception e) {
             userDetail = null;
         }
@@ -83,6 +83,7 @@ public class JwtUtils {
         Map<String, Object> claims = new HashMap<>(16);
         claims.put(CLAIM_KEY_USER_ID, userDetail.getId());
         claims.put(CLAIM_KEY_AUTHORITIES, JSONObject.toJSONString(userDetail.getAuthorities().stream().map((GrantedAuthority a) -> a.getAuthority()).collect(Collectors.toList())));
+        claims.put(CLAIM_KEY_OPEN_CODE, userDetail.getOpenId());
         return generateAccessToken(userDetail.getUsername(), claims);
     }
 

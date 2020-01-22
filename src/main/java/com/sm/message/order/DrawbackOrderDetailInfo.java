@@ -1,5 +1,6 @@
 package com.sm.message.order;
 
+import com.sm.utils.SmUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.jdbc.core.RowMapper;
 
@@ -31,6 +32,7 @@ public class DrawbackOrderDetailInfo {
 
     private Integer approveUserId;
     private String approveComment;
+    private String drawBackTime;
 
     public static class DrawbackOrderDetailInfoRowMapper implements RowMapper<DrawbackOrderDetailInfo> {
 
@@ -61,7 +63,7 @@ public class DrawbackOrderDetailInfo {
             if(existsColumn(resultSet, "drawback_imgs")){
                 String imgs = resultSet.getString("drawback_imgs");
                 if(StringUtils.isNoneBlank(imgs)){
-                    dod.setImages(Arrays.stream(imgs.split("|")).collect(Collectors.toList()));
+                    dod.setImages(Arrays.stream(imgs.split("\\|")).collect(Collectors.toList()));
                 }
             }
             if(existsColumn(resultSet, "approve_user_id")){
@@ -69,6 +71,9 @@ public class DrawbackOrderDetailInfo {
             }
             if(existsColumn(resultSet, "approve_comment")){
                 dod.setApproveComment(resultSet.getString("approve_comment"));
+            }
+            if(existsColumn(resultSet, "created_time")){
+                dod.setDrawBackTime(SmUtil.parseLongToTMDHMS(resultSet.getTimestamp("created_time").getTime()));
             }
             return dod;
         }
@@ -119,6 +124,14 @@ public class DrawbackOrderDetailInfo {
 
     public void setImages(List<String> images) {
         this.images = images;
+    }
+
+    public String getDrawBackTime() {
+        return drawBackTime;
+    }
+
+    public void setDrawBackTime(String drawBackTime) {
+        this.drawBackTime = drawBackTime;
     }
 
     public String getDrawbackType() {

@@ -1,12 +1,12 @@
 package com.sm.controller;
 
 import com.sm.config.UserDetail;
+import com.sm.message.ResultJson;
 import com.sm.message.order.ChaJiaOrderItemRequest;
 import com.sm.message.order.OrderListItemInfo;
 import com.sm.service.OrderService;
 import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -104,8 +104,8 @@ public class OrderAdminController {
             @ApiImplicitParam(name = "chajia", value = "chajia", required = true, paramType = "body", dataType = "ChaJiaOrderItemRequest"),
     })
     @ApiResponses(value={@ApiResponse(code= 420, message="订单不存在"), @ApiResponse(code= 431, message="订单没有检货员认领")})
-    public ResponseEntity updateChajiaOrder(@Valid @NotNull @RequestParam("orderNum") String orderNum,
-                                            @RequestBody ChaJiaOrderItemRequest chajia){
+    public ResultJson updateChajiaOrder(@Valid @NotNull @RequestParam("orderNum") String orderNum,
+                                        @RequestBody ChaJiaOrderItemRequest chajia){
 
         //订单状态待支付
         return orderService.updateChajiaOrder(orderNum, chajia);
@@ -118,7 +118,7 @@ public class OrderAdminController {
             @ApiImplicitParam(name = "orderNum", value = "orderNum", required = true, paramType = "query", dataType = "String"),
     })
     @ApiResponses(value={@ApiResponse(code= 420, message="订单不存在"), @ApiResponse(code= 430, message="订单有人认领")})
-    public ResponseEntity startJianhuo(@Valid @NotNull @RequestParam("orderNum") String orderNum){
+    public ResultJson startJianhuo(@Valid @NotNull @RequestParam("orderNum") String orderNum){
         //订单状态待支付
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
@@ -136,7 +136,7 @@ public class OrderAdminController {
     @ApiResponses(value={@ApiResponse(code= 420, message="订单不存在"),
             @ApiResponse(code= 431, message="订单没有检货员认领"),
             @ApiResponse(code= 432, message="自己不是该订单的拣货员")})
-    public ResponseEntity finishJianhuoItem(@Valid @NotNull @RequestParam("orderNum") String orderNum,
+    public ResultJson finishJianhuoItem(@Valid @NotNull @RequestParam("orderNum") String orderNum,
                                   @Valid @NotNull @RequestParam("id") Integer id){
         //订单状态待支付
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -152,7 +152,7 @@ public class OrderAdminController {
             @ApiImplicitParam(name = "orderNum", value = "orderNum", required = true, paramType = "query", dataType = "String"),
     })
     @ApiResponses(value={@ApiResponse(code= 420, message="订单不存在"), @ApiResponse(code= 430, message="订单有人认领")})
-    public ResponseEntity finishJianhuo(@Valid @NotNull @RequestParam("orderNum") String orderNum){
+    public ResultJson finishJianhuo(@Valid @NotNull @RequestParam("orderNum") String orderNum){
         //订单状态待支付
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
@@ -172,15 +172,14 @@ public class OrderAdminController {
         DRAWBACK_APPROVE_PASS,
         DRAWBACK_APPROVE_FAIL,
     }
-    public static enum AdminDrawBackType{
-        ALL,
-
-        DRAWBACK_APPROVE_PASS,
-        DRAWBACK_APPROVE_FAIL,
-    }
     public static enum JianHYOrderStatus{
         NOT_JIANHUO,
         ING_JIANHUO,
         HAD_JIANHUO;
+    }
+    public static enum ChaJiaOrderStatus{
+        NO,
+        WAIT_PAY,
+        HAD_PAY;
     }
 }

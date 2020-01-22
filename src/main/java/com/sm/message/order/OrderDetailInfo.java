@@ -1,11 +1,13 @@
 package com.sm.message.order;
 
+import com.sm.controller.OrderController;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -14,6 +16,7 @@ import java.util.List;
  * @time 2020-01-15 22:24
  */
 public class OrderDetailInfo {
+    private final static long _15MIN = 15 * 60 * 1000;
     private Integer id;
     private String orderNum;
     private Integer userId;
@@ -27,7 +30,7 @@ public class OrderDetailInfo {
     private BigDecimal useYue;
     private BigDecimal needPayMoney;
     private BigDecimal hadPayMoney;
-    private boolean chajiaStatus;
+    private String chajiaStatus;
     private BigDecimal chajiaPrice;
     private BigDecimal chajiaUseYongjin;
     private BigDecimal chajiaUseYue;
@@ -39,7 +42,7 @@ public class OrderDetailInfo {
     private String jianhuoStatus;
     private Boolean hasFahuo;
     private Timestamp createdTime;
-
+    private String drawbackStatus;
     List<OrderDetailItemInfo> items;
     public static class OrderDetailInfoRowMapper implements RowMapper<OrderDetailInfo> {
 
@@ -66,6 +69,15 @@ public class OrderDetailInfo {
             }
             if(existsColumn(resultSet, "status")){
                 odi.setStatus(resultSet.getString("status"));
+                if(OrderController.BuyerOrderStatus.WAIT_PAY.toString().equals(odi.getStatus())){
+                    if(existsColumn(resultSet, "created_time")){
+                        long orderTime = resultSet.getTimestamp("created_time").getTime();
+                        if(new Date().getTime() >= (orderTime + _15MIN)) {
+                            odi.setStatus(OrderController.BuyerOrderStatus.CANCEL_TIMEOUT.toString());
+                        }
+
+                    }
+                }
             }
             if(existsColumn(resultSet, "total_price")){
                 odi.setTotalPrice(resultSet.getBigDecimal("total_price"));
@@ -83,7 +95,7 @@ public class OrderDetailInfo {
                 odi.setHadPayMoney(resultSet.getBigDecimal("had_pay_money"));
             }
             if(existsColumn(resultSet, "chajia_status")){
-                odi.setChajiaStatus(resultSet.getBoolean("chajia_status"));
+                odi.setChajiaStatus(resultSet.getString("chajia_status"));
             }
             if(existsColumn(resultSet, "chajia_price")){
                 odi.setChajiaPrice(resultSet.getBigDecimal("chajia_price"));
@@ -115,6 +127,9 @@ public class OrderDetailInfo {
             if(existsColumn(resultSet, "created_time")){
                 odi.setCreatedTime(resultSet.getTimestamp("created_time"));
             }
+            if(existsColumn(resultSet, "drawback_status")){
+                odi.setDrawbackStatus(resultSet.getString("drawback_status"));
+            }
             return odi;
         }
         private boolean existsColumn(ResultSet rs, String column) {
@@ -126,6 +141,13 @@ public class OrderDetailInfo {
         }
     }
 
+    public String getDrawbackStatus() {
+        return drawbackStatus;
+    }
+
+    public void setDrawbackStatus(String drawbackStatus) {
+        this.drawbackStatus = drawbackStatus;
+    }
 
     public Boolean getHasFahuo() {
         return hasFahuo;
@@ -231,11 +253,11 @@ public class OrderDetailInfo {
         this.hadPayMoney = hadPayMoney;
     }
 
-    public boolean isChajiaStatus() {
+    public String getChajiaStatus() {
         return chajiaStatus;
     }
 
-    public void setChajiaStatus(boolean chajiaStatus) {
+    public void setChajiaStatus(String chajiaStatus) {
         this.chajiaStatus = chajiaStatus;
     }
 

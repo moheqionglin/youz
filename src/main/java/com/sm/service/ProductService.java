@@ -1,15 +1,12 @@
 package com.sm.service;
 
-import com.qiniu.util.StringMap;
 import com.sm.controller.ProductController;
 import com.sm.dao.dao.ProductCategoryDao;
 import com.sm.dao.dao.ProductDao;
 import com.sm.dao.dao.ShoppingCartDao;
-import com.sm.message.PageResult;
 import com.sm.message.order.OrderCommentsRequest;
 import com.sm.message.product.*;
 import com.sm.message.profile.UserSimpleInfo;
-import com.sm.message.search.SearchHistory;
 import com.sm.message.search.SearchRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

@@ -8,8 +8,6 @@ import com.sm.service.ServiceUtil;
 import com.sm.service.ShoppingCartService;
 import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -38,12 +36,15 @@ public class ShoppingCartController {
 
     @GetMapping(path = "/cart/list")
     @PreAuthorize("hasAuthority('BUYER')")
-    @ApiOperation(value = "[获取所有购物车] 返回全部购物车,不分页")
-    public CartInfo getAllCartItems(){
+    @ApiOperation(value = "[获取所有购物车] 返回全部购物车,不分页, selected=true 的时候，为下单确认页数据，只返回选中，且没下架，且库存大于购物车数量的商品。 false的时候返回所有")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "selected", value = "selected", required = true, paramType = "query", dataType = "Boolean")
+    })
+    public CartInfo getAllCartItems(@Valid @NotNull @RequestParam("selected") boolean selected){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
 
-        List<CartItemInfo> cartItems = shoppingCartService.getAllCartItems(userDetail.getId());
+        List<CartItemInfo> cartItems = shoppingCartService.getAllCartItems(userDetail.getId(), selected);
         BigDecimal totalAmount = ServiceUtil.calcCartTotalPrice(cartItems);
         return new CartInfo(cartItems, totalAmount);
     }

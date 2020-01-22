@@ -3,6 +3,7 @@ package com.sm.dao.dao;
 import com.sm.dao.domain.ShippingAddress;
 import com.sm.dao.rowMapper.ShippingAddressRowMapper;
 import com.sm.message.address.AddressDetailInfo;
+import com.sm.message.address.AddressListItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementCreator;
@@ -33,17 +34,10 @@ public class AddressDao {
     @Autowired
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
-    public List<ShippingAddress> getAddressPaged(int userId, int pageSize, int pageNum) {
-        if(pageNum <= 0 ){
-            pageNum = 1;
-        }
-        if(pageSize <= 0){
-            pageSize = 10;
-        }
-        int startIndex = (pageNum - 1) * pageSize;
+    public List<ShippingAddress> getAddressPaged(int userId) {
         String sql = "select id, link_person , phone, default_address, shipping_address, shipping_address_details " +
-                "from shipping_address where user_id = ? order by default_address limit ?, ?";
-        List<ShippingAddress> rst = jdbcTemplate.query(sql, new Object[]{userId, startIndex, pageSize}, new ShippingAddressRowMapper());
+                "from shipping_address where user_id = ? order by default_address";
+        List<ShippingAddress> rst = jdbcTemplate.query(sql, new Object[]{userId}, new ShippingAddressRowMapper());
         return rst;
     }
 
@@ -112,6 +106,13 @@ public class AddressDao {
         }catch (Exception e){
             return null;
         }
+
+    }
+
+    public ShippingAddress getDefaultAddress(int userId) {
+        String sql = "select id, link_person , phone, default_address, shipping_address, shipping_address_details " +
+                "from shipping_address where user_id = ? order by default_address limit 1";
+        return jdbcTemplate.query(sql, new Object[]{userId}, new ShippingAddressRowMapper()).stream().findFirst().orElse(null);
 
     }
 }

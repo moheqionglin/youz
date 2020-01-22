@@ -21,7 +21,7 @@ public class OrderDetailItemInfo {
     private Integer productCnt;
     private BigDecimal productTotalPrice;
     private boolean productSanzhuang;
-    private BigDecimal chajiaTotalWeight;
+    private String chajiaTotalWeight;
     private BigDecimal chajiaTotalPrice;
     private Boolean jianhuoSuccess;
     private Timestamp jianhuoTime;
@@ -60,7 +60,7 @@ public class OrderDetailItemInfo {
                 item.setProductSanzhuang(resultSet.getBoolean("product_sanzhuang"));
             }
             if(existsColumn(resultSet, "chajia_total_weight")){
-                item.setChajiaTotalWeight(resultSet.getBigDecimal("chajia_total_weight"));
+                item.setChajiaTotalWeight(resultSet.getString("chajia_total_weight"));
             }
             if(existsColumn(resultSet, "chajia_total_price")){
                 item.setChajiaTotalPrice(resultSet.getBigDecimal("chajia_total_price"));
@@ -146,11 +146,11 @@ public class OrderDetailItemInfo {
         this.productSanzhuang = productSanzhuang;
     }
 
-    public BigDecimal getChajiaTotalWeight() {
+    public String getChajiaTotalWeight() {
         return chajiaTotalWeight;
     }
 
-    public void setChajiaTotalWeight(BigDecimal chajiaTotalWeight) {
+    public void setChajiaTotalWeight(String chajiaTotalWeight) {
         this.chajiaTotalWeight = chajiaTotalWeight;
     }
 

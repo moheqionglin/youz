@@ -1,7 +1,6 @@
 package com.sm.controller;
 
 import com.sm.config.UserDetail;
-import com.sm.message.PageResult;
 import com.sm.message.product.CreateProductRequest;
 import com.sm.message.product.ProductListItem;
 import com.sm.message.product.ProductSalesDetail;

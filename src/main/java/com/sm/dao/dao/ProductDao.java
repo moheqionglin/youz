@@ -80,10 +80,12 @@ public class ProductDao {
                 return udi;
             }
             final String sql = String.format("select id, nick_name, head_picture from %s where id in ( :ids ) ", VarProperties.USERS);
-            List<UserSimpleInfo> query = namedParameterJdbcTemplate.query(sql, Collections.singletonMap("ids", uids), new UserSimpleInfo.UserSimpleInfoRowMapper());
-            udi.getKanjieHelpers().addAll(query);
-            udi.setUserId(userId);
-            udi.setProductId(productId);
+            if(uids != null && !uids.isEmpty()){
+                List<UserSimpleInfo> query = namedParameterJdbcTemplate.query(sql, Collections.singletonMap("ids", uids), new UserSimpleInfo.UserSimpleInfoRowMapper());
+                udi.getKanjieHelpers().addAll(query);
+                udi.setUserId(userId);
+                udi.setProductId(productId);
+            }
             return udi;
         }catch (Exception e){
             return null;
@@ -189,13 +191,19 @@ public class ProductDao {
     }
 
     public List<ProductListItem> getAllContanisXiajiaProductsByIds(List<Integer> ids) {
-        final String sql = String.format("select t1.id as id, t1.name as name ,sanzhung,stock,show_able,origin_price,current_price,profile_img,sales_cnt, zhuanqu_id, size, t2.enable as zhuanquenable, zhuanqu_price " +
+        if(ids == null || ids.isEmpty()){
+            return new ArrayList<>(1);
+        }
+        final String sql = String.format("select t1.id as id, t1.name as name ,cost_price, sanzhung,stock,show_able,origin_price,current_price,profile_img,sales_cnt, zhuanqu_id, size, t2.enable as zhuanquenable, zhuanqu_price " +
                 " from %s as t1 left join %s as t2 on t1.zhuanqu_id = t2.id " +
                 " where t1.id in (:ids)", VarProperties.PRODUCTS, VarProperties.PRODUCT_ZHUANQU_CATEGORY);
         return namedParameterJdbcTemplate.query(sql, Collections.singletonMap("ids", ids), new ProductListItem.ProductListItemRowMapper());
     }
 
     public void addSalesCount(List<Integer> ids) {
+        if(ids == null || ids.isEmpty()){
+            return ;
+        }
         final String sql = String.format("update %s set sales_cnt = sales_cnt + 1 where id in (:ids)", VarProperties.PRODUCTS);
         namedParameterJdbcTemplate.update(sql, Collections.singletonMap("ids", ids));
     }
@@ -217,6 +225,9 @@ public class ProductDao {
     }
 
     public void addCommentCount(List<Integer> ids) {
+        if(ids == null || ids.isEmpty()){
+            return ;
+        }
         final String sql = String.format("update %s set comment_cnt = comment_cnt + 1 where id in (:ids)", VarProperties.PRODUCTS);
         namedParameterJdbcTemplate.update(sql, Collections.singletonMap("ids", ids));
     }

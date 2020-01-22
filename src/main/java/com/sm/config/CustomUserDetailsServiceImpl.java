@@ -35,7 +35,7 @@ public class CustomUserDetailsServiceImpl implements UserDetailsService {
             throw new AuthenticationServiceException(String.format("user openid %s had been disable " , user.getOpenCode()));
         }
         List<Role> roles = userService.getRolesByUserId(user.getId());
-        UserDetail userDetail = new UserDetail(user.getId(), user.getNickName(), roles, user.getPassword());
+        UserDetail userDetail = new UserDetail(user.getId(), user.getNickName(), roles, user.getPassword(), openId);
 
         return userDetail;
     }

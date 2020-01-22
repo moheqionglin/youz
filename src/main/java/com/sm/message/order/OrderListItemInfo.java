@@ -1,10 +1,13 @@
 package com.sm.message.order;
 
+import com.sm.controller.OrderController;
+import com.sm.utils.SmUtil;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -14,6 +17,7 @@ import java.util.List;
  */
 public class OrderListItemInfo {
 
+    private final static long _15MIN = 15 * 60 * 1000;
     private Integer id;
     private String  orderNum;
     private Integer userId;
@@ -29,7 +33,9 @@ public class OrderListItemInfo {
     private String message;
     private String jianhuoStatus;
     private boolean hasFahuo;
+    private String orderTime;
     List<String> productImges;
+    private String drawbackStatus;
     private int totalItemCount;
     public static class OrderListItemInfoRowMapper implements RowMapper<OrderListItemInfo> {
 
@@ -56,6 +62,15 @@ public class OrderListItemInfo {
             }
             if(existsColumn(resultSet, "status")){
                 olii.setStatus(resultSet.getString("status"));
+                if(OrderController.BuyerOrderStatus.WAIT_PAY.toString().equals(olii.getStatus())){
+                    if(existsColumn(resultSet, "created_time")){
+                       long orderTime = resultSet.getTimestamp("created_time").getTime();
+                       if(new Date().getTime() >= (orderTime + _15MIN)) {
+                           olii.setStatus(OrderController.BuyerOrderStatus.CANCEL_TIMEOUT.toString());
+                       }
+
+                    }
+                }
             }
             if(existsColumn(resultSet, "total_price")){
                 olii.setTotalPrice(resultSet.getBigDecimal("total_price"));
@@ -78,6 +93,13 @@ public class OrderListItemInfo {
             if(existsColumn(resultSet, "jianhuo_status")){
                 olii.setJianhuoStatus(resultSet.getString("jianhuo_status"));
             }
+            if(existsColumn(resultSet, "created_time")){
+                olii.setOrderTime(SmUtil.parseLongToTMDHMS(resultSet.getTimestamp("created_time").getTime()));
+            }
+            if(existsColumn(resultSet, "drawback_status")){
+                olii.setDrawbackStatus(resultSet.getString("drawback_status"));
+            }
+
             if(existsColumn(resultSet, "has_fahuo")){
                 olii.setHasFahuo(resultSet.getBoolean("has_fahuo"));
             }
@@ -90,6 +112,22 @@ public class OrderListItemInfo {
                 return false;
             }
         }
+    }
+
+    public String getOrderTime() {
+        return orderTime;
+    }
+
+    public void setOrderTime(String orderTime) {
+        this.orderTime = orderTime;
+    }
+
+    public String getDrawbackStatus() {
+        return drawbackStatus;
+    }
+
+    public void setDrawbackStatus(String drawbackStatus) {
+        this.drawbackStatus = drawbackStatus;
     }
 
     public static class OrderItemsForListPage{

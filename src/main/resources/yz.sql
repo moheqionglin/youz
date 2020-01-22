@@ -109,7 +109,7 @@ create table products(
     stock int default 0 comment '库存',
 
     origin_price decimal(10,2) not null comment '原价',
-    cost_price decimal(10,2) not null comment '成本价',
+    cost_price decimal(10,2) not null default 0 comment '成本价',
     current_price decimal(10, 2) not null comment '售价',
 
     supplier_id int comment '供应商',
@@ -193,14 +193,14 @@ create table orders(
     use_yongjin decimal(10, 2) not null ,
     use_yue decimal(10, 2) not null ,
     need_pay_money decimal(10, 2) not null ,
-    had_pay_money decimal(10, 2) not null ,
+    had_pay_money decimal(10, 2) default 0 not null ,
 
     chajia_status varchar(50) not null default 'NO' comment 'NO 不是差价订单， WAIT_PAY差价订单待支付，HAD_PAY差价订单已支付',
-    chajia_price decimal(10, 2) not null ,
-    chajia_use_yongjin decimal(10, 2) not null ,
-    chajia_use_yue decimal(10, 2) not null ,
-    chajia_need_pay_money decimal(10, 2) not null ,
-    chajia_had_pay_money decimal(10, 2) not null ,
+    chajia_price decimal(10, 2) default 0 not null ,
+    chajia_use_yongjin decimal(10, 2) default 0 not null ,
+    chajia_use_yue decimal(10, 2) default 0 not null ,
+    chajia_need_pay_money decimal(10, 2) default 0 not null ,
+    chajia_had_pay_money decimal(10, 2) default 0  not null ,
 
     message varchar(300),
     deleted boolean default false,
@@ -231,7 +231,7 @@ create table orders_item(
     product_unit_price  decimal(10, 2),
 
     product_sanzhuang boolean default false,
-    chajia_total_weight decimal(10, 2),
+    chajia_total_weight varchar(100),
     chajia_total_price decimal(10, 2),
 
     jianhuo_success boolean default false,
@@ -515,3 +515,12 @@ where t1.id in (:ids)
 delete from shopping_cart where user_id = ? and id in (?)
 
  select count(1) as pid from shopping_cart t1 left join products t2 on t1.product_id = t2.id where t2.id is not null
+
+select *from users
+select* from orders where now() < DATE_ADD(created_time, INTERVAL 15 MINUTE )
+select * from orders_item
+
+select
+update orders set created_time = now() where id = 2
+select * from order_drawback
+select * from products where id = 1815

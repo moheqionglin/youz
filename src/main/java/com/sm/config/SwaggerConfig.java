@@ -40,7 +40,7 @@ public class SwaggerConfig {
             new Tag("search", "搜索"),
             new Tag("comment", "评论"),
             new Tag("supplier", "供应商"),
-
+            new Tag("pay", "支付"),
         };
     }
 

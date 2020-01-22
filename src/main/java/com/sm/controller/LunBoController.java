@@ -1,5 +1,6 @@
 package com.sm.controller;
 
+import com.sm.message.ResultJson;
 import com.sm.message.lunbo.LunBoInfo;
 import com.sm.service.LunBoService;
 import io.swagger.annotations.Api;
@@ -7,7 +8,6 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,8 +29,8 @@ public class LunBoController {
 
     @GetMapping(path = "/lunbo/all")
     @ApiOperation(value = "[获取所有轮播] ")
-    public ResponseEntity<List<LunBoInfo>> getAll(){
-        return ResponseEntity.ok(lunboService.getAll());
+    public ResultJson<List<LunBoInfo>> getAll(){
+        return ResultJson.ok(lunboService.getAll());
     }
 
     @PostMapping(path = "/lunbo")
@@ -40,7 +40,7 @@ public class LunBoController {
             @ApiImplicitParam(name = "type", value = "type", required = true, paramType = "path", dataType = "LinkType"),
             @ApiImplicitParam(name = "lunbo", value = "lunbo", required = true, paramType = "body", dataType = "LunBoInfo")
     })
-    public ResponseEntity<Integer> create(@Valid @NotNull @PathVariable("type") LinkType linkType, @Valid @RequestBody LunBoInfo lunbo){
+    public ResultJson<Integer> create(@Valid @NotNull @PathVariable("type") LinkType linkType, @Valid @RequestBody LunBoInfo lunbo){
         lunbo.setLinkType(linkType.toString());
         return lunboService.create(lunbo);
     }
@@ -53,7 +53,7 @@ public class LunBoController {
             @ApiImplicitParam(name = "newtype", value = "newtype", required = true, paramType = "query", dataType = "LinkType"),
             @ApiImplicitParam(name = "lunbo", value = "lunbo", required = true, paramType = "body", dataType = "LunBoInfo")
     })
-    public ResponseEntity update(@Valid @NotNull @PathVariable("id") Integer id,
+    public ResultJson update(@Valid @NotNull @PathVariable("id") Integer id,
                               @Valid @NotNull @RequestParam("newtype") LinkType type,
                               @Valid @RequestBody LunBoInfo lunbo){
         lunbo.setLinkType(type.toString());

@@ -1,6 +1,7 @@
 package com.sm.controller;
 
 import com.sm.config.UserDetail;
+import com.sm.message.ResultJson;
 import com.sm.message.admin.TixianInfo;
 import com.sm.service.TixianService;
 import io.swagger.annotations.Api;
@@ -8,7 +9,6 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -39,14 +39,14 @@ public class TixianController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "amount", value = "amount", required = true, paramType = "body", dataType = "BigDecimal")
     })
-    public ResponseEntity creteTixian(@Valid @NotNull @RequestBody BigDecimal amount){
+    public ResultJson creteTixian(@Valid @NotNull @RequestBody BigDecimal amount){
         if(amount.compareTo(BigDecimal.ONE) < 0){
-            return ResponseEntity.badRequest().build();
+            return ResultJson.failure(HttpYzCode.TIXIAN_AMOUNT_LESS);
         }
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
         tixianService.creteTixian(userDetail.getId(), amount);
-        return ResponseEntity.ok().build();
+        return ResultJson.ok();
     }
 
 
@@ -72,7 +72,7 @@ public class TixianController {
             @ApiImplicitParam(name = "id", value = "id", required = true, paramType = "path", dataType = "Integer"),
             @ApiImplicitParam(name = "type", value = "type", required = true, paramType = "path", dataType = "TiXianApproveControllerType")
     })
-    public ResponseEntity approveTixian(@Valid @NotNull @PathVariable("type") TiXianApproveControllerType ctype,
+    public ResultJson approveTixian(@Valid @NotNull @PathVariable("type") TiXianApproveControllerType ctype,
                               @Valid @NotNull @PathVariable("id") Integer id){
         TiXianType type = TiXianType.APPROVE_REJECT;
         if(ctype.equals(TiXianApproveControllerType.PASS)){

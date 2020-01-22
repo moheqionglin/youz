@@ -16,7 +16,7 @@ public class ChaJiaOrderItemRequest {
     @NotNull
     private Integer orderId;
     @NotNull
-    private BigDecimal chajiaTotalWeight;
+    private String chajiaTotalWeight;
     @NotNull
     private BigDecimal chajiaTotalPrice;
 
@@ -36,11 +36,11 @@ public class ChaJiaOrderItemRequest {
         this.orderId = orderId;
     }
 
-    public BigDecimal getChajiaTotalWeight() {
+    public String getChajiaTotalWeight() {
         return chajiaTotalWeight;
     }
 
-    public void setChajiaTotalWeight(BigDecimal chajiaTotalWeight) {
+    public void setChajiaTotalWeight(String chajiaTotalWeight) {
         this.chajiaTotalWeight = chajiaTotalWeight;
     }
 

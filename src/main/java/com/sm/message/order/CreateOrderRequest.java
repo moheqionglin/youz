@@ -15,8 +15,6 @@ public class CreateOrderRequest {
     @NotNull
     private int addressId;
     @NotNull
-    private int userId;
-    @NotNull
     private BigDecimal useYongjin;
     @NotNull
     private BigDecimal useYue;
@@ -34,15 +32,6 @@ public class CreateOrderRequest {
     public void setAddressId(int addressId) {
         this.addressId = addressId;
     }
-
-    public int getUserId() {
-        return userId;
-    }
-
-    public void setUserId(int userId) {
-        this.userId = userId;
-    }
-
 
     public BigDecimal getUseYongjin() {
         return useYongjin;

@@ -3,6 +3,7 @@ package com.sm.dao.dao;
 import com.sm.controller.OrderAdminController;
 import com.sm.controller.OrderController;
 import com.sm.message.order.*;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -13,6 +14,8 @@ import org.springframework.stereotype.Component;
 
 import javax.validation.constraints.Null;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,9 +34,9 @@ public class OrderDao {
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     public Integer createOrder(CreateOrderInfo order) {
-        final String sql = String.format("insert into %s (order_num, user_id, address_id, address_detail ,address_contract , yongjin_code , status " +
+        final String sql = String.format("insert into %s (order_num, user_id, address_id, address_detail ,address_contract , yongjin_code , status ," +
                 "    total_cost_price,total_price ,use_yongjin ,use_yue , need_pay_money , had_pay_money ,message) values(" +
-                ":order_num, :user_id, :address_id, :address_detail ,:address_contract , :yongjin_code , :status " +
+                ":order_num, :user_id, :address_id, :address_detail ,:address_contract , :yongjin_code , :status, " +
                 "    :total_cost_price,:total_price ,:use_yongjin ,:use_yue , :need_pay_money , :had_pay_money ,:message)", VarProperties.ORDER);
         KeyHolder keyHolder = new GeneratedKeyHolder();
         MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
@@ -59,8 +62,8 @@ public class OrderDao {
     public void createOrderItems(Integer id, List<CreateOrderItemInfo> collect) {
 
 
-        final String sql = "insert into %s(order_id ,product_id,product_name ,product_profile_img , product_size , product_cnt ,product_total_price, product_unit_price , product_sanzhuang) " +
-                "values(:order_id ,:product_id,:product_name ,:product_profile_img , :product_size , :product_cnt ,:product_total_price, :product_unit_price , :product_sanzhuang)";
+        final String sql = String.format("insert into %s(order_id ,product_id,product_name ,product_profile_img , product_size , product_cnt ,product_total_price, product_unit_price , product_sanzhuang) " +
+                "values(:order_id ,:product_id,:product_name ,:product_profile_img , :product_size , :product_cnt ,:product_total_price, :product_unit_price , :product_sanzhuang)", VarProperties.ORDERS_ITEM);
 
         MapSqlParameterSource[] pss = new MapSqlParameterSource[collect.size()];
         for(int i = 0 ; i < collect.size(); i++){
@@ -129,7 +132,7 @@ public class OrderDao {
     }
 
     public DrawbackOrderDetailInfo getDrawbackOrderDetail(Integer id) {
-        final String sql = String.format("select order_id,drawback_type,drawback_reason,drawback_detail,drawback_pay_price,drawback_yue ,drawback_yongjin ,drawback_imgs,approve_user_id ,approve_comment from %s where order_id = ?",  VarProperties.ORDER_DRAWBACK);
+        final String sql = String.format("select order_id,drawback_type,drawback_reason,drawback_detail,drawback_pay_price,drawback_yue ,drawback_yongjin ,drawback_imgs,approve_user_id ,approve_comment ,created_time from %s where order_id = ?",  VarProperties.ORDER_DRAWBACK);
         return jdbcTemplate.query(sql, new Object[]{id}, new DrawbackOrderDetailInfo.DrawbackOrderDetailInfoRowMapper()).stream().findFirst().orElse(null);
     }
 
@@ -140,33 +143,36 @@ public class OrderDao {
                 whereStr = "and drawback_status = 'NONE' ";
                 break;
             case WAIT_PAY:
-                whereStr = " and drawback_status = 'NONE' and where status = 'WAIT_PAY'";
+                whereStr = " and drawback_status = 'NONE' and  status = 'WAIT_PAY' and  now() < DATE_ADD(created_time, INTERVAL 15 MINUTE ) ";
                 break;
             case WAIT_SEND:
-                whereStr = " and drawback_status = 'NONE' and where status = 'WAIT_SEND'";
+                whereStr = " and drawback_status = 'NONE' and  status = 'WAIT_SEND'";
                 break;
             case WAIT_RECEIVE:
-                whereStr = " and drawback_status = 'NONE' and where status = 'WAIT_RECEIVE'";
+                whereStr = " and drawback_status = 'NONE' and  status = 'WAIT_RECEIVE'";
                 break;
             case WAIT_COMMENT:
-                whereStr = " and drawback_status = 'NONE' and where status = 'WAIT_COMMENT'";
+                whereStr = " and drawback_status = 'NONE' and  status = 'WAIT_COMMENT'";
                 break;
             case DRAWBACK:
-                whereStr = " and where drawback_status != '" + OrderController.DrawbackStatus.NONE.toString() + "'";
+                whereStr = " and   drawback_status != '" + OrderController.DrawbackStatus.NONE.toString() + "'";
                 break;
         }
         int startIndex = (pageNum - 1) * pageSize;
-        final String sql = String.format("select id ,order_num,user_id ,address_id ,address_detail ,address_contract , status, total_price ,chajia_status,chajia_price, chajia_need_pay_money, chajia_had_pay_money, message,  jianhuo_status , has_fahuo from %s where user_id = ?  %s order by id desc limit ?, ?", VarProperties.ORDER, whereStr);
+        final String sql = String.format("select id ,order_num,user_id ,address_id ,address_detail ,address_contract , created_time, status, total_price ,chajia_status,chajia_price, chajia_need_pay_money, chajia_had_pay_money, message,  jianhuo_status , has_fahuo from %s where user_id = ?  %s order by id desc limit ?, ?", VarProperties.ORDER, whereStr);
         return jdbcTemplate.query(sql, new Object[]{userId, startIndex, pageSize}, new OrderListItemInfo.OrderListItemInfoRowMapper());
     }
 
     public List<OrderListItemInfo.OrderItemsForListPage> getOrderItemsForListPage(List<Integer> orderids) {
-        final String sql = String.format("select order_id,product_profile_img from %s where order_id in (?)", VarProperties.ORDER);
-        return jdbcTemplate.query(sql, new Object[]{orderids}, new OrderListItemInfo.OrderItemsForListPageRowMapper());
+        if(orderids == null || orderids.isEmpty()){
+            return new ArrayList<>();
+        }
+        final String sql = String.format("select order_id,product_profile_img from %s where order_id in (:ids)", VarProperties.ORDERS_ITEM);
+        return namedParameterJdbcTemplate.query(sql, Collections.singletonMap("ids", orderids), new OrderListItemInfo.OrderItemsForListPageRowMapper());
     }
 
     public OrderDetailInfo getOrderDetail(String orderNum) {
-        String sql = String.format("select id,order_num,address_detail,address_contract,yongjin_code,status,total_price,use_yongjin,use_yue,need_pay_money,had_pay_money,chajia_status,chajia_price,chajia_use_yongjin,chajia_use_yue,chajia_need_pay_money,chajia_had_pay_money,message,jianhuoyuan_id,jianhuo_status,has_fahuo,created_time from %s where order_num = ?", VarProperties.ORDER);
+        String sql = String.format("select id,order_num,address_detail,address_contract,yongjin_code,status,total_price,drawback_status,use_yongjin,use_yue,need_pay_money,had_pay_money,chajia_status,chajia_price,chajia_use_yongjin,chajia_use_yue,chajia_need_pay_money,chajia_had_pay_money,message,jianhuoyuan_id,jianhuo_status,has_fahuo,created_time from %s where order_num = ?", VarProperties.ORDER);
         return jdbcTemplate.query(sql, new Object[]{orderNum}, new OrderDetailInfo.OrderDetailInfoRowMapper()).stream().findFirst().orElse(null);
     }
 
@@ -181,14 +187,14 @@ public class OrderDao {
             case ALL:
                 break;
             case NOT_SEND:
-                whereStr = "  and where has_fahuo = false";
+                whereStr = "  and   has_fahuo = false";
                 break;
             case HAVE_SEND:
-                whereStr = " and where has_fahuo = true";
+                whereStr = " and   has_fahuo = true";
                 break;
         }
         int startIndex = (pageNum - 1) * pageSize;
-        final String sql = String.format("select id ,order_num,user_id ,address_id ,address_detail ,address_contract , status, total_price ,chajia_status,chajia_price, chajia_need_pay_money, chajia_had_pay_money, message,  jianhuo_status , has_fahuo from %s where drawback_status = 'NONE' %s order by id desc limit ?, ?", VarProperties.ORDER, whereStr);
+        final String sql = String.format("select id ,order_num,user_id ,address_id ,address_detail ,address_contract , status, total_price ,chajia_status,chajia_price, chajia_need_pay_money, chajia_had_pay_money, message,  jianhuo_status , has_fahuo,created_time from %s where drawback_status = 'NONE' %s order by id desc limit ?, ?", VarProperties.ORDER, whereStr);
         return jdbcTemplate.query(sql, new Object[]{startIndex, pageSize}, new OrderListItemInfo.OrderListItemInfoRowMapper());
     }
 
@@ -239,18 +245,21 @@ public class OrderDao {
                 break;
         }
         int startIndex = (pageNum - 1) * pageSize;
-        final String sql = String.format("select id ,order_num,user_id ,address_id ,address_detail ,address_contract , status, total_price ,chajia_status,chajia_price, chajia_need_pay_money, chajia_had_pay_money, message,  jianhuo_status , has_fahuo from %s where 1=1  %s order by id desc limit ?, ?", VarProperties.ORDER, whereStr);
+        final String sql = String.format("select id ,order_num,user_id ,address_id ,address_detail ,address_contract , status, total_price ,chajia_status, chajia_price, chajia_need_pay_money, chajia_had_pay_money, message,  jianhuo_status ,created_time, drawback_status, has_fahuo from %s where 1=1  %s order by id desc limit ?, ?", VarProperties.ORDER, whereStr);
         return jdbcTemplate.query(sql, new Object[]{ startIndex, pageSize}, new OrderListItemInfo.OrderListItemInfoRowMapper());
     }
 
     public List<OrderListItemInfo> getOrderListForJianHuoyuan(OrderAdminController.JianHYOrderStatus orderType, int pageSize, int pageNum) {
         int startIndex = (pageNum - 1) * pageSize;
-        final String sql = String.format("select id ,order_num,user_id ,address_id ,address_detail ,address_contract , status, total_price ,chajia_status,chajia_price, chajia_need_pay_money, chajia_had_pay_money, message,  jianhuo_status , has_fahuo from %s where jianhuo_status = ? order by id desc limit ?, ?", VarProperties.ORDER);
+        final String sql = String.format("select id ,order_num,user_id ,address_id ,address_detail ,address_contract , status, total_price ,chajia_status,chajia_price, chajia_need_pay_money, chajia_had_pay_money, created_time, message,  jianhuo_status , has_fahuo from %s where jianhuo_status = ? order by id desc limit ?, ?", VarProperties.ORDER);
         return jdbcTemplate.query(sql, new Object[]{orderType.toString(),  startIndex, pageSize}, new OrderListItemInfo.OrderListItemInfoRowMapper());
     }
 
     public List<SimpleOrderItem> getSimpleOrderItem(List<Integer> ids) {
-        final String sql = String.format("select id,product_name,product_profile_img,product_size from %s where id in (?)", VarProperties.ORDERS_ITEM);
-        return jdbcTemplate.query(sql, new Object[]{ids}, new SimpleOrderItem.SimpleOrderItemRowMapper());
+        if(ids == null || ids.isEmpty()){
+            return new ArrayList<>(1);
+        }
+        final String sql = String.format("select id,product_name,product_profile_img,product_size from %s where id in (:ids)", VarProperties.ORDERS_ITEM);
+        return namedParameterJdbcTemplate.query(sql, Collections.singletonMap("ids", ids), new SimpleOrderItem.SimpleOrderItemRowMapper());
     }
 }

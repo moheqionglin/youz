@@ -9,6 +9,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import javax.naming.Name;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,6 +35,9 @@ public class CommentDao {
     }
 
     public List<AppendCommentInfo> getAppendComment(List<Integer> ids) {
+        if(ids == null || ids.isEmpty()){
+            return new ArrayList<>(1);
+        }
         final String sql = String.format("select  product_comment_id , good,comment , images ,created_time from %s where product_comment_id in (:ids)", VarProperties.PRODUCT_APPEND_COMMENT);
         return namedParameterJdbcTemplate.query(sql, Collections.singletonMap("ids", ids), new AppendCommentInfo.AppendCommentInfoRowMapper());
     }

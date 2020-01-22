@@ -2,11 +2,12 @@ package com.sm.controller;
 
 import com.sm.config.UserDetail;
 import com.sm.dao.domain.UserAmountLogType;
-import com.sm.message.PageResult;
 import com.sm.message.profile.MyYueResponse;
 import com.sm.message.profile.UpdateProfileRequest;
+import com.sm.message.profile.UserAmountInfo;
 import com.sm.message.profile.YueItemResponse;
 import com.sm.service.ProfileService;
+import com.sm.service.UserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 
 /**
@@ -35,6 +37,8 @@ public class ProfileYzController {
     @Autowired
     private ProfileService profileService;
 
+    @Autowired
+    private UserService userService;
     @PutMapping(path = "/user/{userId}/detail")
     @PreAuthorize("hasAuthority('BUYER')  ")
     @ApiOperation(value = "更新基本用户信息, body中的四个字段nickName，sex，headPicture，birthday 不能为空， 用于[授权登录， 更新我的信息 地方]")
@@ -62,18 +66,28 @@ public class ProfileYzController {
 
     @GetMapping(path = "/user/{type}/log")
     @PreAuthorize("hasAuthority('BUYER')  ")
-    @ApiOperation(value = "[我的余额]  返回余额总数，和前30条交易明细")
+    @ApiOperation(value = "分页返回明细")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page_size", value = "page_size", required = true, paramType = "query", dataType = "Integer"),
             @ApiImplicitParam(name = "page_num", value = "page_num", required = true, paramType = "query", dataType = "Integer"),
             @ApiImplicitParam(name = "type", value = "type YUE or YONGJIN", required = true, paramType = "path", dataType = "UserAmountLogType")
     })
-    public PageResult<YueItemResponse> getYueLogPaged(@Valid @NotNull @RequestParam("page_size") int pageSize,
-                                                      @Valid @NotNull @RequestParam("page_num") int pageNum,
-                                                      @Valid @NotNull @PathVariable("type") UserAmountLogType type){
+    public List<YueItemResponse> getYueLogPaged(@Valid @NotNull @RequestParam("page_size") int pageSize,
+                                                @Valid @NotNull @RequestParam("page_num") int pageNum,
+                                                @Valid @NotNull @PathVariable("type") UserAmountLogType type){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
         return profileService.getAmountLogPaged(userDetail.getId(), type, pageSize, pageNum);
+
+    }
+
+    @GetMapping(path = "/user/amount")
+    @PreAuthorize("hasAuthority('BUYER')  ")
+    @ApiOperation(value = "[我的可用余额,我的可用佣金] ")
+    public UserAmountInfo getMoney(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
+        return userService.getAmount(userDetail.getId());
 
     }
 

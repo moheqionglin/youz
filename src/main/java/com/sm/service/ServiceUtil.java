@@ -60,7 +60,7 @@ public class ServiceUtil {
     }
 
     public static BigDecimal calcCartTotalCost(List<CartItemInfo> cartItems) {
-        return cartItems.stream().filter(c -> c.isSelected()).map(c -> c.getProduct().getCostPrice()).reduce(BigDecimal.ZERO, BigDecimal::add);
+        return cartItems.stream().map(c -> c.getProduct().getCostPrice()).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     public static BigDecimal calcCartItemPrice(CartItemInfo c) {

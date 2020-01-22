@@ -20,30 +20,20 @@ public class UserDetail implements UserDetails {
     private List<Role> roles;
     private Date lastPasswordResetDate;
     List<GrantedAuthority> authorities = new ArrayList<>();
+    private String openId;
 
-    public UserDetail(int id, String nickName, List<Role> role, String password) {
+    public UserDetail(int id, String nickName, List<Role> role, String password, String openId) {
         this.id = id;
         this.nickName = nickName;
         this.password = password;
         this.roles = role;
+        this.openId = openId;
         roles.stream().forEach(r -> {
             authorities.add(new SimpleGrantedAuthority(r.getName()));
         });
     }
 
-    public UserDetail(String nickName, String password, List<Role> role) {
-        this.nickName = nickName;
-        this.password = password;
-        this.roles = role;
-        roles.stream().forEach(r -> {
-            authorities.add(new SimpleGrantedAuthority(r.getName()));
-        });
-    }
-
-    public UserDetail(int id, String nickName, String password) {
-        this.id = id;
-        this.nickName = nickName;
-        this.password = password;
+    public UserDetail() {
     }
 
     //返回分配给用户的角色列表
@@ -68,6 +58,14 @@ public class UserDetail implements UserDetails {
 
     public String getNickName() {
         return nickName;
+    }
+
+    public String getOpenId() {
+        return openId;
+    }
+
+    public void setOpenId(String openId) {
+        this.openId = openId;
     }
 
     /**

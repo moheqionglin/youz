@@ -1,7 +1,6 @@
 package com.sm.controller;
 
 import com.sm.config.UserDetail;
-import com.sm.message.PageResult;
 import com.sm.message.address.AddressDetailInfo;
 import com.sm.message.address.AddressListItem;
 import com.sm.service.AddressService;
@@ -17,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import java.security.Principal;
+import java.util.List;
 
 /**
  * @author wanli.zhou
@@ -35,19 +34,20 @@ public class AddressController {
 
     @GetMapping(path = "/address/list")
     @PreAuthorize("hasAuthority('BUYER')")
-    @ApiOperation(value = "[获取收货地址列表] 分页返回地址列表，其中默认地址永远放在最前面")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "page_size", value = "page_size", required = true, paramType = "query", dataType = "Integer"),
-            @ApiImplicitParam(name = "page_num", value = "page_num", required = true, paramType = "query", dataType = "Integer")
-    })
-    public PageResult<AddressListItem> getAddressPaged(@Valid @NotNull @RequestParam("page_size") int pageSize,
-                                                       @Valid @NotNull @RequestParam("page_num") int pageNum){
+    @ApiOperation(value = "[获取所有不分页收货地址列表] ")
+    public List<AddressListItem> getAddressAll(){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
-        if(userDetail != null ){
-            return addressService.getAddressPaged(userDetail.getId(), pageSize, pageNum);
-        }
-        return new PageResult(pageSize, pageNum, -1, null);
+        return addressService.getAddressPaged(userDetail.getId());
+    }
+
+    @GetMapping(path = "/address/default")
+    @PreAuthorize("hasAuthority('BUYER')")
+    @ApiOperation(value = "[获取默认地址，或者第一个地址] ")
+    public AddressListItem getDefaultAddress(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
+        return addressService.getDefaultAddress(userDetail.getId());
     }
 
     @PostMapping(path = "/address")

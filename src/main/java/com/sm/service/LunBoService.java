@@ -1,9 +1,10 @@
 package com.sm.service;
 
+import com.sm.controller.HttpYzCode;
 import com.sm.dao.dao.LunBoDao;
+import com.sm.message.ResultJson;
 import com.sm.message.lunbo.LunBoInfo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -25,22 +26,22 @@ public class LunBoService {
         return cacheService.getAllLunBo();
     }
 
-    public ResponseEntity<Integer> create(LunBoInfo lunbo) {
+    public ResultJson<Integer> create(LunBoInfo lunbo) {
         if(!checkLinkValid(lunbo)){
-            return ResponseEntity.badRequest().build();
+            return ResultJson.failure(HttpYzCode.BAD_REQUEST);
         }
         lunBoDao.create(lunbo);
         cacheService.invalidLunboCache();
-        return ResponseEntity.ok().build();
+        return ResultJson.ok();
     }
 
-    public ResponseEntity update(LunBoInfo lunbo) {
+    public ResultJson update(LunBoInfo lunbo) {
         if(!checkLinkValid(lunbo)){
-            return ResponseEntity.badRequest().build();
+            return ResultJson.failure(HttpYzCode.BAD_REQUEST);
         }
         lunBoDao.update(lunbo);
         cacheService.invalidLunboCache();
-        return ResponseEntity.ok().build();
+        return ResultJson.ok();
     }
 
     public void delete(Integer id) {

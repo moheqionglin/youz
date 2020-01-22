@@ -5,6 +5,7 @@ import com.sm.controller.OrderAdminController;
 import com.sm.controller.OrderController;
 import com.sm.dao.dao.AdminDao;
 import com.sm.dao.dao.OrderDao;
+import com.sm.message.ResultJson;
 import com.sm.message.address.AddressDetailInfo;
 import com.sm.message.order.*;
 import com.sm.message.product.ProductListItem;
@@ -14,7 +15,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,27 +54,31 @@ public class OrderService {
      * @return
      */
     @Transactional
-    public ResponseEntity<Integer> createOrder(int userID, CreateOrderRequest order) {
+    public ResultJson<String> createOrder(int userID, CreateOrderRequest order) {
         //1. 地址校验
         AddressDetailInfo addressDetail = addressService.getAddressDetail(userID, order.getAddressId());
         if(addressDetail == null){
-            return ResponseEntity.status(HttpYzCode.ADDRESS_NOT_EXISTS.getCode()).build();
+            return ResultJson.failure(HttpYzCode.ADDRESS_NOT_EXISTS);
         }
         //2. 校验 佣金，和余额
         UserAmountInfo userAmountInfo = userService.getAmount(userID);
         if(userAmountInfo == null ||
                 userAmountInfo.getYongjin() == null ||  userAmountInfo.getYongjin().compareTo(order.getUseYongjin()) < 0 ||
                 userAmountInfo.getYue() == null || userAmountInfo.getYue().compareTo(order.getUseYue()) < 0){
-            return ResponseEntity.status(HttpYzCode.YONGJIN_YUE_NOT_ENOUGH.getCode()).build();
+            return ResultJson.failure(HttpYzCode.YONGJIN_YUE_NOT_ENOUGH);
         }
         //3. 校验库存
-        List<CartItemInfo> cartItems = shoppingCartService.getAllCartItems(userID);
-        if(cartItems.stream().filter(c -> c.getProduct().isShowAble()).count() > 0){
-            return ResponseEntity.status(HttpYzCode.PRODUCT_XIAJIA.getCode()).build();
+        List<CartItemInfo> cartItems = shoppingCartService.getAllCartItems(userID, true);
+        cartItems = cartItems.stream().filter(c -> order.getCartIds().contains(c.getId())).collect(Collectors.toList());
+        if(cartItems.size() != order.getCartIds().size()){
+            return ResultJson.failure(HttpYzCode.PRODUCT_XIAJIA);
+        }
+        if(cartItems.stream().filter(c -> !c.getProduct().isShowAble()).count() > 0){
+            return ResultJson.failure(HttpYzCode.PRODUCT_XIAJIA);
         }
         //4. 校验产品下架
-        if(cartItems.stream().filter(c -> c.getProduct().getStock() <= c.getProductCnt()).count() > 0){
-            return ResponseEntity.status(HttpYzCode.EXCEED_STOCK.getCode()).build();
+        if(cartItems.stream().filter(c -> c.getProduct().getStock() < c.getProductCnt()).count() > 0){
+            return ResultJson.failure(HttpYzCode.EXCEED_STOCK);
         }
 
         CreateOrderInfo createOrderInfo = new CreateOrderInfo();
@@ -89,11 +93,17 @@ public class OrderService {
         createOrderInfo.setTotalPrice(ServiceUtil.calcCartTotalPrice(cartItems));
         createOrderInfo.setUseYongjin(order.getUseYongjin());
         createOrderInfo.setUseYue(order.getUseYue());
+        if((createOrderInfo.getUseYongjin().add(createOrderInfo.getUseYue())).compareTo(createOrderInfo.getTotalPrice()) > 0){
+            return ResultJson.failure(HttpYzCode.YONGJIN_YUE_PRICE_ERROR);
+        }
         BigDecimal subtract = createOrderInfo.getTotalCostPrice()
                 .subtract(createOrderInfo.getUseYongjin())
-                .subtract(createOrderInfo.getUseYue());
+                .subtract(createOrderInfo.getUseYue()).setScale(2, RoundingMode.UP);
         if(subtract.compareTo(BigDecimal.ZERO) <= 0){
             createOrderInfo.setNeedPayMoney(BigDecimal.ZERO);
+            createOrderInfo.setStatus(OrderController.BuyerOrderStatus.WAIT_SEND.toString());
+        }else{
+            createOrderInfo.setNeedPayMoney(subtract);
         }
         createOrderInfo.setHadPayMoney(BigDecimal.ZERO);
         createOrderInfo.setYongjinCode(order.getYongjinCode());
@@ -115,28 +125,34 @@ public class OrderService {
             ci.setProductSanzhuang(product.isSanzhung());
             return ci;
         }).collect(Collectors.toList());
-
-        //佣金计算
-        BigDecimal yongJinPercent = adminDao.getYongJinPercent();
         orderDao.createOrderItems(id, collect);
-        if(StringUtils.isNoneBlank(createOrderInfo.getYongjinCode()) && yongJinPercent.compareTo(BigDecimal.ZERO) > 0 && yongJinPercent.compareTo(BigDecimal.ONE) < 0){
-            BigDecimal total = ServiceUtil.calcCartTotalPriceWithoutZhuanqu(cartItems);
-            adminDao.updateYongjin(createOrderInfo.getYongjinCode(), total.multiply(yongJinPercent).setScale(2, RoundingMode.DOWN));
-            logger.info("Update yongjin for order {}/{}, order total {}, yongjin = [{} * {}], ", id, createOrderInfo.getOrderNum(), createOrderInfo.getTotalCostPrice(), total, yongJinPercent);
-        }
+
         //产品销量加加
         productService.addSalesCount(collect.stream().map(o -> o.getProductId()).collect(Collectors.toList()));
-        return ResponseEntity.ok(id);
+
+        if(StringUtils.isNoneBlank(createOrderInfo.getYongjinCode())){
+            //佣金计算
+            BigDecimal yongJinPercent = adminDao.getYongJinPercent();
+
+            if(StringUtils.isNoneBlank(createOrderInfo.getYongjinCode()) && yongJinPercent.compareTo(BigDecimal.ZERO) > 0 && yongJinPercent.compareTo(BigDecimal.ONE) < 0){
+                BigDecimal total = ServiceUtil.calcCartTotalPriceWithoutZhuanqu(cartItems);
+                adminDao.updateYongjin(createOrderInfo.getYongjinCode(), total.multiply(yongJinPercent).setScale(2, RoundingMode.DOWN));
+                logger.info("Update yongjin for order {}/{}, order total {}, yongjin = [{} * {}], ", id, createOrderInfo.getOrderNum(), createOrderInfo.getTotalCostPrice(), total, yongJinPercent);
+            }
+        }
+
+
+        return ResultJson.ok(createOrderInfo.getOrderNum());
     }
 
-    public ResponseEntity actionOrder(int userId, String orderNum, OrderController.ActionOrderType actionType) {
+    public ResultJson actionOrder(int userId, String orderNum, OrderController.ActionOrderType actionType) {
         SimpleOrder simpleOrder = orderDao.getSimpleOrder(orderNum);
         if(simpleOrder == null || !simpleOrder.getUserId().equals(userId)){
-            return ResponseEntity.status(HttpYzCode.ORDER_NOT_EXISTS.getCode()).build();
+            return ResultJson.failure(HttpYzCode.ORDER_NOT_EXISTS);
         }
         if(!(OrderController.BuyerOrderStatus.WAIT_PAY.toString().equalsIgnoreCase(simpleOrder.getStatus()) && OrderController.ActionOrderType.CANCEL_MANUAL.equals(actionType))
         || (OrderController.BuyerOrderStatus.WAIT_RECEIVE.toString().equalsIgnoreCase(simpleOrder.getStatus()) && OrderController.ActionOrderType.RECEIVE.equals(actionType))){
-            return ResponseEntity.status(HttpYzCode.ORDER_STATUS_ERROR.getCode()).build();
+            return ResultJson.failure(HttpYzCode.ORDER_STATUS_ERROR);
         }
         OrderController.BuyerOrderStatus bysta = null;
         if(OrderController.ActionOrderType.RECEIVE.equals(actionType)){
@@ -146,57 +162,62 @@ public class OrderService {
         }
 
         orderDao.actionOrderStatus(orderNum, bysta);
-        return ResponseEntity.ok().build();
+        return ResultJson.ok();
     }
 
-    public ResponseEntity drawbackOrder(int userId, DrawbackRequest drawbackRequest) {
+    public ResultJson drawbackOrder(int userId, DrawbackRequest drawbackRequest) {
         String orderNum = drawbackRequest.getOrderNum();
         SimpleOrder simpleOrder = orderDao.getSimpleOrder(orderNum);
         if(simpleOrder == null || !simpleOrder.getUserId().equals(userId)){
-            return ResponseEntity.status(HttpYzCode.ORDER_NOT_EXISTS.getCode()).build();
+            return ResultJson.failure(HttpYzCode.ORDER_NOT_EXISTS);
         }
         if(!(OrderController.BuyerOrderStatus.WAIT_SEND.toString().equalsIgnoreCase(simpleOrder.getStatus())
          || OrderController.BuyerOrderStatus.WAIT_RECEIVE.toString().equalsIgnoreCase(simpleOrder.getStatus())
          || OrderController.BuyerOrderStatus.WAIT_COMMENT.toString().equalsIgnoreCase(simpleOrder.getStatus()))){
-            return ResponseEntity.status(HttpYzCode.ORDER_STATUS_ERROR.getCode()).build();
+            return ResultJson.failure(HttpYzCode.ORDER_STATUS_ERROR);
         }
         if(!simpleOrder.getDrawbackStatus().equals(OrderController.DrawbackStatus.NONE)){
-            return ResponseEntity.status(HttpYzCode.ORDER_DRAWBACK_REPEAT_ERROR.getCode()).build();
+            return ResultJson.failure(HttpYzCode.ORDER_DRAWBACK_REPEAT_ERROR);
         }
         orderDao.actionDrawbackStatus(orderNum, OrderController.DrawbackStatus.WAIT_APPROVE);
         DrawBackAmount drawBackAmount = orderDao.getDrawbackAmount(orderNum);
         drawBackAmount.calcDisplayTotal();
         orderDao.creteDrawbackOrder(userId, simpleOrder.getId(), drawbackRequest, drawBackAmount.getDisplayTotalAmount(), drawBackAmount.getDisplayTotalYue() , drawBackAmount.getDisplayTotalYongjin());
-        return ResponseEntity.ok().build();
+        return ResultJson.ok();
     }
 
-    public ResponseEntity<DrawBackAmount> drawbackOrderAmount(int userId, String orderNum) {
+    public ResultJson<DrawBackAmount> drawbackOrderAmount(int userId, String orderNum) {
         SimpleOrder simpleOrder = orderDao.getSimpleOrder(orderNum);
         if(simpleOrder == null || !simpleOrder.getUserId().equals(userId)){
-            return ResponseEntity.status(HttpYzCode.ORDER_NOT_EXISTS.getCode()).build();
+            return ResultJson.failure(HttpYzCode.ORDER_NOT_EXISTS);
         }
         if(!(OrderController.BuyerOrderStatus.WAIT_SEND.toString().equalsIgnoreCase(simpleOrder.getStatus())
                 || OrderController.BuyerOrderStatus.WAIT_RECEIVE.toString().equalsIgnoreCase(simpleOrder.getStatus())
                 || OrderController.BuyerOrderStatus.WAIT_COMMENT.toString().equalsIgnoreCase(simpleOrder.getStatus()))){
-            return ResponseEntity.status(HttpYzCode.ORDER_STATUS_ERROR.getCode()).build();
+            return ResultJson.failure(HttpYzCode.ORDER_STATUS_ERROR);
         }
 
         DrawBackAmount drawBackAmount = orderDao.getDrawbackAmount(orderNum);
         drawBackAmount.calcDisplayTotal();
-        return ResponseEntity.ok(drawBackAmount);
+        return ResultJson.ok(drawBackAmount);
     }
 
-    public ResponseEntity<DrawbackOrderDetailInfo> getDrawbackOrderDetail(int userId, String orderNum) {
+    public ResultJson<DrawbackOrderDetailInfo> getDrawbackOrderDetail(int userId, String orderNum) {
         SimpleOrder simpleOrder = orderDao.getSimpleOrder(orderNum);
         if(simpleOrder == null || !simpleOrder.getUserId().equals(userId)){
-            return ResponseEntity.status(HttpYzCode.ORDER_NOT_EXISTS.getCode()).build();
+            return ResultJson.failure(HttpYzCode.ORDER_NOT_EXISTS);
         }
         DrawbackOrderDetailInfo di = orderDao.getDrawbackOrderDetail(simpleOrder.getId());
-        return ResponseEntity.ok(di);
+        return ResultJson.ok(di);
     }
 
-    public ResponseEntity<List<OrderListItemInfo>> getOrderList(int userId, OrderController.BuyerOrderStatus orderType, int pageSize, int pageNum) {
+    public ResultJson<List<OrderListItemInfo>> getOrderList(int userId, OrderController.BuyerOrderStatus orderType, int pageSize, int pageNum) {
         List<OrderListItemInfo> os = orderDao.getBuyerOrderList(userId, orderType, pageSize, pageNum);
+        fillOrderItemImg(os);
+        return ResultJson.ok(os);
+    }
+
+    private void fillOrderItemImg(List<OrderListItemInfo> os) {
         List<Integer> orderids = os.stream().map(o -> o.getId()).collect(Collectors.toList());
 
         List<OrderListItemInfo.OrderItemsForListPage> orderItemsForListPage = orderDao.getOrderItemsForListPage(orderids);
@@ -206,22 +227,21 @@ public class OrderService {
             o.setProductImges(items.stream().map(i -> i.getImage()).collect(Collectors.toList()));
             o.setTotalItemCount(items.size());
         });
-        return ResponseEntity.ok(os);
     }
 
-    public ResponseEntity<OrderDetailInfo> getOrderDetail(int userId, String orderNum, boolean admin) {
+    public ResultJson<OrderDetailInfo> getOrderDetail(int userId, String orderNum, boolean admin) {
         OrderDetailInfo orderDetailInfo =  orderDao.getOrderDetail(orderNum);
         if(orderDetailInfo == null){
-            return ResponseEntity.status(HttpYzCode.ORDER_NOT_EXISTS.getCode()).build();
+            return ResultJson.failure(HttpYzCode.ORDER_NOT_EXISTS);
         }
         if(!admin && !orderDetailInfo.getUserId().equals(userId)){
-            return ResponseEntity.status(HttpYzCode.ORDER_NOT_EXISTS.getCode()).build();
+            return ResultJson.failure(HttpYzCode.ORDER_NOT_EXISTS);
         }
         List<OrderDetailItemInfo> items = orderDao.getOrderDetailItem(orderDetailInfo.getId());
         orderDetailInfo.setItems(items);
         String jianhou = userService.getUserName(orderDetailInfo.getJianhuoyuanId());
         orderDetailInfo.setJianhuoyuanName(jianhou);
-        return ResponseEntity.ok(orderDetailInfo);
+        return ResultJson.ok(orderDetailInfo);
     }
 
     public void commentOrder(int userId, String orderNum, List<OrderCommentsRequest> orderCommentsRequest) {
@@ -240,15 +260,7 @@ public class OrderService {
 
     public List<OrderListItemInfo> getAdminOrderList(OrderAdminController.AdminOrderStatus orderType, int pageSize, int pageNum) {
         List<OrderListItemInfo> os = orderDao.getAdminFahuoOrderList(orderType, pageSize, pageNum);
-        List<Integer> orderids = os.stream().map(o -> o.getId()).collect(Collectors.toList());
-
-        List<OrderListItemInfo.OrderItemsForListPage> orderItemsForListPage = orderDao.getOrderItemsForListPage(orderids);
-        Map<Integer, List<OrderListItemInfo.OrderItemsForListPage>> itemImgsMap = orderItemsForListPage.stream().collect(Collectors.groupingBy(OrderListItemInfo.OrderItemsForListPage::getOrderId));
-        os.stream().forEach(o -> {
-            List<OrderListItemInfo.OrderItemsForListPage> items = itemImgsMap.get(o.getId());
-            o.setProductImges(items.stream().map(i -> i.getImage()).collect(Collectors.toList()));
-            o.setTotalItemCount(items.size());
-        });
+        fillOrderItemImg(os);
         return os;
     }
 
@@ -267,66 +279,70 @@ public class OrderService {
 
     }
 
-    public ResponseEntity updateChajiaOrder(String orderNum, ChaJiaOrderItemRequest chajia) {
+    public ResultJson updateChajiaOrder(String orderNum, ChaJiaOrderItemRequest chajia) {
         SimpleOrder simpleOrder = orderDao.getSimpleOrder(orderNum);
         if(simpleOrder == null || chajia.getOrderId().equals(simpleOrder.getId())){
-            return ResponseEntity.status(HttpYzCode.ORDER_NOT_EXISTS.getCode()).build();
+            return ResultJson.failure(HttpYzCode.ORDER_NOT_EXISTS);
         }
         if( OrderAdminController.JianHYOrderStatus.NOT_JIANHUO.toString().equals(simpleOrder.getJianhuoStatus())
         || simpleOrder.getJianhuoyuanId() == null ){
-            return ResponseEntity.status(HttpYzCode.ORDER_NO_JIANHUO.getCode()).build();
+            return ResultJson.failure(HttpYzCode.ORDER_NO_JIANHUO);
         }
         orderDao.updateChajiaOrder(simpleOrder.getId(), chajia);
-        return ResponseEntity.ok().build();
+        return ResultJson.ok();
     }
 
-    public ResponseEntity startJianhuo(int userId, String orderNum) {
+    public ResultJson startJianhuo(int userId, String orderNum) {
         SimpleOrder simpleOrder = orderDao.getSimpleOrder(orderNum);
         if(simpleOrder == null){
-            return ResponseEntity.status(HttpYzCode.ORDER_NOT_EXISTS.getCode()).build();
+            return ResultJson.failure(HttpYzCode.ORDER_NOT_EXISTS);
         }
         if(!OrderAdminController.JianHYOrderStatus.NOT_JIANHUO.toString().equals(simpleOrder.getJianhuoStatus())
                 && simpleOrder.getJianhuoyuanId() != null ){
-            return ResponseEntity.status(HttpYzCode.ORDER_JIANHUO_REPEAT.getCode()).build();
+            return ResultJson.failure(HttpYzCode.ORDER_JIANHUO_REPEAT);
         }
         orderDao.startJianhuo(userId, simpleOrder.getId());
-        return ResponseEntity.ok().build();
+        return ResultJson.ok();
     }
 
-    public ResponseEntity finishJianhuo(int userId, String orderNum) {
+    public ResultJson finishJianhuo(int userId, String orderNum) {
         SimpleOrder simpleOrder = orderDao.getSimpleOrder(orderNum);
         if(simpleOrder == null){
-            return ResponseEntity.status(HttpYzCode.ORDER_NOT_EXISTS.getCode()).build();
+            return ResultJson.failure(HttpYzCode.ORDER_NOT_EXISTS);
         }
         if(!OrderAdminController.JianHYOrderStatus.ING_JIANHUO.toString().equals(simpleOrder.getJianhuoStatus())
                 || !simpleOrder.getJianhuoyuanId().equals(userId) ){
-            return ResponseEntity.status(HttpYzCode.ORDER_JIANHUO_REPEAT.getCode()).build();
+            return ResultJson.failure(HttpYzCode.ORDER_JIANHUO_REPEAT);
         }
         orderDao.finishJianhuo(userId, simpleOrder.getId());
-        return ResponseEntity.ok().build();
+        return ResultJson.ok();
     }
 
-    public ResponseEntity finishJianhuoItem(int userId, String orderNum, Integer orderItemId) {
+    public ResultJson finishJianhuoItem(int userId, String orderNum, Integer orderItemId) {
         SimpleOrder simpleOrder = orderDao.getSimpleOrder(orderNum);
         if(simpleOrder == null){
-            return ResponseEntity.status(HttpYzCode.ORDER_NOT_EXISTS.getCode()).build();
+            return ResultJson.failure(HttpYzCode.ORDER_NOT_EXISTS);
         }
         if( OrderAdminController.JianHYOrderStatus.NOT_JIANHUO.toString().equals(simpleOrder.getJianhuoStatus())
                 || simpleOrder.getJianhuoyuanId() == null ){
-            return ResponseEntity.status(HttpYzCode.ORDER_NO_JIANHUO.getCode()).build();
+            return ResultJson.failure(HttpYzCode.ORDER_NO_JIANHUO);
         }
         if(!simpleOrder.getJianhuoyuanId().equals(userId)){
-            return ResponseEntity.status(HttpYzCode.ORDER_JIANHUO_NOT_CURRENT_ORDER.getCode()).build();
+            return ResultJson.failure(HttpYzCode.ORDER_JIANHUO_NOT_CURRENT_ORDER);
         }
         orderDao.finishJianhuoItem(simpleOrder.getId(), orderItemId);
-        return ResponseEntity.ok().build();
+        return ResultJson.ok();
     }
 
     public List<OrderListItemInfo> getDrawbackApproveList(OrderController.DrawbackStatus orderType, int pageSize, int pageNum) {
-        return orderDao.getDrawbackApproveList(orderType, pageSize, pageNum);
+        List<OrderListItemInfo> drawbackApproveList = orderDao.getDrawbackApproveList(orderType, pageSize, pageNum);
+        fillOrderItemImg(drawbackApproveList);
+        return drawbackApproveList;
     }
 
     public List<OrderListItemInfo> getOrderListForJianHuoyuan(OrderAdminController.JianHYOrderStatus orderType, int pageSize, int pageNum) {
-        return orderDao.getOrderListForJianHuoyuan(orderType, pageSize, pageNum);
+        List<OrderListItemInfo> orderListForJianHuoyuan = orderDao.getOrderListForJianHuoyuan(orderType, pageSize, pageNum);
+        fillOrderItemImg(orderListForJianHuoyuan);
+        return orderListForJianHuoyuan;
     }
 }

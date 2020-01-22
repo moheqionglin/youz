@@ -69,7 +69,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
             throw new AuthenticationServiceException(String.format("user openid %s had been disable " , user.getOpenCode()));
         }
         List<Role> roles = userService.getRolesByUserId(user.getId());
-        UserDetail userDetail = new UserDetail(user.getId(), user.getNickName(), roles, "");
+        UserDetail userDetail = new UserDetail(user.getId(), user.getNickName(), roles, "", code2Session.getOpenid());
         return new UsernamePasswordAuthenticationToken(userDetail, null, userDetail.getAuthorities());
     }
     

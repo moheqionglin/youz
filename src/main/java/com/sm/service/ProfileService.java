@@ -4,18 +4,13 @@ import com.sm.dao.dao.UserAmountLogDao;
 import com.sm.dao.dao.UserDao;
 import com.sm.dao.domain.UserAmountLog;
 import com.sm.dao.domain.UserAmountLogType;
-import com.sm.message.PageResult;
 import com.sm.message.profile.MyYueResponse;
 import com.sm.message.profile.UpdateProfileRequest;
 import com.sm.message.profile.YueItemResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -44,10 +39,9 @@ public class ProfileService {
         return new MyYueResponse(amount, yips);
     }
 
-    public PageResult<YueItemResponse> getAmountLogPaged(int userId, UserAmountLogType type, int pageSize, int pageNum) {
+    public List<YueItemResponse> getAmountLogPaged(int userId, UserAmountLogType type, int pageSize, int pageNum) {
 
         List<UserAmountLog> amountLogByUserId = userAmountLogDao.getAmountLogByUserId(userId, type, pageSize, pageNum);
-        List<YueItemResponse> yips = amountLogByUserId.stream().map(al -> new YueItemResponse(al.getModifiedTime(), al.getRemark(), al.getAmount())).collect(Collectors.toList());
-        return new PageResult(pageSize, pageNum, -1, yips);
+        return amountLogByUserId.stream().map(al -> new YueItemResponse(al.getModifiedTime(), al.getRemark(), al.getAmount())).collect(Collectors.toList());
     }
 }

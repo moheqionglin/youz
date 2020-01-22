@@ -1,16 +1,14 @@
 package com.sm.controller;
 
 import com.sm.config.UserDetail;
+import com.sm.message.ResultJson;
 import com.sm.message.order.*;
 import com.sm.message.OrderPayRequest;
 import com.sm.service.OrderService;
 import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,7 +38,7 @@ public class OrderController {
     })
     @ApiResponses(value={@ApiResponse(code=408, message="产品下架"), @ApiResponse(code=407, message="库存不足")
             , @ApiResponse(code=409, message="佣金 余额不足") , @ApiResponse(code=410, message="地址不存在")})
-    public ResponseEntity<Integer> createOrder(@Valid @RequestBody CreateOrderRequest order){
+    public ResultJson<String> createOrder(@Valid @RequestBody CreateOrderRequest order){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
 
@@ -69,7 +67,7 @@ public class OrderController {
             @ApiImplicitParam(name = "orderNum", value = "orderNum", required = true, paramType = "query", dataType = "String")
     })
     @ApiResponses(value={@ApiResponse(code= 420, message="订单不存在"), @ApiResponse(code=421, message="订单状态不对")})
-    public ResponseEntity actionOrder(@Valid @NotNull @PathVariable("actionType") ActionOrderType actionType,
+    public ResultJson actionOrder(@Valid @NotNull @PathVariable("actionType") ActionOrderType actionType,
                             @Valid @NotNull @RequestParam("orderNum") String orderNum){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
@@ -86,7 +84,7 @@ public class OrderController {
     @ApiResponses(value={@ApiResponse(code= 420, message="订单不存在"),
             @ApiResponse(code=421, message="订单状态不对"),
             @ApiResponse(code=422, message="已经申请过退款"),})
-    public ResponseEntity drawbackOrder(@Valid @NotNull @RequestBody DrawbackRequest drawbackRequest){
+    public ResultJson drawbackOrder(@Valid @NotNull @RequestBody DrawbackRequest drawbackRequest){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
 
@@ -102,7 +100,7 @@ public class OrderController {
     })
     @ApiResponses(value={@ApiResponse(code= 420, message="订单不存在"),
             @ApiResponse(code=421, message="订单状态不对")})
-    public ResponseEntity<DrawBackAmount> drawbackOrderAmount(@Valid @NotNull @RequestParam("orderNum") String orderNum){
+    public ResultJson<DrawBackAmount> drawbackOrderAmount(@Valid @NotNull @RequestParam("orderNum") String orderNum){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
 
@@ -117,7 +115,7 @@ public class OrderController {
             @ApiImplicitParam(name = "orderNum", value = "orderNum", required = true, paramType = "path", dataType = "String")
     })
     @ApiResponses(value={@ApiResponse(code= 420, message="订单不存在")})
-    public ResponseEntity<DrawbackOrderDetailInfo> getDrawbackOrderDetail(@Valid @NotNull @PathVariable("orderNum") String orderNum){
+    public ResultJson<DrawbackOrderDetailInfo> getDrawbackOrderDetail(@Valid @NotNull @PathVariable("orderNum") String orderNum){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
 
@@ -125,7 +123,7 @@ public class OrderController {
     }
 
 
-    @GetMapping(path = "/order/{userId}/{orderType}/list")
+    @GetMapping(path = "/order/{orderType}/list")
     @PreAuthorize("hasAuthority('BUYER') ")
     @ApiOperation(value = "[根据类型获取订单列表] 我的订单页面，全部，待付款，带发货，待收货，待评价， 我的退换货列表")
     @ApiImplicitParams(value = {
@@ -133,7 +131,7 @@ public class OrderController {
             @ApiImplicitParam(name = "page_size", value = "page_size", required = true, paramType = "query", dataType = "Integer"),
             @ApiImplicitParam(name = "page_num", value = "page_num", required = true, paramType = "query", dataType = "Integer")
     })
-    public ResponseEntity<List<OrderListItemInfo>> getOrderList(@Valid @NotNull @PathVariable("orderType") BuyerOrderStatus orderType,
+    public ResultJson<List<OrderListItemInfo>> getOrderList(@Valid @NotNull @PathVariable("orderType") BuyerOrderStatus orderType,
                                                 @Valid @NotNull @RequestParam("page_size") int pageSize,
                                                 @Valid @NotNull @RequestParam("page_num") int pageNum){
 
@@ -150,7 +148,7 @@ public class OrderController {
             @ApiImplicitParam(name = "orderNum", value = "orderNum", required = true, paramType = "path", dataType = "String")
     })
     @ApiResponses(value={@ApiResponse(code= 420, message="订单不存在")})
-    public ResponseEntity<OrderDetailInfo> getOrderDetail(@Valid @NotNull @PathVariable("orderNum") String orderNum){
+    public ResultJson<OrderDetailInfo> getOrderDetail(@Valid @NotNull @PathVariable("orderNum") String orderNum){
         //加上发货员
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();

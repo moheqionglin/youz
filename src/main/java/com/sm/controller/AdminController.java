@@ -1,14 +1,11 @@
 package com.sm.controller;
 
+import com.sm.message.ResultJson;
 import com.sm.message.admin.JinXiaoCunInfo;
 import com.sm.message.admin.YzStatisticsInfo;
 import com.sm.service.AdminOtherService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -50,12 +47,15 @@ public class AdminController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "value", value = "value", required = true, paramType = "body", dataType = "BigDecimal")
     })
-    public ResponseEntity updateYongjinPercent(@Valid @NotNull @RequestBody BigDecimal value){
+    @ApiResponses(value={@ApiResponse(code= 420, message="订单不存在"),
+            @ApiResponse(code= 431, message="订单没有检货员认领"),
+            @ApiResponse(code= 432, message="自己不是该订单的拣货员")})
+    public ResultJson updateYongjinPercent(@Valid @NotNull @RequestBody BigDecimal value){
         if(value.compareTo(BigDecimal.ONE) > 0){
-            return ResponseEntity.badRequest().build();
+            return ResultJson.failure(HttpYzCode.YONGJIN_BILI_TOO_MAX);
         }
         adminService.updateYongjinPercent(value);
-        return ResponseEntity.ok().build();
+        return ResultJson.ok();
     }
 
     @GetMapping(path = "/adminother/statistics/today")

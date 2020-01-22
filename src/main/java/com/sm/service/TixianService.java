@@ -1,11 +1,12 @@
 package com.sm.service;
 
+import com.sm.controller.HttpYzCode;
 import com.sm.controller.TixianController;
 import com.sm.dao.dao.TixianDao;
 import com.sm.dao.dao.UserDao;
+import com.sm.message.ResultJson;
 import com.sm.message.admin.TixianInfo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -45,12 +46,12 @@ public class TixianService {
         return tixianList;
     }
 
-    public ResponseEntity approveTixian(Integer userid, Integer id, TixianController.TiXianType type) {
+    public ResultJson approveTixian(Integer userid, Integer id, TixianController.TiXianType type) {
         if(!checkApproveTixian(id, type)){
-            return ResponseEntity.badRequest().build();
+            return ResultJson.failure(HttpYzCode.BAD_REQUEST);
         }
         tixianDao.approveTixian(userid, id, type);
-        return ResponseEntity.ok().build();
+        return ResultJson.ok();
     }
 
     private boolean checkApproveTixian(Integer id, TixianController.TiXianType type) {
