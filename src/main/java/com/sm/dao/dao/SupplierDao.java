@@ -56,7 +56,7 @@ public class SupplierDao {
     }
 
     public ProductSupplier get(int supplierId) {
-        final String sql = String.format("select id, name, contact_person, phone from %s", VarProperties.PRODUCT_SUPPLIERS);
-        return jdbcTemplate.query(sql, new ProductSupplierRowMapper()).stream().findFirst().orElse(null);
+        final String sql = String.format("select id, name, contact_person, phone from %s where id = ?", VarProperties.PRODUCT_SUPPLIERS);
+        return jdbcTemplate.query(sql, new Object[]{supplierId}, new ProductSupplierRowMapper()).stream().findFirst().orElse(null);
     }
 }

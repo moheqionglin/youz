@@ -1,7 +1,5 @@
 package com.sm.message.profile;
 
-import com.sm.message.order.SimpleOrderItem;
-import com.sm.service.ServiceUtil;
 import com.sm.utils.SmUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.jdbc.core.RowMapper;

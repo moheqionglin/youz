@@ -1,8 +1,10 @@
 package com.sm.dao.dao;
 
+import com.google.errorprone.annotations.Var;
 import com.sm.dao.domain.User;
 import com.sm.dao.domain.UserAmountLogType;
 import com.sm.dao.rowMapper.UserRowMapper;
+import com.sm.message.profile.ProfileUserInfoResponse;
 import com.sm.message.profile.SimpleUserInfo;
 import com.sm.message.profile.UpdateProfileRequest;
 import com.sm.message.profile.UserAmountInfo;
@@ -94,5 +96,14 @@ public class UserDao {
             uid2Nams.put(Integer.valueOf(m.get("id").toString()), m.get("nick_name").toString());
         });
         return uid2Nams;
+    }
+
+    public ProfileUserInfoResponse getProfileBaseInfo(int userId) {
+        final String sql = String.format("select id, sex,birthday, nick_name,head_picture,amount, yongjin from %s where id = ?", VarProperties.USERS);
+        try {
+            return jdbcTemplate.queryForObject(sql, new Object[]{userId}, new ProfileUserInfoResponse.ProfileUserInfoResponseRowMapper());
+        }catch (Exception e){
+            return null;
+        }
     }
 }

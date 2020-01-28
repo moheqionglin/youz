@@ -44,17 +44,17 @@ public class SupplierController {
         return supplierService.create(supplier);
     }
 
-    @PutMapping(path = "/supplier/{productId}")
+    @PutMapping(path = "/supplier/{supplierId}")
     @PreAuthorize("hasAuthority('ADMIN')")
-    @ApiOperation(value = "[更新供应商] supplierid 不能为空")
+    @ApiOperation(value = "[更新供应商] supplierId 不能为空")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "productId", value = "productId", required = true, paramType = "path", dataType = "Integer"),
+            @ApiImplicitParam(name = "supplierId", value = "supplierId", required = true, paramType = "path", dataType = "Integer"),
             @ApiImplicitParam(name = "supplier", value = "supplier", required = true, paramType = "body", dataType = "SupplierInfo")
     })
     public void update(@Valid @NotNull @PathVariable("supplierId") int supplierId,
-            @Valid @RequestBody SupplierInfo supplierInfo){
-        supplierInfo.setId(supplierId);
-        supplierService.update(supplierInfo);
+            @Valid @RequestBody SupplierInfo supplier){
+        supplier.setId(supplierId);
+        supplierService.update(supplier);
     }
 
     @DeleteMapping(path = "/supplier/{supplierId}")

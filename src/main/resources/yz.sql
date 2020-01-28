@@ -515,12 +515,12 @@ where t1.id in (:ids)
 delete from shopping_cart where user_id = ? and id in (?)
 
  select count(1) as pid from shopping_cart t1 left join products t2 on t1.product_id = t2.id where t2.id is not null
-
-select *from users
+select * from users
+select *from user_roles
 select* from orders where now() < DATE_ADD(created_time, INTERVAL 15 MINUTE )
 select * from orders_item
 
-select
+update users set birthday = '2020-01-15' where id = 1
 update orders set created_time = now() where id = 4
 select * from orders where order_num = 'P202001221941510001'
 select * from order_drawback
@@ -528,3 +528,9 @@ select * from products where id = 1815
 select *from product_comment
 update orders_item set product_sanzhuang  = 1
 update orders set jianhuoyuan_id =1 and jianhuo_status = 'ING_JIANHUO' where id = 28
+select * from user_amonut_log
+select id, nick_name,head_picture,amount, yongjin from users where id = 1
+
+select* from shipping_address
+
+ select * from product_suppliers

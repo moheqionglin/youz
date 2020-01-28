@@ -2,10 +2,8 @@ package com.sm.controller;
 
 import com.sm.config.UserDetail;
 import com.sm.dao.domain.UserAmountLogType;
-import com.sm.message.profile.MyYueResponse;
-import com.sm.message.profile.UpdateProfileRequest;
-import com.sm.message.profile.UserAmountInfo;
-import com.sm.message.profile.YueItemResponse;
+import com.sm.message.ResultJson;
+import com.sm.message.profile.*;
 import com.sm.service.ProfileService;
 import com.sm.service.UserService;
 import io.swagger.annotations.Api;
@@ -39,7 +37,8 @@ public class ProfileYzController {
 
     @Autowired
     private UserService userService;
-    @PutMapping(path = "/user/{userId}/detail")
+
+    @PutMapping(path = "/user/detail")
     @PreAuthorize("hasAuthority('BUYER')  ")
     @ApiOperation(value = "更新基本用户信息, body中的四个字段nickName，sex，headPicture，birthday 不能为空， 用于[授权登录， 更新我的信息 地方]")
     @ApiImplicitParams({
@@ -51,6 +50,14 @@ public class ProfileYzController {
         profileService.update(userDetail.getId(), user);
     }
 
+    @GetMapping(path = "/user/detail")
+    @PreAuthorize("hasAuthority('BUYER')  ")
+    @ApiOperation(value = "获取基本用户信息")
+    public ProfileUserInfoResponse getProfileBaseInfo(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
+        return profileService.getProfileBaseInfo(userDetail.getId());
+    }
 
     @GetMapping(path = "/user/{type}")
     @PreAuthorize("hasAuthority('BUYER')  ")

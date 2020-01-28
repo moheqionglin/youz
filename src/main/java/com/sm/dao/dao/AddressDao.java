@@ -13,6 +13,7 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.*;
 import java.util.HashMap;
@@ -65,6 +66,7 @@ public class AddressDao {
         jdbcTemplate.update(sql, new Object[]{userId});
     }
 
+    @Transactional
     public void update(AddressDetailInfo addressDetailInfo) {
         String sql = "update shipping_address set " +
                 "  province = :province ," +
@@ -85,7 +87,11 @@ public class AddressDao {
         paramsMap.put("phone", addressDetailInfo.getPhone());
         paramsMap.put("default_address", addressDetailInfo.isDefaultAddress());
         paramsMap.put("id", addressDetailInfo.getId());
+        if(addressDetailInfo.isDefaultAddress()){
+            jdbcTemplate.update("update shipping_address set default_address = false where user_id = ?", new Object[]{addressDetailInfo.getUserId()});
+        }
         namedParameterJdbcTemplate.update(sql, paramsMap);
+
 
     }
     public void delete(int userid, int addressId) {

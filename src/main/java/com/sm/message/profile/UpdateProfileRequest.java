@@ -17,7 +17,7 @@ public class UpdateProfileRequest implements Serializable {
     @NotNull
     private String headPicture;
     @NotNull
-    private Date birthday;
+    private String birthday;
 
     public String getNickName() {
         return nickName;
@@ -43,11 +43,11 @@ public class UpdateProfileRequest implements Serializable {
         this.headPicture = headPicture;
     }
 
-    public Date getBirthday() {
+    public String getBirthday() {
         return birthday;
     }
 
-    public void setBirthday(Date birthday) {
+    public void setBirthday(String birthday) {
         this.birthday = birthday;
     }
 }

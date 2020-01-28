@@ -4,7 +4,9 @@ import com.sm.dao.dao.UserAmountLogDao;
 import com.sm.dao.dao.UserDao;
 import com.sm.dao.domain.UserAmountLog;
 import com.sm.dao.domain.UserAmountLogType;
+import com.sm.message.ResultJson;
 import com.sm.message.profile.MyYueResponse;
+import com.sm.message.profile.ProfileUserInfoResponse;
 import com.sm.message.profile.UpdateProfileRequest;
 import com.sm.message.profile.YueItemResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,5 +45,9 @@ public class ProfileService {
 
         List<UserAmountLog> amountLogByUserId = userAmountLogDao.getAmountLogByUserId(userId, type, pageSize, pageNum);
         return amountLogByUserId.stream().map(al -> new YueItemResponse(al.getModifiedTime(), al.getRemark(), al.getAmount())).collect(Collectors.toList());
+    }
+
+    public ProfileUserInfoResponse getProfileBaseInfo(int userId) {
+        return userDao.getProfileBaseInfo(userId);
     }
 }

@@ -29,6 +29,9 @@ public class SupplierInfo {
         this.phone = s.getPhone();
     }
 
+    public SupplierInfo() {
+    }
+
     public ProductSupplier generateDomain(){
         ProductSupplier ps = new ProductSupplier();
         ps.setId(this.id);
