@@ -408,8 +408,8 @@ public class OrderService {
         if(simpleOrder == null){
             return -1;
         }
-        if(!(simpleOrder.getStatus().equals(OrderController.BuyerOrderStatus.WAIT_PAY) ||
-                simpleOrder.getChajiaStatus().equals(OrderAdminController.ChaJiaOrderStatus.WAIT_PAY))){
+        if(!(simpleOrder.getStatus().equals(OrderController.BuyerOrderStatus.WAIT_PAY.toString()) ||
+                simpleOrder.getChajiaStatus().equals(OrderAdminController.ChaJiaOrderStatus.WAIT_PAY.toString()))){
             return -1;
         }
         orderDao.surePayment(simpleOrder.getId(), payAmount, orderNum.contains("CJ"));
