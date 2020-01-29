@@ -10,6 +10,7 @@ import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -88,39 +89,39 @@ public class PaymentController {
 	 * @throws Exception
 	 */
 	@PostMapping(path = "payment/callback")
-	public ResultJson<Map<String,Object>> xcxNotify(HttpServletRequest request, HttpServletResponse response) throws Exception {
- 		InputStream inputStream =  request.getInputStream();
- 		//获取请求输入流
+	public ResponseEntity<String> xcxNotify(HttpServletRequest request, HttpServletResponse response) throws Exception {
+		InputStream inputStream =  request.getInputStream();
+		//获取请求输入流
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        byte[] buffer = new byte[1024];
-        int len = 0;
-        while ((len=inputStream.read(buffer))!=-1){
-            outputStream.write(buffer,0,len);
-        }
-        outputStream.close();
-        inputStream.close();
-        Map<String,Object> map = PayUtil.getMapFromXML(new String(outputStream.toByteArray(),"utf-8"));
-        logger.info("【小程序支付回调】 回调数据： \n"+map);
-        String returnCode = (String) map.get("return_code");
-        if ("SUCCESS".equalsIgnoreCase(returnCode)) {
-            String returnmsg = (String) map.get("result_code");
-            if("SUCCESS".equals(returnmsg)){
-            	//更新数据
-            	int result = paymentService.xcxNotify(map);
-            	if(result > 0){
-	            	return ResultJson.ok(map);
-            	}
+		byte[] buffer = new byte[1024];
+		int len = 0;
+		while ((len=inputStream.read(buffer))!=-1){
+			outputStream.write(buffer,0,len);
+		}
+		outputStream.close();
+		inputStream.close();
+		Map<String,Object> map = PayUtil.getMapFromXML(new String(outputStream.toByteArray(),"utf-8"));
+		logger.info("【小程序支付回调】 回调数据： \n"+map);
+		String returnCode = (String) map.get("return_code");
+		if ("SUCCESS".equalsIgnoreCase(returnCode)) {
+			String returnmsg = (String) map.get("result_code");
+			if("SUCCESS".equals(returnmsg)){
+				//更新数据
+				int result = orderService.surePayment(map);
+				if(result > 0){
+					return ResponseEntity.ok("<xml><return_code>SUCCESS</return_code><return_msg>OK</return_msg></xml>");
+				}
 				logger.info("【订单支付成功】111");
-            }else{
+			}else{
 				logger.info("【订单支付失败】111");
-				return ResultJson.failure(HttpYzCode.SERVER_ERROR);
+				return ResponseEntity.status(500).body(null);
 
-            }
-        }else{
-            logger.info("【订单支付失败】error");
-			return ResultJson.failure(HttpYzCode.SERVER_ERROR);
-        }
-		return ResultJson.failure(HttpYzCode.SERVER_ERROR);
+			}
+		}else{
+			logger.info("【订单支付失败】error");
+			return ResponseEntity.status(500).body(null);
+		}
+		return ResponseEntity.status(500).body(null);
 	}
 
 

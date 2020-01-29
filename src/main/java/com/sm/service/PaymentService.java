@@ -215,14 +215,4 @@ public class PaymentService {
 		return PayUtil.xmlStrToMap(sttr1);
 
 	}
-	@Transactional(readOnly = false, rollbackFor = {Exception.class})
-	public int xcxNotify(Map<String, Object> map) throws Exception {
-		int flag = 0;
-		//支付订单编号
-		String orderNo = (String) map.get("out_trade_no");
-		//检验是否需要再次回调刷新数据
-		//TODO 微信后台回调，刷新订单支付状态等相关业务
-
-		return flag;
-	}
 }

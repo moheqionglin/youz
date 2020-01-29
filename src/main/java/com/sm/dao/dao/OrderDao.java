@@ -289,4 +289,14 @@ public class OrderDao {
 
         jdbcTemplate.update(sql1, new Object[]{orderId});
     }
+
+    public void surePayment(Integer id, BigDecimal payAmount, boolean chajia) {
+        final String sql = String.format("update %s set status = ? , had_pay_money = ? where id = ? and status == 'WAIT_PAY'", VarProperties.ORDER);
+        final String cjsql = String.format("update %s set chajia_status = ? , chajia_had_pay_money = ? where id = ? and  chajia_status = 'WAIT_PAY'", VarProperties.ORDER);
+        if(chajia){
+            jdbcTemplate.update(cjsql, new Object[]{OrderAdminController.ChaJiaOrderStatus.HAD_PAY.toString(), payAmount, id});
+        }else{
+            jdbcTemplate.update(sql, new Object[]{OrderController.BuyerOrderStatus.WAIT_SEND.toString(), payAmount, id});
+        }
+    }
 }

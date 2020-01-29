@@ -381,4 +381,37 @@ public class OrderService {
         orderDao.cancelDrawback(orderNum, simpleOrder.getId());
         return ResultJson.ok();
     }
+
+    //cash_fee=1, out_trade_no=P202001292254360001
+
+    /**
+     * 确认收款，修改订单状态
+     * @param map
+     * @return
+     */
+    @Transactional(readOnly = false, rollbackFor = {Exception.class})
+    public int surePayment(Map<String, Object> map) {
+        String orderNum = map.get("out_trade_no").toString();
+        if(!StringUtils.isNoneBlank(orderNum)){
+            return -1;
+        }
+        if(!map.containsKey("cash_fee")){
+            return -1;
+        }
+        int money = Integer.valueOf(map.get("cash_fee").toString());
+        if(money <= 0 ){
+            return -1;
+        }
+        BigDecimal payAmount = BigDecimal.valueOf(money).divide(BigDecimal.valueOf(100)).setScale(2, RoundingMode.UP);
+        String simpon = orderNum.replaceAll("CJ", "");
+        SimpleOrder simpleOrder = orderDao.getSimpleOrder(simpon);
+        if(simpleOrder == null){
+            return -1;
+        }
+        if(!(simpleOrder.getStatus().equals(OrderController.BuyerOrderStatus.WAIT_PAY) ||
+                simpleOrder.getChajiaStatus().equals(OrderAdminController.ChaJiaOrderStatus.WAIT_PAY))){
+            return -1;
+        }
+        orderDao.surePayment(simpleOrder.getId(), payAmount, orderNum.contains("CJ"));
+    }
 }
