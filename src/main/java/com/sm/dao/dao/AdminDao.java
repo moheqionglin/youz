@@ -16,6 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.sm.controller.OrderController.BuyerOrderStatus.*;
 
@@ -82,7 +84,7 @@ public class AdminDao {
     public YzStatisticsInfo getTodayStatistics() {
         final String sql = String.format("select sum(total_price + chajia_price) as total_price, count(1) as total_cnt, sum(total_cost_price) as total_cost,  sum(total_price + chajia_price) - sum(total_cost_price)  as total_profit from %s where status in(:status) and created_time >= :time  ", VarProperties.ORDER);
         HashMap<String, Object> map = new HashMap();
-        map.put("status", new String[]{WAIT_SEND.toString(),WAIT_RECEIVE.toString(),WAIT_COMMENT.toString(),FINISH.toString()});
+        map.put("status", Stream.of(new String[]{WAIT_SEND.toString(),WAIT_RECEIVE.toString(),WAIT_COMMENT.toString(),FINISH.toString()}).collect(Collectors.toList()));
         map.put("time",SmUtil.getTodayYMD() + " 0:0:0");
         YzStatisticsInfo yzStatisticsInfo = namedParameterJdbcTemplate.query(sql, map, new YzStatisticsInfo.YzStatisticsInfoRowMapper()).stream().findFirst().orElse(null);
         return yzStatisticsInfo;
@@ -96,7 +98,7 @@ public class AdminDao {
             pageSize = 10;
         }
         int startIndex = (pageNum - 1) * pageSize;
-        final String sql = String.format("select  day ,total_price ,total_cnt, total_cost , total_profit  from %s where day >= ? and end <= ? limit ?,?", VarProperties.STATISTICS);
+        final String sql = String.format("select  day ,total_price ,total_cnt, total_cost , total_profit  from %s where day >= ? and day <= ? limit ?,?", VarProperties.STATISTICS);
         return jdbcTemplate.query(sql, new Object[]{start, end, startIndex, pageSize}, new YzStatisticsInfo.YzStatisticsInfoRowMapper());
     }
 

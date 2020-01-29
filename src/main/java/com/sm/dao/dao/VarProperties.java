@@ -26,4 +26,5 @@ public class VarProperties {
     public static final String TIXIAN_APPROVE="tixian_approve";
     public static final String MY_SEARCH="my_search";
     public static final String HOT_SEARCH = "hot_search";
+    public static final String FEEBACK = "feeback";
 }

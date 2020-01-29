@@ -42,8 +42,8 @@ public class ToutiaoDao {
     }
 
     public void update(TouTiao touTiao) {
-        final String sql = String.format("update %s set title =?, content =?", VarProperties.TOUTIAO);
-        jdbcTemplate.update(sql, new Object[]{touTiao.getTitle(), touTiao.getContent()});
+        final String sql = String.format("update %s set title =?, content =? where id= ?", VarProperties.TOUTIAO);
+        jdbcTemplate.update(sql, new Object[]{touTiao.getTitle(), touTiao.getContent(), touTiao.getId()});
     }
 
     public void delete(Integer id) {

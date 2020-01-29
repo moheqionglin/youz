@@ -50,7 +50,7 @@ public class TixianController {
     }
 
 
-    @PostMapping(path = "/tixian/{type}")
+    @GetMapping(path = "/tixian/{type}")
     @PreAuthorize("hasAuthority('ADMIN')")
     @ApiOperation(value = "[根据类型获取列表] ")
     @ApiImplicitParams({

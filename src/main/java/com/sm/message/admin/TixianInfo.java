@@ -1,6 +1,7 @@
 package com.sm.message.admin;
 
 import com.sm.message.order.SimpleOrderItem;
+import com.sm.utils.SmUtil;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.math.BigDecimal;
@@ -14,6 +15,7 @@ import java.sql.Timestamp;
  * @time 2020-01-16 22:42
  */
 public class TixianInfo {
+    private Integer id;
     private Integer userId;
     private String userName;
 
@@ -25,12 +27,15 @@ public class TixianInfo {
     private String approveName;
 
     private String approveComment;
-    private Timestamp createdTime;
+    private String createdTime;
 
     public static class TixianInfoRowMapper implements RowMapper<TixianInfo> {
         @Override
         public TixianInfo mapRow(ResultSet resultSet, int i) throws SQLException {
             TixianInfo tixianInfo = new TixianInfo();
+            if(existsColumn(resultSet, "id")){
+                tixianInfo.setId(resultSet.getInt("user_id"));
+            }
             if(existsColumn(resultSet, "user_id")){
                 tixianInfo.setUserId(resultSet.getInt("user_id"));
             }
@@ -47,7 +52,7 @@ public class TixianInfo {
                 tixianInfo.setApproveComment(resultSet.getString("approve_comment"));
             }
             if(existsColumn(resultSet, "created_time")){
-                tixianInfo.setCreatedTime(resultSet.getTimestamp("created_time"));
+                tixianInfo.setCreatedTime(SmUtil.parseLongToTMDHMS(resultSet.getTimestamp("created_time").getTime()));
             }
             return tixianInfo;
         }
@@ -58,6 +63,14 @@ public class TixianInfo {
                 return false;
             }
         }
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public Integer getUserId() {
@@ -116,11 +129,11 @@ public class TixianInfo {
         this.approveComment = approveComment;
     }
 
-    public Timestamp getCreatedTime() {
+    public String getCreatedTime() {
         return createdTime;
     }
 
-    public void setCreatedTime(Timestamp createdTime) {
+    public void setCreatedTime(String createdTime) {
         this.createdTime = createdTime;
     }
 }

@@ -4,6 +4,7 @@ import com.sm.message.ResultJson;
 import com.sm.message.admin.JinXiaoCunInfo;
 import com.sm.message.admin.YzStatisticsInfo;
 import com.sm.service.AdminOtherService;
+import com.sm.utils.SmUtil;
 import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -76,15 +77,19 @@ public class AdminController {
     @PreAuthorize("hasAuthority('ADMIN')")
     @ApiOperation(value = "[根据条件获取统计] start end 是long")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "start", value = "start", required = true, paramType = "query", dataType = "Long"),
-            @ApiImplicitParam(name = "end", value = "end", required = true, paramType = "query", dataType = "Long"),
+            @ApiImplicitParam(name = "start", value = "start", required = true, paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "end", value = "end", required = true, paramType = "query", dataType = "String"),
             @ApiImplicitParam(name = "page_size", value = "page_size", required = true, paramType = "query", dataType = "Integer"),
             @ApiImplicitParam(name = "page_num", value = "page_num", required = true, paramType = "query", dataType = "Integer")
     })
-    public List<YzStatisticsInfo> getStatistics(@Valid @NotNull @RequestParam("page_size") Long start,
-                                          @Valid @NotNull @RequestParam("page_num") Long end,
+    public List<YzStatisticsInfo> getStatistics(@Valid @NotNull @RequestParam("start") String start,
+                                          @Valid @NotNull @RequestParam("end") String end,
                                           @Valid @NotNull @RequestParam("page_size") int pageSize,
                                           @Valid @NotNull @RequestParam("page_num") int pageNum){
-        return adminService.getStatistics(start, end, pageSize, pageNum);
+        long st = SmUtil.getLongTimeFromYMDHMS(start + " 00:00:00");
+        long en = SmUtil.getLongTimeFromYMDHMS(end + " 23:59:59");
+        return adminService.getStatistics(st, en, pageSize, pageNum);
     }
+
+
 }

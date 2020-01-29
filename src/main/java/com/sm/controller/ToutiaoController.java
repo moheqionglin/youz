@@ -1,6 +1,7 @@
 package com.sm.controller;
 
 import com.sm.dao.domain.TouTiao;
+import com.sm.message.admin.TouTiaoInfo;
 import com.sm.service.ToutiaoService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -30,8 +31,8 @@ public class ToutiaoController {
 
     @GetMapping(path = "/toutiao/latest")
     @ApiOperation(value = "[获取最近一条头条] ")
-    public TouTiao getLatestToutiao(){
-        return toutiaoService.getLatestToutiao();
+    public TouTiaoInfo getLatestToutiao(){
+        return new TouTiaoInfo(toutiaoService.getLatestToutiao());
     }
 
     @PostMapping(path = "/toutiao")
@@ -40,8 +41,8 @@ public class ToutiaoController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "toutiao", value = "toutiao", required = true, paramType = "body", dataType = "TouTiao")
     })
-    public Integer create(@Valid @RequestBody TouTiao touTiao){
-        return toutiaoService.create(touTiao);
+    public Integer create(@Valid @RequestBody TouTiao toutiao){
+        return toutiaoService.create(toutiao);
     }
 
     @PutMapping(path = "/toutiao/{id}")
@@ -52,9 +53,9 @@ public class ToutiaoController {
             @ApiImplicitParam(name = "toutiao", value = "toutiao", required = true, paramType = "body", dataType = "TouTiao")
     })
     public void update(@Valid @NotNull @PathVariable("id") Integer id,
-            @Valid @RequestBody TouTiao touTiao){
-        touTiao.setId(id);
-        toutiaoService.update(touTiao);
+            @Valid @RequestBody TouTiao toutiao){
+        toutiao.setId(id);
+        toutiaoService.update(toutiao);
     }
 
     @DeleteMapping(path = "/toutiao/{id}")
@@ -74,8 +75,8 @@ public class ToutiaoController {
             @ApiImplicitParam(name = "page_size", value = "page_size", required = true, paramType = "query", dataType = "Integer"),
             @ApiImplicitParam(name = "page_num", value = "page_num", required = true, paramType = "query", dataType = "Integer")
     })
-    public List<TouTiao> getToutiaoList(@Valid @NotNull @RequestParam("page_size") int pageSize,
-                                        @Valid @NotNull @RequestParam("page_num") int pageNum){
+    public List<TouTiaoInfo> getToutiaoList(@Valid @NotNull @RequestParam("page_size") int pageSize,
+                                            @Valid @NotNull @RequestParam("page_num") int pageNum){
 
         return toutiaoService.getToutiaoList(pageSize, pageNum);
     }

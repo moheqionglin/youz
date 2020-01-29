@@ -71,6 +71,13 @@ public class LunBoController {
         lunboService.delete(id);
     }
 
+    @GetMapping(path = "/lunbo/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @ApiOperation(value = "[更新轮播] ")
+    public LunBoInfo update(@Valid @NotNull @PathVariable("id") Integer id){
+        return lunboService.getById(id);
+    }
+
     public static enum LinkType{
         NONE,
         PRODUCT_DETAIL,

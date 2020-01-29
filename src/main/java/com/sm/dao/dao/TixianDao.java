@@ -48,13 +48,13 @@ public class TixianDao {
                 where = " and approve_status = 'APPROVE_REJECT'";
                 break;
         }
-        final String sql = String.format("select user_id,amount,approve_status,approve_id,approve_comment,created_time from %s where 1=1 and %s order by id desc limit ?,?", VarProperties.TIXIAN_APPROVE, where);
+        final String sql = String.format("select id,user_id,amount,approve_status,approve_id,approve_comment,created_time from %s where 1=1   %s order by id desc limit ?,?", VarProperties.TIXIAN_APPROVE, where);
         return jdbcTemplate.query(sql, new Object[]{startIndex, pageSize}, new TixianInfo.TixianInfoRowMapper());
 
     }
 
     public void approveTixian(Integer userid, Integer id, TixianController.TiXianType type) {
-        final String sql = String.format("update %s approve_status = ? , approve_id = ? where id =?", VarProperties.TIXIAN_APPROVE);
+        final String sql = String.format("update %s set approve_status = ? , approve_id = ? where id =?", VarProperties.TIXIAN_APPROVE);
         jdbcTemplate.update(sql, new Object[]{type.toString(), userid, id});
     }
 }

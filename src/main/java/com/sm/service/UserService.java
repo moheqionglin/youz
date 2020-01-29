@@ -4,6 +4,7 @@ import com.sm.dao.dao.UserDao;
 import com.sm.dao.dao.UserRoleMapDao;
 import com.sm.dao.domain.Role;
 import com.sm.dao.domain.User;
+import com.sm.message.profile.FeebackRequest;
 import com.sm.message.profile.UserAmountInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -51,5 +52,9 @@ public class UserService {
 
     public String getUserName(Integer userId) {
         return userDao.getUserName(userId);
+    }
+
+    public void createFeeback(Integer userid, FeebackRequest feeback) {
+        userDao.createFeeback(userid, feeback);
     }
 }

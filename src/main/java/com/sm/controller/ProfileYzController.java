@@ -6,10 +6,7 @@ import com.sm.message.ResultJson;
 import com.sm.message.profile.*;
 import com.sm.service.ProfileService;
 import com.sm.service.UserService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -18,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
 import java.util.List;
 
 
@@ -98,6 +96,16 @@ public class ProfileYzController {
 
     }
 
-
+    @PostMapping(path = "/user/feeback")
+    @PreAuthorize("hasAuthority('BUYER')")
+    @ApiOperation(value = "反馈 ")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "feeback", value = "feeback", required = true, paramType = "body", dataType = "FeebackRequest")
+    })
+    public void createFeeback(@Valid @NotNull @RequestBody FeebackRequest feeback){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
+        userService.createFeeback(userDetail.getId(), feeback);
+    }
 
 }

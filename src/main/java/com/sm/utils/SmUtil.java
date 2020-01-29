@@ -62,4 +62,13 @@ public class SmUtil {
         return PREFIX + m;
     }
 
+    public static long getLongTimeFromYMDHMS(String start) {
+        LocalDateTime localDateTime = LocalDateTime.parse(start, ymrhms);
+        Instant instant = localDateTime.atZone(ZoneId.systemDefault()).toInstant();
+        return Date.from(instant).getTime();
+    }
+
+    public static void main(String[] args) {
+
+    }
 }

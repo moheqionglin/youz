@@ -536,9 +536,9 @@ select* from shipping_address
  select * from product_suppliers
 select * from order_yongjin_percent
 
-
-
-
+select * from toutiao
+select * from statistics
+select * from lunbo
 update orders set created_time = now()
 
 select sum(total_price + chajia_price)                         as total_price,
@@ -551,3 +551,6 @@ where status in ('WAIT_SEND',
 'WAIT_COMMENT',
 'FINISH')
   and created_time >= '2020-01-28 0:0:0'
+
+select * from tixian_approve
+select * from feeback

@@ -53,4 +53,7 @@ public class LunBoService {
         return true;
     }
 
+    public LunBoInfo getById(Integer id) {
+        return lunBoDao.getById(id);
+    }
 }

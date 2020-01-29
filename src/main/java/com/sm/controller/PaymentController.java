@@ -87,7 +87,7 @@ public class PaymentController {
 	 * @param response
 	 * @throws Exception
 	 */
-	@GetMapping(path = "payment/callback")
+	@PostMapping(path = "payment/callback")
 	public ResultJson<Map<String,Object>> xcxNotify(HttpServletRequest request, HttpServletResponse response) throws Exception {
  		InputStream inputStream =  request.getInputStream();
  		//获取请求输入流

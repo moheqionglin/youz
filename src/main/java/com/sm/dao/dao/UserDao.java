@@ -4,20 +4,14 @@ import com.google.errorprone.annotations.Var;
 import com.sm.dao.domain.User;
 import com.sm.dao.domain.UserAmountLogType;
 import com.sm.dao.rowMapper.UserRowMapper;
-import com.sm.message.profile.ProfileUserInfoResponse;
-import com.sm.message.profile.SimpleUserInfo;
-import com.sm.message.profile.UpdateProfileRequest;
-import com.sm.message.profile.UserAmountInfo;
+import com.sm.message.profile.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 /**
  * @author wanli.zhou
@@ -89,8 +83,11 @@ public class UserDao {
         }
     }
     public Map<Integer, String> getUserId2Names(List<Integer> userIds) {
-        final String sql = String.format("select id, nick_name from %s where id in(?)", VarProperties.USERS);
-        List<Map<String, Object>> maps = jdbcTemplate.queryForList(sql, new Object[]{userIds});
+        if(userIds == null || userIds.isEmpty()){
+            return new HashMap<>(1);
+        }
+        final String sql = String.format("select id, nick_name from %s where id in(:ids)", VarProperties.USERS);
+        List<Map<String, Object>> maps = namedParameterJdbcTemplate.queryForList(sql, Collections.singletonMap("ids",userIds));
         HashMap<Integer, String> uid2Nams = new HashMap<>();
         maps.stream().forEach(m -> {
             uid2Nams.put(Integer.valueOf(m.get("id").toString()), m.get("nick_name").toString());
@@ -105,5 +102,10 @@ public class UserDao {
         }catch (Exception e){
             return null;
         }
+    }
+
+    public void createFeeback(Integer userId, FeebackRequest feeback) {
+        String sql = String.format("insert into %s(user_id,content, phone) values(?,?,?)", VarProperties.FEEBACK);
+        jdbcTemplate.update(sql, new Object[]{userId, feeback.getContent(), feeback.getPhone()});
     }
 }

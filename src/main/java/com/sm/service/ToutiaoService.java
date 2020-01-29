@@ -2,10 +2,12 @@ package com.sm.service;
 
 import com.sm.dao.dao.ToutiaoDao;
 import com.sm.dao.domain.TouTiao;
+import com.sm.message.admin.TouTiaoInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author wanli.zhou
@@ -34,7 +36,8 @@ public class ToutiaoService {
         toutiaoDao.delete(id);
     }
 
-    public List<TouTiao> getToutiaoList(int pageSize, int pageNum) {
-        return toutiaoDao.getToutiaoList(pageSize, pageNum);
+    public List<TouTiaoInfo> getToutiaoList(int pageSize, int pageNum) {
+        List<TouTiao> toutiaoList = toutiaoDao.getToutiaoList(pageSize, pageNum);
+        return toutiaoList.stream().map(t -> new TouTiaoInfo(t)).collect(Collectors.toList());
     }
 }
