@@ -413,5 +413,6 @@ public class OrderService {
             return -1;
         }
         orderDao.surePayment(simpleOrder.getId(), payAmount, orderNum.contains("CJ"));
+        return 1;
     }
 }

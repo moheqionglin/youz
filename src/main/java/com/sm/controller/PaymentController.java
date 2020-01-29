@@ -109,9 +109,10 @@ public class PaymentController {
 				//更新数据
 				int result = orderService.surePayment(map);
 				if(result > 0){
+					logger.info("【订单支付成功】for order {}, amount: {} ",  map.get("out_trade_no") , map.get("cash_fee"));
 					return ResponseEntity.ok("<xml><return_code>SUCCESS</return_code><return_msg>OK</return_msg></xml>");
 				}
-				logger.info("【订单支付成功】111");
+				logger.error("【订单支付成功,但是更改订单状态失败】for order "+map.get("out_trade_no") +", amount:  " + map.get("cash_fee"));
 			}else{
 				logger.info("【订单支付失败】111");
 				return ResponseEntity.status(500).body(null);
