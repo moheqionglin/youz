@@ -58,6 +58,13 @@ public class AdminController {
         return ResultJson.ok();
     }
 
+    @GetMapping(path = "/adminother/yongjin")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @ApiOperation(value = "获取佣金比例 ")
+    public BigDecimal getYongjinPercent(){
+        return adminService.getYongjinPercent();
+    }
+
     @GetMapping(path = "/adminother/statistics/today")
     @PreAuthorize("hasAuthority('ADMIN')")
     @ApiOperation(value = "[获取今天统计] ")

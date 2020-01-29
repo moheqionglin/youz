@@ -26,8 +26,8 @@ public class JinXiaoCunInfo {
             if(existsColumn(resultSet, "name")){
                 jinxiao.setName(resultSet.getString("name"));
             }
-            if(existsColumn(resultSet, "product_profile_img")){
-                jinxiao.setProfileImg(resultSet.getString("product_profile_img"));
+            if(existsColumn(resultSet, "profile_img")){
+                jinxiao.setProfileImg(resultSet.getString("profile_img"));
             }
             return jinxiao;
         }

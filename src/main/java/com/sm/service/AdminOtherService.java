@@ -35,4 +35,8 @@ public class AdminOtherService {
     public List<YzStatisticsInfo> getStatistics(Long start, Long end, int pageSize, int pageNum) {
         return adminDao.getStatistics(start, end, pageSize, pageNum);
     }
+
+    public BigDecimal getYongjinPercent() {
+        return adminDao.getYongjinPercent();
+    }
 }

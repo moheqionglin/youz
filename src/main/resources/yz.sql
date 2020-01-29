@@ -534,3 +534,20 @@ select id, nick_name,head_picture,amount, yongjin from users where id = 1
 select* from shipping_address
 
  select * from product_suppliers
+select * from order_yongjin_percent
+
+
+
+
+update orders set created_time = now()
+
+select sum(total_price + chajia_price)                         as total_price,
+       count(1)                                                as total_cnt,
+       sum(total_cost_price)                                   as total_cost,
+       sum(total_price + chajia_price) - sum(total_cost_price) as total_profit
+from orders
+where status in ('WAIT_SEND',
+'WAIT_RECEIVE',
+'WAIT_COMMENT',
+'FINISH')
+  and created_time >= '2020-01-28 0:0:0'
