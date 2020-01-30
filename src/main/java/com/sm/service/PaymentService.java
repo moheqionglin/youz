@@ -56,10 +56,6 @@ public class PaymentService {
 	@Value("${sm.wx.key}")
 	public  String XCX_KEY;
 
-	@PostConstruct
-	public void init(){
-		AESUtil.init(XCX_KEY);
-	}
 	//微信支付API
 	public static final String WX_PAY_UNIFIED_ORDER = "https://api.mch.weixin.qq.com/pay/unifiedorder";
 

@@ -11,6 +11,7 @@ import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -38,7 +39,10 @@ public class PaymentController {
 	private PaymentService paymentService;
  	@Autowired
 	private OrderService orderService;
-     /**
+	@Value("${sm.wx.key}")
+	public  String XCX_KEY;
+
+	/**
 	 * <p>统一下单入口</p>
 	 *
 	 * @throws Exception
@@ -158,6 +162,7 @@ public class PaymentController {
 		if ("SUCCESS".equalsIgnoreCase(returnCode)) {
 			//更新数据
 			String reqInfo = map.get("req_info").toString();
+			AESUtil.init(XCX_KEY);
 			String resultStr = AESUtil.decryptData(reqInfo);
 			Map<String, Object> mapFromXML = PayUtil.getMapFromXML(resultStr);
 			if("SUCCESS".equals(map.get("refund_status").toString())){

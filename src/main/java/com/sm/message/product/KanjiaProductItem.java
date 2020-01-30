@@ -21,7 +21,7 @@ public class KanjiaProductItem {
     @NotNull
     private BigDecimal kanjiaPrice;
     @NotNull
-    private int maxKanjiaPerson;
+    private Integer maxKanjiaPerson;
 
     public Integer getProductId() {
         return productId;
@@ -55,8 +55,12 @@ public class KanjiaProductItem {
         this.kanjiaPrice = kanjiaPrice;
     }
 
-    public int getMaxKanjiaPerson() {
+    public Integer getMaxKanjiaPerson() {
         return maxKanjiaPerson;
+    }
+
+    public void setMaxKanjiaPerson(Integer maxKanjiaPerson) {
+        this.maxKanjiaPerson = maxKanjiaPerson;
     }
 
     public void setMaxKanjiaPerson(int maxKanjiaPerson) {

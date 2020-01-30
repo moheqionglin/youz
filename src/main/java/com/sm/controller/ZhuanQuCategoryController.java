@@ -104,9 +104,6 @@ public class ZhuanQuCategoryController {
     })
     public ResponseEntity addTejiaCategoryProduct(@Valid @NotNull @PathVariable("categoryid") int categoryid,
                                         @Valid @RequestBody TejiaProductItem product){
-        if(ServiceUtil.isKanjia(categoryid) && product.getMaxKanjiaPerson() == null || product.getMaxKanjiaPerson() <=0){
-            return ResponseEntity.badRequest().build();
-        }
         if(product.getCategoryId() != categoryid){
             return ResponseEntity.badRequest().build();
         }
@@ -121,9 +118,16 @@ public class ZhuanQuCategoryController {
             @ApiImplicitParam(name = "categoryid", value = "categoryid", required = true, paramType = "path", dataType = "Integer"),
             @ApiImplicitParam(name = "product", value = "product", required = true, paramType = "body", dataType = "KanjiaProductItem")
     })
-    public void addKanjiaCategoryProduct(@Valid @NotNull @PathVariable("categoryid") int categoryid,
-                                         @Valid @RequestBody KanjiaProductItem kanjiaProductItem){
-        zhuanQuCategoryService.addCategoryProduct(categoryid, kanjiaProductItem);
+    public ResponseEntity addKanjiaCategoryProduct(@Valid @NotNull @PathVariable("categoryid") int categoryid,
+                                         @Valid @RequestBody KanjiaProductItem product){
+        if(ServiceUtil.isKanjia(categoryid) && product.getMaxKanjiaPerson() == null || product.getMaxKanjiaPerson() <=0){
+            return ResponseEntity.badRequest().build();
+        }
+        if(product.getCategoryId() != categoryid){
+            return ResponseEntity.badRequest().build();
+        }
+        zhuanQuCategoryService.addCategoryProduct(categoryid, product);
+        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping(path = "/zhuanqucategory/{categoryid}/product/{productId}")
