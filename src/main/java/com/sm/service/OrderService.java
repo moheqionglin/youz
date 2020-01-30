@@ -342,7 +342,8 @@ public class OrderService {
             }else{
                 logger.error("Dwawback ERROR for order {}, refound amount = {}  ", simpleOrder.getOrderNum(), found);
             }
-        }else if (simpleOrder.getChajiaHadPayMoney() != null && simpleOrder.getChajiaHadPayMoney().compareTo(BigDecimal.ZERO) > 0){
+        }
+        if (simpleOrder.getChajiaHadPayMoney() != null && simpleOrder.getChajiaHadPayMoney().compareTo(BigDecimal.ZERO) > 0){
             data.put("out_refund_no", simpleOrder.getOrderNum()+"CJDW");
             data.put("out_trade_no", simpleOrder.getOrderNum()+"CJ");
             int found = simpleOrder.getChajiaHadPayMoney().multiply(BigDecimal.valueOf(100)).intValue();
@@ -356,14 +357,16 @@ public class OrderService {
             }else{
                 logger.error("Dwawback ERROR for order {}, refound amount = {}  ", simpleOrder.getOrderNum()+ "CJ", found);
             }
-        }else if (simpleOrder.getUseYongjin()!=null && simpleOrder.getUseYongjin().compareTo(BigDecimal.ZERO) > 0){
+        }
+        if (simpleOrder.getUseYongjin()!=null && simpleOrder.getUseYongjin().compareTo(BigDecimal.ZERO) > 0){
             userAmountLogDao.drawbackYongjin(simpleOrder);
-        }else if (simpleOrder.getUseYue() != null && simpleOrder.getUseYue().compareTo(BigDecimal.ZERO) > 0){
+        }
+        if (simpleOrder.getUseYue() != null && simpleOrder.getUseYue().compareTo(BigDecimal.ZERO) > 0){
             userAmountLogDao.drawbackYue(simpleOrder);
         }
 
 
-        //判断是否退款成功
+
 
     }
     public ResultJson updateChajiaOrder(String orderNum, ChaJiaOrderItemRequest chajia) {
