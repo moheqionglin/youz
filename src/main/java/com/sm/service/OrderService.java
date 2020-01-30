@@ -5,6 +5,9 @@ import com.sm.controller.OrderAdminController;
 import com.sm.controller.OrderController;
 import com.sm.dao.dao.AdminDao;
 import com.sm.dao.dao.OrderDao;
+import com.sm.dao.dao.UserAmountLogDao;
+import com.sm.dao.domain.UserAmountLog;
+import com.sm.dao.domain.UserAmountLogType;
 import com.sm.message.ResultJson;
 import com.sm.message.address.AddressDetailInfo;
 import com.sm.message.order.*;
@@ -12,6 +15,7 @@ import com.sm.message.product.ProductListItem;
 import com.sm.message.profile.UserAmountInfo;
 import com.sm.utils.SmUtil;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.validator.constraints.URL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +53,8 @@ public class OrderService {
     @Autowired
     private PaymentService paymentService;
 
+    @Autowired
+    private UserAmountLogDao userAmountLogDao;
     /**
      *   5. 删除购物车
      * @param userID
@@ -64,9 +70,12 @@ public class OrderService {
         }
         //2. 校验 佣金，和余额
         UserAmountInfo userAmountInfo = userService.getAmount(userID);
-        if(userAmountInfo == null ||
-                userAmountInfo.getYongjin() == null ||  userAmountInfo.getYongjin().compareTo(order.getUseYongjin()) < 0 ||
-                userAmountInfo.getYue() == null || userAmountInfo.getYue().compareTo(order.getUseYue()) < 0){
+        if(order.getUseYongjin() != null && (userAmountInfo == null || userAmountInfo.getYongjin() == null  ||
+                userAmountInfo.getYongjin().compareTo(order.getUseYongjin()) < 0  )){
+            return ResultJson.failure(HttpYzCode.YONGJIN_YUE_NOT_ENOUGH);
+        }
+        if(order.getUseYue() != null && (userAmountInfo == null || userAmountInfo.getYue() == null ||
+                userAmountInfo.getYue().compareTo(order.getUseYue()) < 0)){
             return ResultJson.failure(HttpYzCode.YONGJIN_YUE_NOT_ENOUGH);
         }
         //3. 校验库存
@@ -128,7 +137,8 @@ public class OrderService {
             return ci;
         }).collect(Collectors.toList());
         orderDao.createOrderItems(id, collect);
-
+        //记录使用积分佣金日志
+        createAmountLog(createOrderInfo);
         //产品销量加加
         productService.addSalesCount(collect.stream().map(o -> o.getProductId()).collect(Collectors.toList()));
         // 库存减少
@@ -153,6 +163,16 @@ public class OrderService {
         shoppingCartService.deleteCartItem(userID, order.getCartIds());
 
         return ResultJson.ok(createOrderInfo.getOrderNum());
+    }
+
+    private void createAmountLog(CreateOrderInfo createOrderInfo) {
+        if(createOrderInfo.getUseYongjin() != null && createOrderInfo.getUseYongjin().compareTo(BigDecimal.ZERO) > 0){
+            userAmountLogDao.useYongjin(createOrderInfo);
+
+        }
+        if(createOrderInfo.getUseYue() != null && createOrderInfo.getUseYue().compareTo(BigDecimal.ZERO) > 0){
+            userAmountLogDao.useYue(createOrderInfo);
+        }
     }
 
     public SimpleOrder getSimpleOrder(String orderNum){
@@ -336,6 +356,10 @@ public class OrderService {
             }else{
                 logger.error("Dwawback ERROR for order {}, refound amount = {}  ", simpleOrder.getOrderNum()+ "CJ", found);
             }
+        }else if (simpleOrder.getUseYongjin()!=null && simpleOrder.getUseYongjin().compareTo(BigDecimal.ZERO) > 0){
+            userAmountLogDao.drawbackYongjin(simpleOrder);
+        }else if (simpleOrder.getUseYue() != null && simpleOrder.getUseYue().compareTo(BigDecimal.ZERO) > 0){
+            userAmountLogDao.drawbackYue(simpleOrder);
         }
 
 

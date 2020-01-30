@@ -24,6 +24,8 @@ public class SimpleOrder {
     private BigDecimal hadPayMoney;
     private BigDecimal chajiaHadPayMoney;
     private String chajiaStatus;
+    private BigDecimal useYongjin;
+    private BigDecimal useYue;
 
     public static class SimpleOrderRowMapper implements RowMapper<SimpleOrder>{
 
@@ -65,6 +67,13 @@ public class SimpleOrder {
             }
             if(existsColumn(resultSet, "chajia_had_pay_money")){
                 simpleOrder.setChajiaHadPayMoney(resultSet.getBigDecimal("chajia_had_pay_money"));
+            }
+
+            if(existsColumn(resultSet, "use_yongjin")){
+                simpleOrder.setUseYongjin(resultSet.getBigDecimal("use_yongjin"));
+            }
+            if(existsColumn(resultSet, "use_yue")){
+                simpleOrder.setUseYue(resultSet.getBigDecimal("use_yue"));
             }
             return simpleOrder;
         }
@@ -126,6 +135,22 @@ public class SimpleOrder {
 
     public void setOrderNum(String orderNum) {
         this.orderNum = orderNum;
+    }
+
+    public BigDecimal getUseYongjin() {
+        return useYongjin;
+    }
+
+    public void setUseYongjin(BigDecimal useYongjin) {
+        this.useYongjin = useYongjin;
+    }
+
+    public BigDecimal getUseYue() {
+        return useYue;
+    }
+
+    public void setUseYue(BigDecimal useYue) {
+        this.useYue = useYue;
     }
 
     public void setId(Integer id) {

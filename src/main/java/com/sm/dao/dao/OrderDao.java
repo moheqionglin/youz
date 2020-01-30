@@ -115,7 +115,7 @@ public class OrderDao {
     }
 
     public SimpleOrder getSimpleOrder(String orderNum){
-        final String sql = String.format("select id,user_id,status,order_num, drawback_status ,jianhuoyuan_id, chajia_need_pay_money,chajia_status,need_pay_money,jianhuo_status from %s where order_num = ?", VarProperties.ORDER);
+        final String sql = String.format("select id,user_id,status,order_num, drawback_status ,jianhuoyuan_id, use_yongjin,use_yue,chajia_need_pay_money,chajia_status,need_pay_money,jianhuo_status from %s where order_num = ?", VarProperties.ORDER);
         return jdbcTemplate.query(sql, new Object[]{orderNum}, new SimpleOrder.SimpleOrderRowMapper()).stream().findFirst().orElse(null);
     }
     public boolean existsOrder(Integer userId, String orderNum) {
