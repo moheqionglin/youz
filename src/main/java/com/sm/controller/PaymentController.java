@@ -24,6 +24,7 @@ import javax.validation.constraints.NotNull;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 
 @RestController
@@ -81,6 +82,11 @@ public class PaymentController {
  
 	}
 
+	String payReturn = "<xml>\n" +
+			"\n" +
+			"  <return_code><![CDATA[SUCCESS]]></return_code>\n" +
+			"  <return_msg><![CDATA[OK]]></return_msg>\n" +
+			"</xml>";
     /**
 	 * <p>回调Api</p>
 	 *
@@ -89,7 +95,7 @@ public class PaymentController {
 	 * @throws Exception
 	 */
 	@PostMapping(path = "payment/callback")
-	public ResponseEntity<String> xcxNotify(HttpServletRequest request, HttpServletResponse response) throws Exception {
+	public String xcxNotify(HttpServletRequest request, HttpServletResponse response) throws Exception {
 		InputStream inputStream =  request.getInputStream();
 		//获取请求输入流
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -110,24 +116,32 @@ public class PaymentController {
 				int result = orderService.surePayment(map);
 				if(result > 0){
 					logger.info("【订单支付成功】for order {}, amount: {} ",  map.get("out_trade_no") , map.get("cash_fee"));
-					response.getOutputStream().write("<xml><return_code>SUCCESS</return_code><return_msg>OK</return_msg></xml>".getBytes());
-					return ResponseEntity.ok("<xml><return_code>SUCCESS</return_code><return_msg>OK</return_msg></xml>");
+					response.setContentType("text/xml");
+					response.getOutputStream().write(payReturn.getBytes());
+					response.getOutputStream().flush();
+					response.getOutputStream().close();
+					return payReturn;
 				}
 				logger.error("【订单支付成功,但是更改订单状态失败】for order "+map.get("out_trade_no") +", amount:  " + map.get("cash_fee"));
 			}else{
 				logger.info("【订单支付失败】111");
-				return ResponseEntity.status(500).body(null);
+				return null;
 
 			}
 		}else{
 			logger.info("【订单支付失败】error");
-			return ResponseEntity.status(500).body(null);
+			return null;
 		}
-		return ResponseEntity.status(500).body(null);
+		return null;
 	}
 
+	String refountReturn = "<xml>\n" +
+			"  <return_code><![CDATA[SUCCESS]]></return_code>\n" +
+			"  <return_msg><![CDATA[OK]]></return_msg>\n" +
+			"</xml>";
+
 	@PostMapping(path = "payment/refund/callback")
-	public ResponseEntity<String> xcxdrwabackNotify(HttpServletRequest request, HttpServletResponse response) throws Exception {
+	public String xcxdrwabackNotify(HttpServletRequest request, HttpServletResponse response) throws Exception {
 		InputStream inputStream =  request.getInputStream();
 		//获取请求输入流
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -142,31 +156,39 @@ public class PaymentController {
 		logger.info("【小程序退款回调】 回调数据： \n"+map);
 		String returnCode = (String) map.get("return_code");
 		if ("SUCCESS".equalsIgnoreCase(returnCode)) {
-			String returnmsg = (String) map.get("result_code");
-			if("SUCCESS".equals(returnmsg)){
-				//更新数据
-				String reqInfo = map.get("req_info").toString();
-				String resultStr = AESUtil.decryptData(reqInfo);
-				Map<String, Object> mapFromXML = PayUtil.getMapFromXML(resultStr);
+			//更新数据
+			String reqInfo = map.get("req_info").toString();
+			String resultStr = AESUtil.decryptData(reqInfo);
+			Map<String, Object> mapFromXML = PayUtil.getMapFromXML(resultStr);
+			if("SUCCESS".equals(map.get("refund_status").toString())){
+				int refount = Integer.valueOf(map.get("refund_fee").toString());
+				String refundNum = map.get("out_refund_no").toString();
+				BigDecimal refAmnt = BigDecimal.valueOf(refount).divide(BigDecimal.valueOf(100)).setScale(2, RoundingMode.UP);
+				String orderNum = map.get("out_trade_no").toString();
+				int result = orderService.sureDrawbackPayment(refAmnt, refundNum, orderNum);
+				if(result > 0){
+					logger.info("==={}", mapFromXML);
+					logger.info("【订单退款成功】for order {}, amount: {} ",  refundNum , refAmnt);
 
-//				int result = orderService.sureDrawbackPayment(map);
-//				if(result > 0){
-				logger.info("==={}", mapFromXML);
-					logger.info("【订单退款成功】for order {}, amount: {} ",  map.get("out_trade_no") , map.get("cash_fee"));
-					response.getOutputStream().write("<xml><return_code>SUCCESS</return_code><return_msg>OK</return_msg></xml>".getBytes());
-					return ResponseEntity.ok("<xml><return_code>SUCCESS</return_code><return_msg>OK</return_msg></xml>");
-//				}
-//				logger.error("【订单支付成功,但是更改订单状态失败】for order "+map.get("out_trade_no") +", amount:  " + map.get("cash_fee"));
+					response.setContentType("text/xml");
+					response.getOutputStream().write(refountReturn.getBytes());
+					response.getOutputStream().flush();
+					response.getOutputStream().close();
+
+					return refountReturn;
+				}else{
+					logger.error("【订单退款成功,但是更改订单状态失败】for order "+refundNum +", amount:  " + refAmnt);
+				}
 			}else{
-				logger.info("【订单支付失败】111");
-				return ResponseEntity.status(500).body(null);
 
 			}
+
+
 		}else{
 			logger.info("【订单支付失败】error");
-			return ResponseEntity.status(500).body(null);
+			return null;
 		}
-//		return ResponseEntity.status(500).body(null);
+		return null;
 	}
 
 	public static enum PayType{

@@ -492,4 +492,8 @@ public class OrderService {
         orderDao.surePayment(simpleOrder.getId(), payAmount, orderNum.contains("CJ"));
         return 1;
     }
+
+    public int sureDrawbackPayment(BigDecimal refAmnt, String refundNum, String orderNum) {
+        return orderDao.sureDrawbackPayment(refAmnt, refundNum, orderNum);
+    }
 }

@@ -307,4 +307,25 @@ public class OrderDao {
         jdbcTemplate.update(sql1, new Object[]{drawbacknum, orderid});
 
     }
+
+    public int sureDrawbackPayment(BigDecimal refAmnt, String refundNum, String orderNum) {
+        String simo = orderNum.replaceAll("CJ", "");
+        final String sql = String.format("select id from %s where order_num = ?", VarProperties.ORDER);
+        try {
+            Integer orderId = jdbcTemplate.queryForObject(sql, new Object[]{simo}, Integer.class);
+            if(!orderNum.contains("CJ")){
+                final String sql1 = String.format("update %s set drawback_num = ? , drawback_callback = 1 where order_id = ?", VarProperties.ORDER_DRAWBACK);
+                jdbcTemplate.update(sql1, new Object[]{refundNum, orderId});
+            }else if(orderNum.contains("CJ")){
+                final String sql1 = String.format("update %s set chajia_drawback_num = ? , chajia_drawback_callback = 1 where order_id = ?", VarProperties.ORDER_DRAWBACK);
+                jdbcTemplate.update(sql1, new Object[]{refundNum, orderId});
+            }
+            return 1;
+        }catch (Exception e){
+            return -1;
+        }
+
+
+
+    }
 }
