@@ -165,11 +165,11 @@ public class PaymentController {
 			AESUtil.init(XCX_KEY);
 			String resultStr = AESUtil.decryptData(reqInfo);
 			Map<String, Object> mapFromXML = PayUtil.getMapFromXML(resultStr);
-			if("SUCCESS".equals(map.get("refund_status").toString())){
-				int refount = Integer.valueOf(map.get("refund_fee").toString());
-				String refundNum = map.get("out_refund_no").toString();
+			if("SUCCESS".equals(mapFromXML.get("refund_status").toString())){
+				int refount = Integer.valueOf(mapFromXML.get("refund_fee").toString());
+				String refundNum = mapFromXML.get("out_refund_no").toString();
 				BigDecimal refAmnt = BigDecimal.valueOf(refount).divide(BigDecimal.valueOf(100)).setScale(2, RoundingMode.UP);
-				String orderNum = map.get("out_trade_no").toString();
+				String orderNum = mapFromXML.get("out_trade_no").toString();
 				int result = orderService.sureDrawbackPayment(refAmnt, refundNum, orderNum);
 				if(result > 0){
 					logger.info("==={}", mapFromXML);
