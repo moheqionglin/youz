@@ -577,6 +577,8 @@ select * from products
 select * from orders
 select * from order_drawback
 select * from product_append_comment
-
+select * from users
 
 select * from products where id = 2219
+
+update products set zhuanqu_endTime = 1612022400000

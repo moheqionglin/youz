@@ -46,18 +46,6 @@ public class OrderController {
         return orderService.createOrder(userDetail.getId(), order);
     }
 
-    @PutMapping(path = "/order/pay")
-    @PreAuthorize("hasAuthority('BUYER') ")
-    @ApiOperation(value = "[支付回调] ")
-    @ApiImplicitParams(value = {
-            @ApiImplicitParam(name = "userId", value = "userId", required = true, paramType = "path", dataType = "Integer"),
-            @ApiImplicitParam(name = "orderPayRequest", value = "orderPayRequest", required = true, paramType = "body", dataType = "OrderPayRequest")
-    })
-    public void payOrder(@Valid @NotNull @PathVariable("userId") int userId,
-                               @Valid @RequestBody OrderPayRequest orderPayRequest){
-        //订单状态待已支付
-//         orderService.payOrder(userId, orderPayRequest);
-    }
 
     @PutMapping(path = "/order/{actionType}/action")
     @PreAuthorize("hasAuthority('BUYER') ")
