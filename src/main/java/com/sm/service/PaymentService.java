@@ -1,6 +1,7 @@
 package com.sm.service;
 
 import com.alibaba.fastjson.JSON;
+import com.sm.utils.AESUtil;
 import com.sm.utils.PayUtil;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import javax.annotation.PostConstruct;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import java.io.File;
@@ -54,6 +56,10 @@ public class PaymentService {
 	@Value("${sm.wx.key}")
 	public  String XCX_KEY;
 
+	@PostConstruct
+	public void init(){
+		AESUtil.init(XCX_KEY);
+	}
 	//微信支付API
 	public static final String WX_PAY_UNIFIED_ORDER = "https://api.mch.weixin.qq.com/pay/unifiedorder";
 
@@ -133,12 +139,13 @@ public class PaymentService {
 	}
 
 	//https://pay.weixin.qq.com/wiki/doc/api/wxa/wxa_api.php?chapter=9_16&index=10 退款成功回调
-	public String refund(SortedMap<String, String> data) throws Exception {
+	public String refund(SortedMap<String, String> data)  {
 		String url = "https://api.mch.weixin.qq.com/secapi/pay/refund";
 		data.put("appid", XCX_APP_ID);
 		data.put("mch_id", XCX_MCH_ID);
 		data.put("nonce_str", PayUtil.makeUUID(32));
 		data.put("sign", PayUtil.createSign(data, XCX_KEY));
+		data.put("notify_url", "https://yz.suimeikeji.com/api/v1/payment/refund/callback");
 
 		Map<String, String> resp = null;
 		try {

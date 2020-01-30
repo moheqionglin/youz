@@ -94,9 +94,9 @@ public class OrderDao {
         final String sql = String.format("update %s set drawback_status = ? where order_num = ?", VarProperties.ORDER);
         jdbcTemplate.update(sql, new Object[]{status.toString(), orderNum});
     }
-    public Integer creteDrawbackOrder(int userId, Integer order_id, DrawbackRequest drawbackRequest, BigDecimal price, BigDecimal yue, BigDecimal yongjin) {
-        final String sql = String.format("insert into %s(order_id, drawback_type, drawback_reason, drawback_detail, drawback_pay_price, drawback_yue, drawback_yongjin, drawback_imgs) " +
-                "values (:order_id, :drawback_type, :drawback_reason, :drawback_detail, :drawback_pay_price, :drawback_yue, :drawback_yongjin, :drawback_imgs)", VarProperties.ORDER_DRAWBACK);
+    public Integer creteDrawbackOrder(int userId, Integer order_id, DrawbackRequest drawbackRequest, BigDecimal price, BigDecimal yue, BigDecimal yongjin, DrawBackAmount drawBackAmount) {
+        final String sql = String.format("insert into %s(order_id, drawback_type, drawback_reason, drawback_detail, drawback_pay_price, drawback_yue, drawback_yongjin, drawback_imgs,  drawback_amount ,chajia_drawback_amount) " +
+                "values (:order_id, :drawback_type, :drawback_reason, :drawback_detail, :drawback_pay_price, :drawback_yue, :drawback_yongjin, :drawback_imgs, :drawback_amount, :chajia_drawback_amount)", VarProperties.ORDER_DRAWBACK);
         KeyHolder keyHolder = new GeneratedKeyHolder();
         MapSqlParameterSource pams = new MapSqlParameterSource();
         pams.addValue("order_id", order_id);
@@ -108,6 +108,8 @@ public class OrderDao {
         pams.addValue("drawback_yongjin", yongjin);
         String imgs = drawbackRequest == null ? "" : drawbackRequest.getImages().stream().collect(Collectors.joining(" | "));
         pams.addValue("drawback_imgs", imgs);
+        pams.addValue("drawback_amount", drawBackAmount.getHadPayMoney());
+        pams.addValue("chajia_drawback_amount", drawBackAmount.getChajiaHadPayMoney());
         namedParameterJdbcTemplate.update(sql, pams, keyHolder);
         return keyHolder.getKey().intValue();
     }
@@ -298,5 +300,11 @@ public class OrderDao {
         }else{
             jdbcTemplate.update(sql, new Object[]{OrderController.BuyerOrderStatus.WAIT_SEND.toString(), payAmount, id});
         }
+    }
+
+    public void fillDrawbackNum(String drawbacknum, Integer orderid) {
+        final String sql1 = String.format("update %s set drawback_num = ? where order_id= ?", VarProperties.ORDER_DRAWBACK);
+        jdbcTemplate.update(sql1, new Object[]{drawbacknum, orderid});
+
     }
 }

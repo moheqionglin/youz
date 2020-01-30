@@ -243,9 +243,12 @@ create table orders_item(
 
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+
 create table order_drawback(
     id int auto_increment primary key,
     order_id int,
+
+
     drawback_type varchar(50) comment '退货/退款',
     drawback_reason varchar(200),
     drawback_detail varchar(300),
@@ -254,11 +257,28 @@ create table order_drawback(
     drawback_yongjin decimal(10, 2),
     drawback_imgs varchar(1000) comment '最多三张照片',
 
+
+    drawback_num varchar(100),
+    drawback_amount decimal(10, 2),
+    drawback_callback bit(1) default 0,
+
+    chajia_drawback_num varchar(100),
+    chajia_drawback_amount decimal(10, 2),
+    chajia_drawback_callback bit(1) default 0,
+
     approve_user_id int,
     approve_comment varchar(300),
     created_time timestamp DEFAULT CURRENT_TIMESTAMP ,
 	modified_time timestamp  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+alter table order_drawback add drawback_num varchar(100)  ;
+alter table order_drawback add drawback_amount decimal(10, 2)  ;
+alter table order_drawback add drawback_callback bit(1) default 0  ;
+alter table order_drawback add chajia_drawback_num varchar(100)  ;
+alter table order_drawback add chajia_drawback_amount decimal(10, 2)  ;
+alter table order_drawback add chajia_drawback_callback bit(1) default 0  ;
+
 
 
 create table order_yongjin_percent(
@@ -559,3 +579,6 @@ select * from feeback
 select * from user_amonut_log
 create table products_bk
 select * from products
+
+
+select * from product_append_comment

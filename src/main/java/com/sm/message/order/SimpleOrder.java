@@ -21,6 +21,8 @@ public class SimpleOrder {
     private Integer jianhuoyuanId;
     private BigDecimal needPayMoney;
     private BigDecimal chajiaNeedPayMoney;
+    private BigDecimal hadPayMoney;
+    private BigDecimal chajiaHadPayMoney;
     private String chajiaStatus;
 
     public static class SimpleOrderRowMapper implements RowMapper<SimpleOrder>{
@@ -58,6 +60,12 @@ public class SimpleOrder {
             if(existsColumn(resultSet, "jianhuo_status")){
                 simpleOrder.setJianhuoStatus(resultSet.getString("jianhuo_status"));
             }
+            if(existsColumn(resultSet, "had_pay_money")){
+                simpleOrder.setHadPayMoney(resultSet.getBigDecimal("had_pay_money"));
+            }
+            if(existsColumn(resultSet, "chajia_had_pay_money")){
+                simpleOrder.setChajiaHadPayMoney(resultSet.getBigDecimal("chajia_had_pay_money"));
+            }
             return simpleOrder;
         }
         private boolean existsColumn(ResultSet rs, String column) {
@@ -74,6 +82,22 @@ public class SimpleOrder {
 
     public String getOrderNum() {
         return orderNum;
+    }
+
+    public BigDecimal getHadPayMoney() {
+        return hadPayMoney;
+    }
+
+    public void setHadPayMoney(BigDecimal hadPayMoney) {
+        this.hadPayMoney = hadPayMoney;
+    }
+
+    public BigDecimal getChajiaHadPayMoney() {
+        return chajiaHadPayMoney;
+    }
+
+    public void setChajiaHadPayMoney(BigDecimal chajiaHadPayMoney) {
+        this.chajiaHadPayMoney = chajiaHadPayMoney;
     }
 
     public BigDecimal getNeedPayMoney() {

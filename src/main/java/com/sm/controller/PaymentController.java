@@ -5,6 +5,7 @@ import com.sm.message.ResultJson;
 import com.sm.message.order.SimpleOrder;
 import com.sm.service.OrderService;
 import com.sm.service.PaymentService;
+import com.sm.utils.AESUtil;
 import com.sm.utils.PayUtil;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
@@ -23,7 +24,6 @@ import javax.validation.constraints.NotNull;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 @RestController
@@ -110,6 +110,7 @@ public class PaymentController {
 				int result = orderService.surePayment(map);
 				if(result > 0){
 					logger.info("【订单支付成功】for order {}, amount: {} ",  map.get("out_trade_no") , map.get("cash_fee"));
+					response.getOutputStream().write("<xml><return_code>SUCCESS</return_code><return_msg>OK</return_msg></xml>".getBytes());
 					return ResponseEntity.ok("<xml><return_code>SUCCESS</return_code><return_msg>OK</return_msg></xml>");
 				}
 				logger.error("【订单支付成功,但是更改订单状态失败】for order "+map.get("out_trade_no") +", amount:  " + map.get("cash_fee"));
@@ -125,35 +126,49 @@ public class PaymentController {
 		return ResponseEntity.status(500).body(null);
 	}
 
-
-	@PostMapping(path = "payment/drawback")
-	@PreAuthorize("permitAll()")
-	public String drawback() throws Exception {
-
-		SortedMap<String, String> data = new TreeMap<String, String>();
-		System.err.println("进入微信退款申请");
-		Date now = new Date();
-		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");//可以方便地修改日期格式
-		String hehe = dateFormat.format(now);
-
-		//这个不能使中文，否则出错
-		String out_refund_no = hehe + "-youzai";
-
-		String yzOrder_num = "Pu81u98riqwyriqwer";
-		data.put("out_refund_no", out_refund_no);
-		data.put("out_trade_no", yzOrder_num);
-		data.put("total_fee", "1");
-		data.put("refund_fee", "1");
-
-		String result = paymentService.refund(data);
-		//判断是否退款成功
-		if (result.equals("\"退款申请成功\"")) {
-
-			return  "已退款";
+	@PostMapping(path = "payment/refund/callback")
+	public ResponseEntity<String> xcxdrwabackNotify(HttpServletRequest request, HttpServletResponse response) throws Exception {
+		InputStream inputStream =  request.getInputStream();
+		//获取请求输入流
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		byte[] buffer = new byte[1024];
+		int len = 0;
+		while ((len=inputStream.read(buffer))!=-1){
+			outputStream.write(buffer,0,len);
 		}
-		return "微信退款失败";
+		outputStream.close();
+		inputStream.close();
+		Map<String,Object> map = PayUtil.getMapFromXML(new String(outputStream.toByteArray(),"utf-8"));
+		logger.info("【小程序退款回调】 回调数据： \n"+map);
+		String returnCode = (String) map.get("return_code");
+		if ("SUCCESS".equalsIgnoreCase(returnCode)) {
+			String returnmsg = (String) map.get("result_code");
+			if("SUCCESS".equals(returnmsg)){
+				//更新数据
+				String reqInfo = map.get("req_info").toString();
+				String resultStr = AESUtil.decryptData(reqInfo);
+				Map<String, Object> mapFromXML = PayUtil.getMapFromXML(resultStr);
 
+//				int result = orderService.sureDrawbackPayment(map);
+//				if(result > 0){
+				logger.info("==={}", mapFromXML);
+					logger.info("【订单退款成功】for order {}, amount: {} ",  map.get("out_trade_no") , map.get("cash_fee"));
+					response.getOutputStream().write("<xml><return_code>SUCCESS</return_code><return_msg>OK</return_msg></xml>".getBytes());
+					return ResponseEntity.ok("<xml><return_code>SUCCESS</return_code><return_msg>OK</return_msg></xml>");
+//				}
+//				logger.error("【订单支付成功,但是更改订单状态失败】for order "+map.get("out_trade_no") +", amount:  " + map.get("cash_fee"));
+			}else{
+				logger.info("【订单支付失败】111");
+				return ResponseEntity.status(500).body(null);
+
+			}
+		}else{
+			logger.info("【订单支付失败】error");
+			return ResponseEntity.status(500).body(null);
+		}
+//		return ResponseEntity.status(500).body(null);
 	}
+
 	public static enum PayType{
 		ORDER,
 		CHAJIA

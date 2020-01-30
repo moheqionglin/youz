@@ -5,8 +5,6 @@ import com.sm.controller.OrderAdminController;
 import com.sm.controller.OrderController;
 import com.sm.dao.dao.AdminDao;
 import com.sm.dao.dao.OrderDao;
-import com.sm.dao.dao.UserAmountLogDao;
-import com.sm.dao.domain.UserAmountLog;
 import com.sm.message.ResultJson;
 import com.sm.message.address.AddressDetailInfo;
 import com.sm.message.order.*;
@@ -19,13 +17,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import sun.java2d.cmm.Profile;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -52,7 +47,7 @@ public class OrderService {
     @Autowired
     private ProductService productService;
     @Autowired
-    private UserAmountLogDao userAmountLogDao;
+    private PaymentService paymentService;
 
     /**
      *   5. 删除购物车
@@ -202,7 +197,7 @@ public class OrderService {
         orderDao.actionDrawbackStatus(orderNum, OrderController.DrawbackStatus.WAIT_APPROVE);
         DrawBackAmount drawBackAmount = orderDao.getDrawbackAmount(orderNum);
         drawBackAmount.calcDisplayTotal();
-        orderDao.creteDrawbackOrder(userId, simpleOrder.getId(), drawbackRequest, drawBackAmount.getDisplayTotalAmount(), drawBackAmount.getDisplayTotalYue() , drawBackAmount.getDisplayTotalYongjin());
+        orderDao.creteDrawbackOrder(userId, simpleOrder.getId(), drawbackRequest, drawBackAmount.getDisplayTotalAmount(), drawBackAmount.getDisplayTotalYue() , drawBackAmount.getDisplayTotalYongjin(), drawBackAmount);
         return ResultJson.ok();
     }
 
@@ -286,6 +281,7 @@ public class OrderService {
         return os;
     }
 
+    @Transactional
     public ResultJson adminActionOrder(int userId, String orderNum, OrderAdminController.AdminActionOrderType actionType, String attach) {
         SimpleOrder simpleOrder = orderDao.getSimpleOrder(orderNum);
         if(simpleOrder == null || !simpleOrder.getUserId().equals(userId)){
@@ -297,6 +293,8 @@ public class OrderService {
                 break;
             case DRAWBACK_APPROVE_PASS:
                 orderDao.adminApproveDrawback(userId, simpleOrder.getId(), orderNum, OrderController.DrawbackStatus.APPROVE_PASS, attach);
+                //发起退款
+                doDrawback(simpleOrder);
                 break;
             case DRAWBACK_APPROVE_FAIL:
                 orderDao.adminApproveDrawback(userId, simpleOrder.getId(), orderNum, OrderController.DrawbackStatus.APPROVE_REJECT, attach);
@@ -305,6 +303,45 @@ public class OrderService {
         return ResultJson.ok();
     }
 
+    private void doDrawback(SimpleOrder simpleOrder){
+
+        SortedMap<String, String> data = new TreeMap<>();
+        //这个不能使中文，否则出错
+
+        if(simpleOrder.getHadPayMoney() != null && simpleOrder.getHadPayMoney().compareTo(BigDecimal.ZERO) > 0){
+            data.put("out_refund_no", simpleOrder.getOrderNum()+"DW");
+            data.put("out_trade_no", simpleOrder.getOrderNum());
+            int found = simpleOrder.getHadPayMoney().multiply(BigDecimal.valueOf(100)).intValue();
+            data.put("total_fee", found + "");
+            data.put("refund_fee", found + "");
+            logger.info("Start dwawback for order {}, refound amount = {}  ", simpleOrder.getOrderNum(), found);
+            String result = paymentService.refund(data);
+            if (result.equals("\"退款申请成功\"")) {
+                logger.info("Dwawback SUCCESS for order {}, refound amount = {}  ", simpleOrder.getOrderNum(), found);
+                orderDao.fillDrawbackNum(simpleOrder.getOrderNum()+"DW", simpleOrder.getId());
+            }else{
+                logger.error("Dwawback ERROR for order {}, refound amount = {}  ", simpleOrder.getOrderNum(), found);
+            }
+        }else if (simpleOrder.getChajiaHadPayMoney() != null && simpleOrder.getChajiaHadPayMoney().compareTo(BigDecimal.ZERO) > 0){
+            data.put("out_refund_no", simpleOrder.getOrderNum()+"CJDW");
+            data.put("out_trade_no", simpleOrder.getOrderNum()+"CJ");
+            int found = simpleOrder.getChajiaHadPayMoney().multiply(BigDecimal.valueOf(100)).intValue();
+            data.put("total_fee", found + "");
+            data.put("refund_fee", found + "");
+            logger.info("Start dwawback for order {}, refound amount = {}  ", simpleOrder.getOrderNum() + "CJ", found);
+            String result = paymentService.refund(data);
+            if (result.equals("\"退款申请成功\"")) {
+                orderDao.fillDrawbackNum(simpleOrder.getOrderNum()+"CJDW", simpleOrder.getId());
+                logger.info("Dwawback SUCCESS for order {}, refound amount = {}  ", simpleOrder.getOrderNum()+ "CJ", found);
+            }else{
+                logger.error("Dwawback ERROR for order {}, refound amount = {}  ", simpleOrder.getOrderNum()+ "CJ", found);
+            }
+        }
+
+
+        //判断是否退款成功
+
+    }
     public ResultJson updateChajiaOrder(String orderNum, ChaJiaOrderItemRequest chajia) {
         SimpleOrder simpleOrder = orderDao.getSimpleOrder(orderNum);
         if(simpleOrder == null){
