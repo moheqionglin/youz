@@ -202,7 +202,7 @@ public class OrderDao {
     }
 
     public void fahuo(int userId, String orderNum) {
-        final String sql = String.format("update %s set has_fahuo = true where order_num = ?", VarProperties.ORDER);
+        final String sql = String.format("update %s set has_fahuo = true, status='WAIT_RECEIVE' where order_num = ?", VarProperties.ORDER);
         jdbcTemplate.update(sql, new Object[]{orderNum});
     }
 
