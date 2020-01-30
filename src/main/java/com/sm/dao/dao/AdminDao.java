@@ -2,8 +2,11 @@ package com.sm.dao.dao;
 
 import com.google.errorprone.annotations.Var;
 import com.sm.controller.OrderController;
+import com.sm.dao.domain.UserAmountLog;
+import com.sm.dao.domain.UserAmountLogType;
 import com.sm.message.admin.JinXiaoCunInfo;
 import com.sm.message.admin.YzStatisticsInfo;
+import com.sm.message.order.CreateOrderInfo;
 import com.sm.utils.SmUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +36,9 @@ public class AdminDao {
     private JdbcTemplate jdbcTemplate;
 
     @Autowired
+    private UserAmountLogDao userAmountLogDao;
+
+    @Autowired
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
     public BigDecimal getYongJinPercent(){
         final String sql = String.format("select yongjin_percent from %s limit 1 ", VarProperties.ORDER_YONGJIN_PERCENT);
@@ -45,7 +51,7 @@ public class AdminDao {
     }
 
     @Transactional
-    public void updateYongjin(String yongjinCode, BigDecimal total) {
+    public void updateYongjinAndAddLog(String yongjinCode, BigDecimal total, CreateOrderInfo createOrderInfo, BigDecimal yongjinpercent) {
         final String userIDSql = String.format("select id from %s where yongjin_code = ?", VarProperties.USERS);
         Integer userId = null;
         try{
@@ -58,9 +64,11 @@ public class AdminDao {
         }
 
         final String sql = String.format("update %s set yongjin = yongjin + ? where id =?", VarProperties.USERS);
-        final String logSql = String.format("insert into %s(user_id, amount, remark, log_type) values(?,?,?,?)", VarProperties.USER_AMONUT_LOG);
         jdbcTemplate.update(sql, new Object[]{total, userId});
-        jdbcTemplate.update(logSql, new Object[]{userId, total, "好友下单赚取佣金", "YONGJIN"});
+
+        //Integer userId, BigDecimal amount, String remark, UserAmountLogType logType , String remarkDetail
+        UserAmountLog userAmountLog = new UserAmountLog(userId, total, "好友下单赚取佣金", UserAmountLogType.YONGJIN, String.format("订单号：%s , 订单金额 ： %s, 佣金比例 %s", createOrderInfo.getOrderNum(), createOrderInfo.getTotalPrice(), yongjinpercent.toPlainString()));
+        userAmountLogDao.create(userAmountLog);
 
     }
 

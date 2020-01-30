@@ -5,6 +5,8 @@ import com.sm.controller.OrderAdminController;
 import com.sm.controller.OrderController;
 import com.sm.dao.dao.AdminDao;
 import com.sm.dao.dao.OrderDao;
+import com.sm.dao.dao.UserAmountLogDao;
+import com.sm.dao.domain.UserAmountLog;
 import com.sm.message.ResultJson;
 import com.sm.message.address.AddressDetailInfo;
 import com.sm.message.order.*;
@@ -17,9 +19,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import sun.java2d.cmm.Profile;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -48,7 +52,8 @@ public class OrderService {
     @Autowired
     private ProductService productService;
     @Autowired
-    private OrderService orderService;
+    private UserAmountLogDao userAmountLogDao;
+
     /**
      *   5. 删除购物车
      * @param userID
@@ -131,6 +136,12 @@ public class OrderService {
 
         //产品销量加加
         productService.addSalesCount(collect.stream().map(o -> o.getProductId()).collect(Collectors.toList()));
+        // 库存减少
+        HashMap<Integer, Integer> pid2cnt = new HashMap<>();
+        collect.stream().forEach(p -> {
+            pid2cnt.put(p.getProductId(), p.getProductCnt());
+        });
+        productService.subStock(pid2cnt);
 
         if(StringUtils.isNoneBlank(createOrderInfo.getYongjinCode())){
             //佣金计算
@@ -138,11 +149,13 @@ public class OrderService {
 
             if(StringUtils.isNoneBlank(createOrderInfo.getYongjinCode()) && yongJinPercent.compareTo(BigDecimal.ZERO) > 0 && yongJinPercent.compareTo(BigDecimal.ONE) < 0){
                 BigDecimal total = ServiceUtil.calcCartTotalPriceWithoutZhuanqu(cartItems);
-                adminDao.updateYongjin(createOrderInfo.getYongjinCode(), total.multiply(yongJinPercent).setScale(2, RoundingMode.DOWN));
+                adminDao.updateYongjinAndAddLog(createOrderInfo.getYongjinCode(), total.multiply(yongJinPercent).setScale(2, RoundingMode.DOWN), createOrderInfo, yongJinPercent);
+
                 logger.info("Update yongjin for order {}/{}, order total {}, yongjin = [{} * {}], ", id, createOrderInfo.getOrderNum(), createOrderInfo.getTotalCostPrice(), total, yongJinPercent);
             }
         }
-
+        //删除购物车
+        shoppingCartService.deleteCartItem(userID, order.getCartIds());
 
         return ResultJson.ok(createOrderInfo.getOrderNum());
     }

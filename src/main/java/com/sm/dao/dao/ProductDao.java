@@ -297,4 +297,16 @@ public class ProductDao {
         });
         return result;
     }
+
+    public void subStock(HashMap<Integer, Integer> pid2cnt) {
+        final String sql = String.format("update %s set stock = stock - ? where id = ? ", VarProperties.PRODUCTS);
+        List<Object[]> pams = new ArrayList<>();
+        pid2cnt.entrySet().stream().forEach(en -> {
+            pams.add(new Object[]{en.getValue(),en.getKey()});
+        });
+        jdbcTemplate.batchUpdate(sql, pams);
+
+        final String sql1 = String.format("update %s set stock = 0 where id = ? and stock < 0", VarProperties.PRODUCTS);
+        jdbcTemplate.batchUpdate(sql1, pams);
+    }
 }

@@ -48,6 +48,7 @@ create table user_amonut_log(
     amount decimal(10,2) default 0 not null ,
     remark varchar(500) not null ,
     log_type enum('YUE', 'YONGJIN') not null ,
+    remark_detail varchar(1000) not null ,
     created_time timestamp DEFAULT CURRENT_TIMESTAMP ,
 	modified_time timestamp  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -554,3 +555,7 @@ where status in ('WAIT_SEND',
 
 select * from tixian_approve
 select * from feeback
+
+select * from user_amonut_log
+create table products_bk
+select * from products

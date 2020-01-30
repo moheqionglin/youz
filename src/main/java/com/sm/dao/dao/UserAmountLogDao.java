@@ -42,8 +42,8 @@ public class UserAmountLogDao {
     }
 
     public void create(UserAmountLog userAmountLog){
-        String sql = "insert into user_amonut_log(user_id,amount, remark ,log_type) values (?,?,?,?)";
-        jdbcTemplate.update(sql, new Object[]{userAmountLog.getUserId(), userAmountLog.getAmount(), userAmountLog.getRemark(), userAmountLog.getLogType().toString()});
+        String sql = "insert into user_amonut_log(user_id,amount, remark ,log_type, remark_detail) values (?,?,?,?, ?)";
+        jdbcTemplate.update(sql, new Object[]{userAmountLog.getUserId(), userAmountLog.getAmount(), userAmountLog.getRemark(), userAmountLog.getLogType().toString(), userAmountLog.getRemarkDetail()});
 
     }
 

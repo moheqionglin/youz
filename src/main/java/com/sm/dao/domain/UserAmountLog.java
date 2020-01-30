@@ -16,7 +16,18 @@ public class UserAmountLog {
     private UserAmountLogType logType;
     private Timestamp createdTime;
     private Timestamp modifiedTime;
+    private String remarkDetail;
 
+    public UserAmountLog(Integer userId, BigDecimal amount, String remark, UserAmountLogType logType , String remarkDetail) {
+        this.userId = userId;
+        this.amount = amount;
+        this.remark = remark;
+        this.logType = logType;
+        this.remarkDetail = remarkDetail;
+    }
+
+    public UserAmountLog() {
+    }
 
     public Integer getId() {
         return id;
@@ -74,6 +85,14 @@ public class UserAmountLog {
         this.modifiedTime = modifiedTime;
     }
 
+    public String getRemarkDetail() {
+        return remarkDetail;
+    }
+
+    public void setRemarkDetail(String remarkDetail) {
+        this.remarkDetail = remarkDetail;
+    }
+
     @Override
     public String toString() {
         return "UserAmountLog{" +
@@ -84,6 +103,7 @@ public class UserAmountLog {
                 ", logType=" + logType +
                 ", createdTime=" + createdTime +
                 ", modifiedTime=" + modifiedTime +
+                ", remarkDetail='" + remarkDetail + '\'' +
                 '}';
     }
 }
