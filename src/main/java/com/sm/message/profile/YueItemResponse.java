@@ -20,7 +20,7 @@ public class YueItemResponse {
 
     public YueItemResponse(Date dealDate, String remark, BigDecimal amount) {
         this.dealDate = dealDate != null ? SmUtil.parseLongToTMDHMS(dealDate.getTime()): "";
-        this.message = String.format("%s %f元", remark, amount.setScale(2, RoundingMode.HALF_DOWN));
+        this.message = String.format("%s %s元", remark, amount.setScale(2, RoundingMode.HALF_DOWN).toPlainString());
     }
 
     public String getDealDate() {
