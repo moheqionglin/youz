@@ -574,7 +574,8 @@ select * from user_amonut_log
 create table products_bk
 select * from products
 
-
+select * from orders
+select * from order_drawback
 select * from product_append_comment
 
 

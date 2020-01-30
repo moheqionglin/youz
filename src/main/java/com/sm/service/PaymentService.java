@@ -144,8 +144,8 @@ public class PaymentService {
 		data.put("appid", XCX_APP_ID);
 		data.put("mch_id", XCX_MCH_ID);
 		data.put("nonce_str", PayUtil.makeUUID(32));
-		data.put("sign", PayUtil.createSign(data, XCX_KEY));
 		data.put("notify_url", "https://yz.suimeikeji.com/api/v1/payment/refund/callback");
+		data.put("sign", PayUtil.createSign(data, XCX_KEY));
 
 		Map<String, String> resp = null;
 		try {
