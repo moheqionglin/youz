@@ -307,6 +307,10 @@ public class ProductDao {
         jdbcTemplate.batchUpdate(sql, pams);
 
         final String sql1 = String.format("update %s set stock = 0 where id = ? and stock < 0", VarProperties.PRODUCTS);
-        jdbcTemplate.batchUpdate(sql1, pams);
+        List<Object[]> pams1 = new ArrayList<>();
+        pid2cnt.entrySet().stream().forEach(en -> {
+            pams1.add(new Object[]{en.getKey()});
+        });
+        jdbcTemplate.batchUpdate(sql1, pams1);
     }
 }
