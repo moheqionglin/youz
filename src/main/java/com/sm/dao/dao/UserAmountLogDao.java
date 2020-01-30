@@ -66,7 +66,7 @@ public class UserAmountLogDao {
         jdbcTemplate.update(sql, new Object[]{simpleOrder.getUseYue(), simpleOrder.getUserId()});
         UserAmountLog userAmountLog = new UserAmountLog();
         userAmountLog.setUserId(simpleOrder.getUserId());
-        userAmountLog.setAmount(simpleOrder.getUseYongjin());
+        userAmountLog.setAmount(simpleOrder.getUseYue());
         userAmountLog.setLogType(UserAmountLogType.YUE);
         userAmountLog.setRemark(simpleOrder.getOrderNum() + "退款");
         userAmountLog.setRemarkDetail(String.format("退款订单 %s ，退还余额", simpleOrder.getOrderNum()));
@@ -92,7 +92,7 @@ public class UserAmountLogDao {
 
         UserAmountLog userAmountLog = new UserAmountLog();
         userAmountLog.setUserId(createOrderInfo.getUserId());
-        userAmountLog.setAmount(createOrderInfo.getUseYongjin());
+        userAmountLog.setAmount(createOrderInfo.getUseYue());
         userAmountLog.setLogType(UserAmountLogType.YUE);
         userAmountLog.setRemark(createOrderInfo.getOrderNum() + "下单使用");
         userAmountLog.setRemarkDetail(String.format("订单 %s ，下单使用", createOrderInfo.getOrderNum()));

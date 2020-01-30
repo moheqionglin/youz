@@ -272,12 +272,6 @@ create table order_drawback(
 	modified_time timestamp  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-alter table order_drawback add drawback_num varchar(100)  ;
-alter table order_drawback add drawback_amount decimal(10, 2)  ;
-alter table order_drawback add drawback_callback bit(1) default 0  ;
-alter table order_drawback add chajia_drawback_num varchar(100)  ;
-alter table order_drawback add chajia_drawback_amount decimal(10, 2)  ;
-alter table order_drawback add chajia_drawback_callback bit(1) default 0  ;
 
 
 
