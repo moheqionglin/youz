@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
 /**
@@ -72,7 +74,18 @@ public class UserAmountLogDao {
         userAmountLog.setRemarkDetail(String.format("退款订单 %s ，退还余额", simpleOrder.getOrderNum()));
         this.create(userAmountLog);
     }
-
+    public void drawbackChajiaToYue(SimpleOrder simpleOrder) {
+        final String sql = String.format("update %s set amount = amount + ? where id = ?", VarProperties.USERS);
+        BigDecimal amount = simpleOrder.getChajiaNeedPayMoney().abs().setScale(2, RoundingMode.UP);
+        jdbcTemplate.update(sql, new Object[]{amount, simpleOrder.getUserId()});
+        UserAmountLog userAmountLog = new UserAmountLog();
+        userAmountLog.setUserId(simpleOrder.getUserId());
+        userAmountLog.setAmount(amount);
+        userAmountLog.setLogType(UserAmountLogType.YUE);
+        userAmountLog.setRemark("差价订单退款");
+        userAmountLog.setRemarkDetail(String.format("差价订单退款 %s ，退还余额", simpleOrder.getOrderNum()));
+        this.create(userAmountLog);
+    }
     public void useYongjin(CreateOrderInfo createOrderInfo) {
         final String sql = String.format("update %s set yongjin = yongjin - ? where id = ?", VarProperties.USERS);
         jdbcTemplate.update(sql, new Object[]{createOrderInfo.getUseYongjin(), createOrderInfo.getUserId()});
@@ -98,4 +111,6 @@ public class UserAmountLogDao {
         userAmountLog.setRemarkDetail(String.format("订单 %s ，下单使用", createOrderInfo.getOrderNum()));
         this.create(userAmountLog);
     }
+
+
 }

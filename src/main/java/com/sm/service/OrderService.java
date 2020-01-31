@@ -317,6 +317,8 @@ public class OrderService {
         switch (actionType){
             case SEND:
                 orderDao.fahuo(userId, orderNum);
+                //如果有 差价订单，并且差价订单为负数，那么退还到余额
+                drawbackChajiaToYue(simpleOrder);
                 break;
             case DRAWBACK_APPROVE_PASS:
                 orderDao.adminApproveDrawback(userId, simpleOrder.getId(), orderNum, OrderController.DrawbackStatus.APPROVE_PASS, attach);
@@ -328,6 +330,13 @@ public class OrderService {
                 break;
         }
         return ResultJson.ok();
+    }
+
+    private void drawbackChajiaToYue(SimpleOrder simpleOrder) {
+        if(OrderAdminController.ChaJiaOrderStatus.HAD_PAY.toString().equals(simpleOrder.getChajiaStatus()) &&
+        simpleOrder.getChajiaNeedPayMoney().compareTo(BigDecimal.ZERO) < 0){
+            userAmountLogDao.drawbackChajiaToYue(simpleOrder);
+        }
     }
 
     private void doDrawback(SimpleOrder simpleOrder){

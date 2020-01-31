@@ -234,12 +234,14 @@ public class OrderDao {
 
     public void finishJianhuoWithChajia(int userId, Integer orderId, BigDecimal chajiaprice) {
         final String sql = String.format("update %s set jianhuoyuan_id =? , jianhuo_status = ?,chajia_status = ?,chajia_price =?,chajia_need_pay_money=? where id = ?", VarProperties.ORDER);
+
         jdbcTemplate.update(sql, new Object[]{userId, OrderAdminController.JianHYOrderStatus.HAD_JIANHUO.toString(),
-                OrderAdminController.ChaJiaOrderStatus.WAIT_PAY.toString(), chajiaprice, chajiaprice, orderId});
+                chajiaprice.compareTo(BigDecimal.ZERO) > 0 ? OrderAdminController.ChaJiaOrderStatus.WAIT_PAY.toString(): OrderAdminController.ChaJiaOrderStatus.HAD_PAY.toString(), chajiaprice, chajiaprice, orderId});
     }
     public void adminfinishCalcChajia(Integer orderId, BigDecimal chajiaprice) {
         final String sql = String.format("update %s set chajia_status = ?,chajia_price =?,chajia_need_pay_money=? where id = ?", VarProperties.ORDER);
-        jdbcTemplate.update(sql, new Object[]{OrderAdminController.ChaJiaOrderStatus.WAIT_PAY.toString(), chajiaprice, chajiaprice, orderId});
+        jdbcTemplate.update(sql, new Object[]{
+                chajiaprice.compareTo(BigDecimal.ZERO) > 0 ? OrderAdminController.ChaJiaOrderStatus.WAIT_PAY.toString():OrderAdminController.ChaJiaOrderStatus.HAD_PAY.toString() , chajiaprice, chajiaprice, orderId});
     }
     public void finishJianhuoItem(Integer id, Integer orderItemId) {
         final String sql = String.format("update %s set jianhuo_success = true, jianhuo_time = now() where order_id = ? and id = ?", VarProperties.ORDERS_ITEM);
