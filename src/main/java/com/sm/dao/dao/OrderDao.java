@@ -146,7 +146,7 @@ public class OrderDao {
                 whereStr = "and drawback_status = 'NONE' ";
                 break;
             case WAIT_PAY:
-                whereStr = " and drawback_status = 'NONE' and  ((status = 'WAIT_PAY' and  now() < DATE_ADD(created_time, INTERVAL 15 MINUTE )) or chajia_status='WAIT_PAY') ";
+                whereStr = " and drawback_status = 'NONE' and  ((status = 'WAIT_PAY' and  now() < DATE_ADD(created_time, INTERVAL 15 MINUTE )) or (chajia_status='WAIT_PAY' and status != 'WAIT_SEND')) ";
                 break;
             case WAIT_SEND:
                 whereStr = " and drawback_status = 'NONE' and  status = 'WAIT_SEND'";
