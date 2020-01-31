@@ -590,3 +590,4 @@ update products set zhuanqu_endTime = 1612022400000
 
 
 select count(1) from orders where drawback_status = 'NONE' and chajia_status = 'WAIT_PAY' and user_id = 1
+select * from user_amonut_log

@@ -56,7 +56,7 @@ public class AdminDao {
         final String userIDSql = String.format("select id from %s where yongjin_code = ?", VarProperties.USERS);
         Integer userId = null;
         try{
-            userId = jdbcTemplate.queryForObject(userIDSql, Integer.class);
+            userId = jdbcTemplate.queryForObject(userIDSql, new Object[]{yongjinCode}, Integer.class);
         }catch (Exception e){
             log.error("Get user by yongjin code " + yongjinCode + " error.", e);
         }
