@@ -165,8 +165,12 @@ public class ProductService {
     }
 
     public List<ProductListItem> adminSearch(SearchRequest searchRequest, int pageSize, int pageNum) {
-        return productDao.search(searchRequest, pageSize, pageNum, "ADMIN");
-
+        List<ProductListItem> admin = productDao.search(searchRequest, pageSize, pageNum, "ADMIN");
+        admin.stream().forEach(pi->{
+            pi.setZhuanquName(ServiceUtil.zhuanquName(pi.getZhuanquId(), pi.isZhuanquEnable(), pi.getZhuanquEndTime()));
+            pi.setCurrentPrice(ServiceUtil.calcCurrentPrice(pi.getCurrentPrice(), pi.getZhuanquPrice(), pi.isZhuanquEnable(), pi.getZhuanquId(), pi.getZhuanquEndTime()));
+        });
+        return admin;
     }
     public List<ProductListItem> search(Integer userid, String term, int pageSize, int pageNum) {
         SearchRequest searchRequest = new SearchRequest();
@@ -176,7 +180,12 @@ public class ProductService {
         if(userid != null){
             searchService.addMySearchTerm(userid, term);
         }
-        return productDao.search(searchRequest, pageSize, pageNum, "NOTADMIN");
+        List<ProductListItem> notadmin = productDao.search(searchRequest, pageSize, pageNum, "NOTADMIN");
+        notadmin.stream().forEach(pi ->{
+            pi.setZhuanquName(ServiceUtil.zhuanquName(pi.getZhuanquId(), pi.isZhuanquEnable(), pi.getZhuanquEndTime()));
+            pi.setCurrentPrice(ServiceUtil.calcCurrentPrice(pi.getCurrentPrice(), pi.getZhuanquPrice(), pi.isZhuanquEnable(), pi.getZhuanquId(), pi.getZhuanquEndTime()));
+        });
+        return notadmin;
     }
 
     public Integer getProductIdByCode(String code) {

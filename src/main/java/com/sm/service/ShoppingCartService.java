@@ -74,4 +74,8 @@ public class ShoppingCartService {
         shoppingCartDao.updateSelected(userid, cartId, selected);
 
     }
+    public void updateSelected(Integer userid, List<Integer> cartIds, boolean selected) {
+        shoppingCartDao.updateSelected(userid, cartIds, selected);
+
+    }
 }

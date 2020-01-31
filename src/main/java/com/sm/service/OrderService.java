@@ -55,6 +55,10 @@ public class OrderService {
 
     @Autowired
     private UserAmountLogDao userAmountLogDao;
+
+    public boolean hasWaitPayChajiaOrder(int userID){
+        return orderDao.hasWaitPayChajiaOrder(userID);
+    }
     /**
      *   5. 删除购物车
      * @param userID
@@ -63,6 +67,10 @@ public class OrderService {
      */
     @Transactional
     public ResultJson<String> createOrder(int userID, CreateOrderRequest order) {
+        //0. 校验有误差价订单没有支付
+        if(orderDao.hasWaitPayChajiaOrder(userID)){
+            return ResultJson.failure(HttpYzCode.ORDER_CHAJIA_WAIT_PAY);
+        }
         //1. 地址校验
         AddressDetailInfo addressDetail = addressService.getAddressDetail(userID, order.getAddressId());
         if(addressDetail == null){
@@ -107,7 +115,7 @@ public class OrderService {
         if((createOrderInfo.getUseYongjin().add(createOrderInfo.getUseYue())).compareTo(createOrderInfo.getTotalPrice()) > 0){
             return ResultJson.failure(HttpYzCode.YONGJIN_YUE_PRICE_ERROR);
         }
-        BigDecimal subtract = createOrderInfo.getTotalCostPrice()
+        BigDecimal subtract = createOrderInfo.getTotalPrice()
                 .subtract(createOrderInfo.getUseYongjin())
                 .subtract(createOrderInfo.getUseYue()).setScale(2, RoundingMode.UP);
         if(subtract.compareTo(BigDecimal.ZERO) <= 0){
@@ -406,6 +414,14 @@ public class OrderService {
         return ResultJson.ok();
     }
 
+    /**
+     * 1. 修改jianhuo_status 为已经完成拣货。
+     * 2. 如果有差价商品的话，计算差价商品总共需要多退少补的金额。
+     * @param userId
+     * @param orderNum
+     * @return
+     */
+    @Transactional
     public ResultJson finishJianhuo(int userId, String orderNum) {
         SimpleOrder simpleOrder = orderDao.getSimpleOrder(orderNum);
         if(simpleOrder == null){
@@ -415,7 +431,26 @@ public class OrderService {
                 || !simpleOrder.getJianhuoyuanId().equals(userId) ){
             return ResultJson.failure(HttpYzCode.ORDER_JIANHUO_REPEAT);
         }
-        orderDao.finishJianhuo(userId, simpleOrder.getId());
+        List<OrderDetailItemInfo> items = orderDao.getOrderDetailItem(simpleOrder.getId());
+        List<OrderDetailItemInfo> sanzhuangitems = items.stream().filter(odi -> odi.isProductSanzhuang()).collect(Collectors.toList());
+        if(!sanzhuangitems.isEmpty()){
+            //chajia_status,chajia_price,chajia_need_pay_money
+            BigDecimal chajiaprice = sanzhuangitems.stream().map(oi -> {
+                BigDecimal chajiatotal = oi.getChajiaTotalPrice();
+                BigDecimal total = oi.getProductTotalPrice();
+                if(chajiatotal != null && total != null){
+                    return chajiatotal.subtract(total).setScale(2, RoundingMode.UP);
+                }
+                return BigDecimal.ZERO;
+            }).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            orderDao.finishJianhuoWithChajia(userId, simpleOrder.getId(), chajiaprice);
+        }else{
+            orderDao.finishJianhuo(userId, simpleOrder.getId());
+        }
+
+
+
         return ResultJson.ok();
     }
 
@@ -495,5 +530,43 @@ public class OrderService {
 
     public int sureDrawbackPayment(BigDecimal refAmnt, String refundNum, String orderNum) {
         return orderDao.sureDrawbackPayment(refAmnt, refundNum, orderNum);
+    }
+
+    public ResultJson adminUpdateChajiaOrder(String orderNum, ChaJiaOrderItemRequest chajia) {
+        SimpleOrder simpleOrder = orderDao.getSimpleOrder(orderNum);
+        if(simpleOrder == null){
+            return ResultJson.failure(HttpYzCode.ORDER_NOT_EXISTS);
+        }
+        if( OrderAdminController.JianHYOrderStatus.NOT_JIANHUO.toString().equals(simpleOrder.getJianhuoStatus())
+                || simpleOrder.getJianhuoyuanId() == null ){
+            return ResultJson.failure(HttpYzCode.ORDER_NO_JIANHUO);
+        }
+
+        SimpleOrderItem simpleOrderItem = orderDao.getSimpleOrderItem(chajia.getId());
+        if(simpleOrderItem == null){
+            return ResultJson.failure(HttpYzCode.ORDER_NOT_EXISTS);
+        }
+        if(simpleOrderItem.isProductSanZhuang() && (chajia.getChajiaTotalPrice() == null || chajia.getChajiaTotalPrice().compareTo(BigDecimal.ZERO) <= 0 || StringUtils.isBlank(chajia.getChajiaTotalWeight())) ){
+            return ResultJson.failure(HttpYzCode.BAD_REQUEST);
+        }
+        if(simpleOrderItem.isProductSanZhuang()){
+            orderDao.updateChajiaOrder(simpleOrder.getId(), chajia);
+        }
+
+        List<OrderDetailItemInfo> items = orderDao.getOrderDetailItem(simpleOrder.getId());
+        List<OrderDetailItemInfo> sanzhuangitems = items.stream().filter(odi -> odi.isProductSanzhuang()).collect(Collectors.toList());
+        if(!sanzhuangitems.isEmpty()) {
+            //chajia_status,chajia_price,chajia_need_pay_money
+            BigDecimal chajiaprice = sanzhuangitems.stream().map(oi -> {
+                BigDecimal chajiatotal = oi.getChajiaTotalPrice();
+                BigDecimal total = oi.getProductTotalPrice();
+                if (chajiatotal != null && total != null) {
+                    return chajiatotal.subtract(total).setScale(2, RoundingMode.UP);
+                }
+                return BigDecimal.ZERO;
+            }).reduce(BigDecimal.ZERO, BigDecimal::add);
+            orderDao.adminfinishCalcChajia(simpleOrder.getId(), chajiaprice);
+        }
+        return ResultJson.ok();
     }
 }

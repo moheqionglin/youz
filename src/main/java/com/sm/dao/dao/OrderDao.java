@@ -146,7 +146,7 @@ public class OrderDao {
                 whereStr = "and drawback_status = 'NONE' ";
                 break;
             case WAIT_PAY:
-                whereStr = " and drawback_status = 'NONE' and  status = 'WAIT_PAY' and  now() < DATE_ADD(created_time, INTERVAL 15 MINUTE ) ";
+                whereStr = " and drawback_status = 'NONE' and  ((status = 'WAIT_PAY' and  now() < DATE_ADD(created_time, INTERVAL 15 MINUTE )) or chajia_status='WAIT_PAY') ";
                 break;
             case WAIT_SEND:
                 whereStr = " and drawback_status = 'NONE' and  status = 'WAIT_SEND'";
@@ -231,6 +231,15 @@ public class OrderDao {
         jdbcTemplate.update(sql, new Object[]{userId, OrderAdminController.JianHYOrderStatus.HAD_JIANHUO.toString(), orderId});
     }
 
+    public void finishJianhuoWithChajia(int userId, Integer orderId, BigDecimal chajiaprice) {
+        final String sql = String.format("update %s set jianhuoyuan_id =? , jianhuo_status = ?,chajia_status = ?,chajia_price =?,chajia_need_pay_money=? where id = ?", VarProperties.ORDER);
+        jdbcTemplate.update(sql, new Object[]{userId, OrderAdminController.JianHYOrderStatus.HAD_JIANHUO.toString(),
+                OrderAdminController.ChaJiaOrderStatus.WAIT_PAY.toString(), chajiaprice, chajiaprice, orderId});
+    }
+    public void adminfinishCalcChajia(Integer orderId, BigDecimal chajiaprice) {
+        final String sql = String.format("update %s set chajia_status = ?,chajia_price =?,chajia_need_pay_money=? where id = ?", VarProperties.ORDER);
+        jdbcTemplate.update(sql, new Object[]{OrderAdminController.ChaJiaOrderStatus.WAIT_PAY.toString(), chajiaprice, chajiaprice, orderId});
+    }
     public void finishJianhuoItem(Integer id, Integer orderItemId) {
         final String sql = String.format("update %s set jianhuo_success = true, jianhuo_time = now() where order_id = ? and id = ?", VarProperties.ORDERS_ITEM);
         jdbcTemplate.update(sql, new Object[]{id, orderItemId});
@@ -327,5 +336,11 @@ public class OrderDao {
 
 
 
+    }
+
+    public boolean hasWaitPayChajiaOrder(int userID) {
+        final String sql = String.format("select count(1) from %s where drawback_status = 'NONE' and chajia_status = 'WAIT_PAY' and user_id = ?", VarProperties.ORDER);
+        long count = jdbcTemplate.queryForObject(sql, new Object[]{userID}, Long.class);
+        return count > 0;
     }
 }

@@ -99,7 +99,7 @@ public class OrderAdminController {
 
     @PutMapping(path = "/ajorder/chajia")
     @PreAuthorize("hasAuthority('ADMIN') OR hasAuthority('JIANHUO') ")
-    @ApiOperation(value = "[订单状态]拣货员或者管理员 修改每个order Item的实际重量和实际价格 ")
+    @ApiOperation(value = "[订单状态]拣货员 修改每个order Item的实际重量和实际价格 ")
     @ApiImplicitParams(value = {
             @ApiImplicitParam(name = "orderNum", value = "orderNum", required = true, paramType = "query", dataType = "String"),
             @ApiImplicitParam(name = "chajia", value = "chajia", required = true, paramType = "body", dataType = "ChaJiaOrderItemRequest"),
@@ -110,6 +110,21 @@ public class OrderAdminController {
 
         //订单状态待支付
         return orderService.updateChajiaOrder(orderNum, chajia);
+    }
+
+    @PutMapping(path = "/ajorder/chajia/admin")
+    @PreAuthorize("hasAuthority('ADMIN') ")
+    @ApiOperation(value = "[订单状态]管理员 修改每个order Item的实际重量和实际价格 ")
+    @ApiImplicitParams(value = {
+            @ApiImplicitParam(name = "orderNum", value = "orderNum", required = true, paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "chajia", value = "chajia", required = true, paramType = "body", dataType = "ChaJiaOrderItemRequest"),
+    })
+    @ApiResponses(value={@ApiResponse(code= 420, message="订单不存在"), @ApiResponse(code= 431, message="订单没有检货员认领")})
+    public ResultJson adminUpdateChajiaOrder(@Valid @NotNull @RequestParam("orderNum") String orderNum,
+                                        @RequestBody ChaJiaOrderItemRequest chajia){
+
+        //订单状态待支付
+        return orderService.adminUpdateChajiaOrder(orderNum, chajia);
     }
 
     @PutMapping(path = "/ajorder/jianhuo/start")

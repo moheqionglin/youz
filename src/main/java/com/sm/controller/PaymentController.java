@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -63,14 +62,14 @@ public class PaymentController {
 			return ResultJson.failure(HttpYzCode.ORDER_NOT_EXISTS);
 		}
 		if(!(PayType.ORDER.equals(payType) && OrderController.BuyerOrderStatus.WAIT_PAY.toString().equals(simpleOrder.getStatus()))
-		&& !(PayType.CHAJIA.equals(payType) && OrderAdminController.ChaJiaOrderStatus.WAIT_PAY.equals(simpleOrder.getChajiaStatus()))){
+		&& !(PayType.CHAJIA.equals(payType) && OrderAdminController.ChaJiaOrderStatus.WAIT_PAY.toString().equals(simpleOrder.getChajiaStatus()))){
 			return ResultJson.failure(HttpYzCode.ORDER_STATUS_ERROR);
 		}
 
 		int amount = simpleOrder.getNeedPayMoney().multiply(BigDecimal.valueOf(100)).intValue();
 		if(PayType.CHAJIA.equals(payType)){
 			amount = simpleOrder.getChajiaNeedPayMoney().multiply(BigDecimal.valueOf(100)).intValue();
-			orderNum = orderNum + "_CJ";
+			orderNum = orderNum + "CJ";
 		}
 		//校验 订单是否存在？ 是否值已经支付？
 		logger.info("【小程序支付服务】请求订单编号:[{}, 金额： {}]", orderNum, amount);

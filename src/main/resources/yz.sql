@@ -574,11 +574,16 @@ select * from user_amonut_log
 create table products_bk
 select * from products
 
-select * from orders
+select * from orders where id = 35
+select * from orders where  chajia_status='WAIT_PAY'
+select * from orders_item where order_id = 35
 select * from order_drawback
 select * from product_append_comment
 select * from users
-
+select * from shopping_cart
 select * from products where id = 2219
 
 update products set zhuanqu_endTime = 1612022400000
+
+
+select count(1) from orders where drawback_status = 'NONE' and chajia_status = 'WAIT_PAY' and user_id = 1

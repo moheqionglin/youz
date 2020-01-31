@@ -3,7 +3,6 @@ package com.sm.controller;
 import com.sm.config.UserDetail;
 import com.sm.message.ResultJson;
 import com.sm.message.order.*;
-import com.sm.message.OrderPayRequest;
 import com.sm.service.OrderService;
 import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +36,8 @@ public class OrderController {
             @ApiImplicitParam(name = "order", value = "order", required = true, paramType = "body", dataType = "CreateOrderRequest")
     })
     @ApiResponses(value={@ApiResponse(code=408, message="产品下架"), @ApiResponse(code=407, message="库存不足")
-            , @ApiResponse(code=409, message="佣金 余额不足") , @ApiResponse(code=410, message="地址不存在")})
+            , @ApiResponse(code=409, message="佣金 余额不足") , @ApiResponse(code=410, message="地址不存在"),
+            @ApiResponse(code=423, message="有未支付的差价订单")})
     public ResultJson<String> createOrder(@Valid @RequestBody CreateOrderRequest order){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
@@ -46,6 +46,16 @@ public class OrderController {
         return orderService.createOrder(userDetail.getId(), order);
     }
 
+    @GetMapping(path = "/order/waitpaychajiaorder/exist")
+    @PreAuthorize("hasAuthority('BUYER') ")
+    @ApiOperation(value = "[有无待支付的差价订单] ")
+    public ResultJson<Boolean> hasWaitPayChajiaOrder(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
+
+        //订单状态待支付
+       return ResultJson.ok(orderService.hasWaitPayChajiaOrder(userDetail.getId()));
+    }
 
     @PutMapping(path = "/order/{actionType}/action")
     @PreAuthorize("hasAuthority('BUYER') ")

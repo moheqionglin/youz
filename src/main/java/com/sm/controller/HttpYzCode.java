@@ -31,6 +31,7 @@ public enum  HttpYzCode {
     ORDER_STATUS_ERROR(421, "订单状态不对"),
     ORDER_DRAWBACK_REPEAT_ERROR(422, "订单状态不对"),
     ORDER_JIANHUO_REPEAT(430, "订单已经被其他检货员认领"),
+    ORDER_CHAJIA_WAIT_PAY(423, "有未支付的差价订单"),
 
     ORDER_NO_JIANHUO(431, "订单没有检货员认领"),
     ORDER_JIANHUO_NOT_CURRENT_ORDER(432, "自己不是该订单的拣货员"),

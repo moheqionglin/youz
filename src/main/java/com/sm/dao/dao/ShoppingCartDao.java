@@ -11,6 +11,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -107,5 +108,13 @@ public class ShoppingCartDao {
     public void updateSelected(Integer userid, int cartId, boolean selected) {
         final String sql = String.format("update %s set selected = ? where user_id = ? and id = ? ", VarProperties.SHOPPING_CART);
         jdbcTemplate.update(sql, new Object[]{selected, userid, cartId});
+    }
+    public void updateSelected(Integer userid, List<Integer> cartIds, boolean selected) {
+        final String sql = String.format("update %s set selected = ? where user_id = ? and id = ? ", VarProperties.SHOPPING_CART);
+        List<Object[]> pams = new ArrayList<>();
+        cartIds.stream().forEach(ci -> {
+            pams.add(new Object[]{selected, userid, ci});
+        });
+        jdbcTemplate.batchUpdate(sql, pams);
     }
 }

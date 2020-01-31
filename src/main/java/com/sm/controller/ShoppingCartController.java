@@ -132,6 +132,21 @@ public class ShoppingCartController {
         return ResultJson.ok();
     }
 
+    @PutMapping(path = "/cart/checked/{selected}")
+    @PreAuthorize("hasAuthority('BUYER') ")
+    @ApiOperation(value = "选中与否")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "cartIds", value = "cartIds", required = true, paramType = "body", dataType = "List"),
+            @ApiImplicitParam(name = "selected", value = "selected", required = true, paramType = "path", dataType = "Boolean")
+    })
+    public ResultJson updateSelected(@Valid @NotNull @NotEmpty @RequestBody List<Integer> cartIds,
+                                     @Valid @NotNull @PathVariable("selected") boolean selected){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
+        shoppingCartService.updateSelected(userDetail.getId(), cartIds, selected);
+        return ResultJson.ok();
+    }
+
     public static enum CountAction{
         REDUCE,
         ADD

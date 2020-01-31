@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Date;
 import java.util.List;
 
@@ -60,7 +61,7 @@ public class ServiceUtil {
     }
 
     public static BigDecimal calcCartTotalCost(List<CartItemInfo> cartItems) {
-        return cartItems.stream().map(c -> c.getProduct().getCostPrice()).reduce(BigDecimal.ZERO, BigDecimal::add);
+        return cartItems.stream().map(c -> c.getProduct().getCostPrice().multiply(BigDecimal.valueOf(c.getProductCnt()).setScale(2, RoundingMode.UP))).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     public static BigDecimal calcCartItemPrice(CartItemInfo c) {
@@ -72,9 +73,10 @@ public class ServiceUtil {
             if(c.getProductCnt() == 1){
                 return c.getCartPrice();
             }
-            return c.getCartPrice().add(product.getOriginPrice().multiply(BigDecimal.valueOf(c.getProductCnt() - 1)));
+            return c.getCartPrice().add(product.getOriginPrice().multiply(BigDecimal.valueOf(c.getProductCnt() - 1))).setScale(2, RoundingMode.UP);
         }
-        return calcCurrentPrice(product.getCurrentPrice(), product.getZhuanquPrice(), product.isZhuanquEnable(), product.getZhuanquId(), product.getZhuanquEndTime());
+        BigDecimal currentprice = calcCurrentPrice(product.getCurrentPrice(), product.getZhuanquPrice(), product.isZhuanquEnable(), product.getZhuanquId(), product.getZhuanquEndTime());
+        return currentprice.multiply(BigDecimal.valueOf(c.getProductCnt())).setScale(2, RoundingMode.UP);
     }
 
     public static BigDecimal calcUnitPrice(CartItemInfo c) {
@@ -89,6 +91,6 @@ public class ServiceUtil {
     public static BigDecimal calcCartTotalPriceWithoutZhuanqu(List<CartItemInfo> cartItems) {
         return cartItems.stream().filter(c -> c.isSelected())
                 .filter(c -> !c.getProduct().isZhuanquEnable() || c.getProduct().getZhuanquId() == 0 || c.getProduct().getZhuanquEndTime() < new Date().getTime())
-                .map(c -> c.getProduct().getCurrentPrice()).reduce(BigDecimal.ZERO, BigDecimal::add);
+                .map(c -> c.getProduct().getCurrentPrice().multiply(BigDecimal.valueOf(c.getProductCnt())).setScale(2, RoundingMode.UP)).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }
