@@ -36,9 +36,9 @@ public class OrderDao {
 
     public Integer createOrder(CreateOrderInfo order) {
         final String sql = String.format("insert into %s (order_num, user_id, address_id, address_detail ,address_contract , yongjin_code , status ," +
-                "    total_cost_price,total_price ,use_yongjin ,use_yue , need_pay_money , had_pay_money ,message) values(" +
+                "    total_cost_price,total_price ,use_yongjin ,use_yue , need_pay_money , had_pay_money ,message,yongjin_base_price) values(" +
                 ":order_num, :user_id, :address_id, :address_detail ,:address_contract , :yongjin_code , :status, " +
-                "    :total_cost_price,:total_price ,:use_yongjin ,:use_yue , :need_pay_money , :had_pay_money ,:message)", VarProperties.ORDER);
+                "    :total_cost_price,:total_price ,:use_yongjin ,:use_yue , :need_pay_money , :had_pay_money ,:message,:yongjin_base_price)", VarProperties.ORDER);
         KeyHolder keyHolder = new GeneratedKeyHolder();
         MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
         mapSqlParameterSource.addValue("order_num", order.getOrderNum());
@@ -55,6 +55,7 @@ public class OrderDao {
         mapSqlParameterSource.addValue("need_pay_money", order.getNeedPayMoney());
         mapSqlParameterSource.addValue("had_pay_money", order.getHadPayMoney());
         mapSqlParameterSource.addValue("message", order.getMessage());
+        mapSqlParameterSource.addValue("yongjin_base_price", order.getYongjinBasePrice());
         namedParameterJdbcTemplate.update(sql, mapSqlParameterSource, keyHolder);
         return keyHolder.getKey().intValue();
     }
@@ -115,7 +116,7 @@ public class OrderDao {
     }
 
     public SimpleOrder getSimpleOrder(String orderNum){
-        final String sql = String.format("select id,user_id,status,order_num, drawback_status ,jianhuoyuan_id, use_yongjin,had_pay_money,chajia_had_pay_money,use_yue,chajia_need_pay_money,chajia_status,need_pay_money,jianhuo_status from %s where order_num = ?", VarProperties.ORDER);
+        final String sql = String.format("select id,user_id,status,yongjin_base_price,order_num, drawback_status ,yongjin_code,jianhuoyuan_id, use_yongjin,had_pay_money,chajia_had_pay_money,use_yue,chajia_need_pay_money,chajia_status,need_pay_money,jianhuo_status from %s where order_num = ?", VarProperties.ORDER);
         return jdbcTemplate.query(sql, new Object[]{orderNum}, new SimpleOrder.SimpleOrderRowMapper()).stream().findFirst().orElse(null);
     }
     public boolean existsOrder(Integer userId, String orderNum) {

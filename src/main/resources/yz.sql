@@ -186,6 +186,7 @@ create table orders(
     address_detail varchar(400),
     address_contract varchar(100),
     yongjin_code varchar(100),
+    yongjin_base_price decimal(10, 2) not null default 0 comment '佣金计算时候使用',
     -- 钱
     status varchar(50) not null comment '给用户看的状态信息， 待支付，待发货，待收货，待评论，已完成，超时取消，手动取消',
     total_cost_price decimal(10, 2) not null ,
@@ -218,7 +219,9 @@ create table orders(
 
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-
+alter table orders modify yongjin_base_price decimal(10,2) not null default 0;
+alter table orders
+	add yongjin_base_price decimal(10,2) not null default 0;
 create table orders_item(
     id int auto_increment primary key,
     order_id int,

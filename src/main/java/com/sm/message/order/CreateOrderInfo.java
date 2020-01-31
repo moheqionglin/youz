@@ -23,11 +23,19 @@ public class CreateOrderInfo {
     private BigDecimal needPayMoney;
     private BigDecimal hadPayMoney;
     private String yongjinCode;
-
+    private BigDecimal yongjinBasePrice;
     private String message;
 
     public Integer getId() {
         return id;
+    }
+
+    public BigDecimal getYongjinBasePrice() {
+        return yongjinBasePrice;
+    }
+
+    public void setYongjinBasePrice(BigDecimal yongjinBasePrice) {
+        this.yongjinBasePrice = yongjinBasePrice;
     }
 
     public void setId(Integer id) {

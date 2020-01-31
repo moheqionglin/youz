@@ -7,6 +7,7 @@ import com.sm.dao.domain.UserAmountLogType;
 import com.sm.message.admin.JinXiaoCunInfo;
 import com.sm.message.admin.YzStatisticsInfo;
 import com.sm.message.order.CreateOrderInfo;
+import com.sm.message.order.SimpleOrder;
 import com.sm.utils.SmUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +52,7 @@ public class AdminDao {
     }
 
     @Transactional
-    public void updateYongjinAndAddLog(String yongjinCode, BigDecimal total, CreateOrderInfo createOrderInfo, BigDecimal yongjinpercent) {
+    public void updateYongjinAndAddLog(String yongjinCode, BigDecimal total, SimpleOrder order, BigDecimal yongjinpercent) {
         final String userIDSql = String.format("select id from %s where yongjin_code = ?", VarProperties.USERS);
         Integer userId = null;
         try{
@@ -67,7 +68,7 @@ public class AdminDao {
         jdbcTemplate.update(sql, new Object[]{total, userId});
 
         //Integer userId, BigDecimal amount, String remark, UserAmountLogType logType , String remarkDetail
-        UserAmountLog userAmountLog = new UserAmountLog(userId, total, "好友下单赚取佣金", UserAmountLogType.YONGJIN, String.format("订单号：%s , 订单金额 ： %s, 佣金比例 %s", createOrderInfo.getOrderNum(), createOrderInfo.getTotalPrice(), yongjinpercent.toPlainString()));
+        UserAmountLog userAmountLog = new UserAmountLog(userId, total, "好友下单赚取佣金", UserAmountLogType.YONGJIN, String.format("订单号：%s , 订单金额 ： %s, 佣金比例 %s", order.getOrderNum(), order.getYongjinBasePrice(), yongjinpercent.toPlainString()));
         userAmountLogDao.create(userAmountLog);
 
     }

@@ -26,6 +26,8 @@ public class SimpleOrder {
     private String chajiaStatus;
     private BigDecimal useYongjin;
     private BigDecimal useYue;
+    private String yongjincode;
+    private BigDecimal yongjinBasePrice;
 
     public static class SimpleOrderRowMapper implements RowMapper<SimpleOrder>{
 
@@ -75,6 +77,12 @@ public class SimpleOrder {
             if(existsColumn(resultSet, "use_yue")){
                 simpleOrder.setUseYue(resultSet.getBigDecimal("use_yue"));
             }
+            if(existsColumn(resultSet, "yongjin_code")){
+                simpleOrder.setYongjincode(resultSet.getString("yongjin_code"));
+            }
+            if(existsColumn(resultSet, "yongjin_base_price")){
+                simpleOrder.setYongjinBasePrice(resultSet.getBigDecimal("yongjin_base_price"));
+            }
             return simpleOrder;
         }
         private boolean existsColumn(ResultSet rs, String column) {
@@ -85,6 +93,23 @@ public class SimpleOrder {
             }
         }
     }
+
+    public BigDecimal getYongjinBasePrice() {
+        return yongjinBasePrice;
+    }
+
+    public void setYongjinBasePrice(BigDecimal yongjinBasePrice) {
+        this.yongjinBasePrice = yongjinBasePrice;
+    }
+
+    public String getYongjincode() {
+        return yongjincode;
+    }
+
+    public void setYongjincode(String yongjincode) {
+        this.yongjincode = yongjincode;
+    }
+
     public Integer getId() {
         return id;
     }

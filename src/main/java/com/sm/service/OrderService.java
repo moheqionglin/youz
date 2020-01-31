@@ -127,7 +127,8 @@ public class OrderService {
         createOrderInfo.setHadPayMoney(BigDecimal.ZERO);
         createOrderInfo.setYongjinCode(order.getYongjinCode());
         createOrderInfo.setMessage(order.getMessage());
-
+        BigDecimal yongjinbase = ServiceUtil.calcCartTotalPriceWithoutZhuanqu(cartItems);
+        createOrderInfo.setYongjinBasePrice(yongjinbase == null ? BigDecimal.ZERO: yongjinbase);
         Integer id = orderDao.createOrder(createOrderInfo);
 
         List<CreateOrderItemInfo> collect = cartItems.stream().map(c -> {
@@ -156,17 +157,6 @@ public class OrderService {
         });
         productService.subStock(pid2cnt);
 
-        if(StringUtils.isNoneBlank(createOrderInfo.getYongjinCode())){
-            //佣金计算
-            BigDecimal yongJinPercent = adminDao.getYongJinPercent();
-
-            if(StringUtils.isNoneBlank(createOrderInfo.getYongjinCode()) && yongJinPercent.compareTo(BigDecimal.ZERO) > 0 && yongJinPercent.compareTo(BigDecimal.ONE) < 0){
-                BigDecimal total = ServiceUtil.calcCartTotalPriceWithoutZhuanqu(cartItems);
-                adminDao.updateYongjinAndAddLog(createOrderInfo.getYongjinCode(), total.multiply(yongJinPercent).setScale(2, RoundingMode.DOWN), createOrderInfo, yongJinPercent);
-
-                logger.info("Update yongjin for order {}/{}, order total {}, yongjin = [{} * {}], ", id, createOrderInfo.getOrderNum(), createOrderInfo.getTotalCostPrice(), total, yongJinPercent);
-            }
-        }
         //删除购物车
         shoppingCartService.deleteCartItem(userID, order.getCartIds());
 
@@ -200,6 +190,15 @@ public class OrderService {
         OrderController.BuyerOrderStatus bysta = null;
         if(OrderController.ActionOrderType.RECEIVE.equals(actionType)){
             bysta = OrderController.BuyerOrderStatus.WAIT_COMMENT;
+            if(StringUtils.isNoneBlank(simpleOrder.getYongjincode())){
+                //佣金计算
+                BigDecimal yongJinPercent = adminDao.getYongJinPercent();
+                BigDecimal total = simpleOrder.getYongjinBasePrice();
+                if (yongJinPercent.compareTo(BigDecimal.ZERO) > 0 && yongJinPercent.compareTo(BigDecimal.ONE) < 0 && total !=null && total.compareTo(BigDecimal.ZERO)> 0){
+                    adminDao.updateYongjinAndAddLog(simpleOrder.getYongjincode(), total.multiply(yongJinPercent).setScale(2, RoundingMode.DOWN), simpleOrder, yongJinPercent);
+                    logger.info("Update yongjin for order {}/{}, order total {}, yongjin = [{} * {}], ", simpleOrder.getId(), simpleOrder.getOrderNum(), simpleOrder.getNeedPayMoney(), total, yongJinPercent);
+                }
+            }
         }else {
             bysta = OrderController.BuyerOrderStatus.CANCEL_MANUAL;
         }
