@@ -143,19 +143,19 @@ public class OrderDao {
         String whereStr = "";
         switch (orderType){
             case ALL:
-                whereStr = "and drawback_status in ( 'NONE' or 'APPROVE_REJECT') ";
+                whereStr = "and drawback_status in ( 'NONE' ,'APPROVE_REJECT') ";
                 break;
             case WAIT_PAY:
-                whereStr = " and drawback_status in ( 'NONE' or 'APPROVE_REJECT') and  ((status = 'WAIT_PAY' and  now() < DATE_ADD(created_time, INTERVAL 15 MINUTE )) or (chajia_status='WAIT_PAY' and status != 'WAIT_SEND')) ";
+                whereStr = " and drawback_status in ( 'NONE', 'APPROVE_REJECT') and  ((status = 'WAIT_PAY' and  now() < DATE_ADD(created_time, INTERVAL 15 MINUTE )) or (chajia_status='WAIT_PAY' and status != 'WAIT_SEND')) ";
                 break;
             case WAIT_SEND:
-                whereStr = " and drawback_status in ( 'NONE' or 'APPROVE_REJECT') and  status = 'WAIT_SEND'";
+                whereStr = " and drawback_status in ( 'NONE' , 'APPROVE_REJECT') and  status = 'WAIT_SEND'";
                 break;
             case WAIT_RECEIVE:
-                whereStr = " and drawback_status in ( 'NONE' or 'APPROVE_REJECT') and  status = 'WAIT_RECEIVE'";
+                whereStr = " and drawback_status in ( 'NONE' , 'APPROVE_REJECT') and  status = 'WAIT_RECEIVE'";
                 break;
             case WAIT_COMMENT:
-                whereStr = " and drawback_status in ( 'NONE' or 'APPROVE_REJECT') and  status = 'WAIT_COMMENT'";
+                whereStr = " and drawback_status in ( 'NONE' , 'APPROVE_REJECT') and  status = 'WAIT_COMMENT'";
                 break;
             case DRAWBACK:
                 whereStr = " and   drawback_status != '" + OrderController.DrawbackStatus.NONE.toString() + "'";
@@ -197,7 +197,7 @@ public class OrderDao {
                 break;
         }
         int startIndex = (pageNum - 1) * pageSize;
-        final String sql = String.format("select id ,order_num,user_id ,address_id ,address_detail ,address_contract , status, total_price ,chajia_status,chajia_price, chajia_need_pay_money, chajia_had_pay_money, message,  jianhuo_status , has_fahuo,created_time from %s where drawback_status in ( 'NONE' or 'APPROVE_REJECT') %s order by id desc limit ?, ?", VarProperties.ORDER, whereStr);
+        final String sql = String.format("select id ,order_num,user_id ,address_id ,address_detail ,address_contract , status, total_price ,chajia_status,chajia_price, chajia_need_pay_money, chajia_had_pay_money, message,  jianhuo_status , has_fahuo,created_time from %s where drawback_status in ( 'NONE', 'APPROVE_REJECT') %s order by id desc limit ?, ?", VarProperties.ORDER, whereStr);
         return jdbcTemplate.query(sql, new Object[]{startIndex, pageSize}, new OrderListItemInfo.OrderListItemInfoRowMapper());
     }
 
