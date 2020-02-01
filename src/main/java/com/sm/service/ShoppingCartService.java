@@ -42,8 +42,8 @@ public class ShoppingCartService {
         return shoppingCartDao.getCartItemsCount(userID);
     }
 
-    public Integer getCartItemId(Integer userId, Integer productId){
-        return shoppingCartDao.getCartItemId(userId, productId);
+    public ShoppingCart getCartItemId(Integer userId, Integer productId){
+        return shoppingCartDao.getCartItem(userId, productId);
     }
 
 

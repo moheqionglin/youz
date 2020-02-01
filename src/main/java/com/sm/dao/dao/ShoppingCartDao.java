@@ -60,10 +60,11 @@ public class ShoppingCartDao {
         namedParameterJdbcTemplate.update(sql, sqlParameterSource);
     }
 
-    public Integer getCartItemId(int userId, Integer productId) {
-        final String sql1 = String.format("select id from %s where user_id = ? and product_id = ?", VarProperties.SHOPPING_CART);
+    public ShoppingCart getCartItem(int userId, Integer productId) {
+        final String sql = String.format("select id, user_id, product_id, product_cnt, selected, cart_price, kanjia_product from %s where user_id = ? and product_id = ? ", VarProperties.SHOPPING_CART);
+
         try{
-            return jdbcTemplate.queryForObject(sql1, new Object[]{userId, productId}, Integer.class);
+            return jdbcTemplate.queryForObject(sql, new Object[]{userId, productId},  new ShoppingCartRowMapper());
         }catch (Exception e){
             return null;
         }

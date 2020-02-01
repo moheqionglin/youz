@@ -47,6 +47,7 @@ public enum  HttpYzCode {
     PRODUCT_NOT_EXISTS(472, "产品不存在"),
     PRODUCT_NOT_KANJIA(473, "产品不是砍价商品"),
     PRODUCT_PRICE_ERROR(474, "砍价商品价格错误"),
+    PRODUCT_CART_EXISTS_KANJIA(475, "购物车中已经有了砍价商品")
     ;
     private int code;
     private String messsage;

@@ -1,6 +1,7 @@
 package com.sm.controller;
 
 import com.sm.config.UserDetail;
+import com.sm.dao.domain.ShoppingCart;
 import com.sm.message.ResultJson;
 import com.sm.message.order.CartInfo;
 import com.sm.message.order.CartItemInfo;
@@ -71,7 +72,7 @@ public class ShoppingCartController {
     })
     @ApiResponses(value={@ApiResponse(code=406, message="购物车超过30个"), @ApiResponse(code=407, message="库存不足"),
             @ApiResponse(code=472, message="产品不存在"), @ApiResponse(code=473, message="产品不是砍价商品"),
-            @ApiResponse(code=474, message="产品价格错误")})
+            @ApiResponse(code=474, message="产品价格错误"),  @ApiResponse(code=475, message="购物车中已经有了该商品的砍价")})
     @Transactional
     public ResultJson<Long> addCart(@Valid @RequestBody CartItemInfo cartItemInfo){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -80,7 +81,7 @@ public class ShoppingCartController {
         if(shoppingCartService.getCartItemsCount(userId) >= 30){
             return ResultJson.failure(HttpYzCode.CART_CNT_EXCEED_LIMIT);
         }
-        Integer cartItemId = shoppingCartService.getCartItemId(userId, cartItemInfo.getProduct().getId());
+        ShoppingCart sc = shoppingCartService.getCartItemId(userId, cartItemInfo.getProduct().getId());
         if(cartItemInfo.isKanjiaProduct()){//砍价商品
             //计算目前砍价商品的实际价格，
             ProductSalesDetail salesDetail = productService.getSalesDetail(userId, cartItemInfo.getProduct().getId());
@@ -89,6 +90,9 @@ public class ShoppingCartController {
             }
             if(!salesDetail.isValidKanjiaProduct()){
                 return ResultJson.failure(HttpYzCode.PRODUCT_NOT_KANJIA);
+            }
+            if(sc.isKanjiaProduct() && sc.getCartPrice() != null){
+                return ResultJson.failure(HttpYzCode.PRODUCT_CART_EXISTS_KANJIA);
             }
             BigDecimal price =null;
             if(salesDetail.isHasKanjia()){
@@ -99,16 +103,16 @@ public class ShoppingCartController {
             if(price == null || price.compareTo(BigDecimal.ZERO) < 0){
                 return ResultJson.failure(HttpYzCode.PRODUCT_PRICE_ERROR);
             }
-            if(cartItemId != null){
-                shoppingCartService.updateKanjiaPriceAndCnt(cartItemId, price, userId);
+            if(sc != null){
+                shoppingCartService.updateKanjiaPriceAndCnt(sc.getId(), price, userId);
             }else{
                 cartItemInfo.setCartPrice(price);
                 shoppingCartService.addNewCart(userId, cartItemInfo);
                 productService.terminateKanjia(userId, cartItemInfo.getProduct().getId());
             }
         }else{
-            if(cartItemId != null){
-                ResultJson<CartInfo> cie = this.updateCount(cartItemId, CountAction.ADD);
+            if(sc != null){
+                ResultJson<CartInfo> cie = this.updateCount(sc.getId(), CountAction.ADD);
                 if(!HttpYzCode.SUCCESS.equals(cie.getHcode())){
                     return ResultJson.failure(cie.getHcode());
                 }
