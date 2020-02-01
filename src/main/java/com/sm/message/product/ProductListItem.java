@@ -32,6 +32,7 @@ public class ProductListItem {
     private boolean showAble;
     private int sort;
     private int maxKanjiaPerson;
+    private boolean isKanjiaing;
 
     public static class ProductListItemRowMapper implements RowMapper<ProductListItem> {
         @Override
@@ -99,6 +100,14 @@ public class ProductListItem {
                 return false;
             }
         }
+    }
+
+    public boolean isKanjiaing() {
+        return isKanjiaing;
+    }
+
+    public void setKanjiaing(boolean kanjiaing) {
+        isKanjiaing = kanjiaing;
     }
 
     public int getMaxKanjiaPerson() {

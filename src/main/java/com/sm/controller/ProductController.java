@@ -6,6 +6,7 @@ import com.sm.message.product.CreateProductRequest;
 import com.sm.message.product.ProductListItem;
 import com.sm.message.product.ProductSalesDetail;
 import com.sm.service.ProductService;
+import com.sm.service.ServiceUtil;
 import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -138,12 +139,23 @@ public class ProductController {
             @ApiImplicitParam(name = "page_size", value = "page_size", required = true, paramType = "query", dataType = "Integer"),
             @ApiImplicitParam(name = "page_num", value = "page_num", required = true, paramType = "query", dataType = "Integer")
     })
+    @PreAuthorize("hasAuthority('BUYER')")
     public List<ProductListItem> getProductsPaged(
             @Valid @NotNull @PathVariable("categoryType") CategoryType categoryType,
             @Valid @NotNull @PathVariable("categoryId") int categoryId,
             @Valid @NotNull @RequestParam("page_size") int pageSize,
             @Valid @NotNull @RequestParam("page_num") int pageNum){
-        return productService.getProductsPaged(categoryType, categoryId, true , "BUYER", pageSize, pageNum);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
+
+        List<ProductListItem> buyer = productService.getProductsPaged(categoryType, categoryId, true, "BUYER", pageSize, pageNum);
+        if(ServiceUtil.isKanjia(categoryId)){
+            List<Integer> pids = productService.getAllKanjiaingPids(userDetail.getId());
+            buyer.stream().forEach(p -> {
+                p.setKanjiaing(pids.contains(p.getId()));
+            });
+        }
+        return buyer;
     }
 
     @GetMapping(path = "/product/{productId}/detail")

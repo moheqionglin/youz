@@ -52,6 +52,7 @@ public class ProductService {
      */
     public List<ProductListItem> getProductsPaged(ProductController.CategoryType categoryType, int categoryId, boolean isShow, String pageType, int pageSize, int pageNum) {
         List<ProductListItem> ps = productDao.getProductsPaged(categoryType, categoryId, isShow, pageType, pageSize, pageNum);
+
         ps.forEach(pi -> {
             pi.setZhuanquName(ServiceUtil.zhuanquName(pi.getZhuanquId(), pi.isZhuanquEnable(), pi.getZhuanquEndTime()));
             pi.setCurrentPrice(ServiceUtil.calcCurrentPrice(pi.getCurrentPrice(), pi.getZhuanquPrice(), pi.isZhuanquEnable(), pi.getZhuanquId(), pi.getZhuanquEndTime()));
@@ -238,5 +239,9 @@ public class ProductService {
 
     public void terminateKanjia(int userId, Integer pid) {
         productDao.terminateKanjia(userId, pid);
+    }
+
+    public List<Integer> getAllKanjiaingPids(int uid) {
+        return productDao.getAllKanjiaingPids(uid);
     }
 }

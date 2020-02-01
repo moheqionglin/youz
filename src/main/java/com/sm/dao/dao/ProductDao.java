@@ -46,7 +46,7 @@ public class ProductDao {
         }else if(ProductController.CategoryType.SECOND.equals(categoryType)){
             filterByCategory = " and second_category_id = ? ";
         }else if(ProductController.CategoryType.ZHUANQU.equals(categoryType)){
-            filterByCategory = " and zhuanqu_id = ? ";
+            filterByCategory = " and zhuanqu_id = ? and zhuanqu_endTime < ? ";
         }
 
         String adminPageColumns = "ADMIN".equalsIgnoreCase(pageType) ? ", t1.size as size, t1.sort as sort, t1.cost_price as cost_price" : "";
@@ -57,7 +57,10 @@ public class ProductDao {
         Object[] pams = new Object[]{isShow, categoryId, startIndex, pageSize};
         if(ProductController.CategoryType.ALL.equals(categoryType)){
             pams = new Object[]{isShow, startIndex, pageSize};
+        }else if(ProductController.CategoryType.ZHUANQU.equals(categoryType)){
+            pams = new Object[]{isShow, categoryId, new Date().getTime(), startIndex, pageSize};
         }
+
         return jdbcTemplate.query(sql, pams, new ProductListItem.ProductListItemRowMapper());
     }
 
@@ -337,5 +340,14 @@ public class ProductDao {
     public void terminateKanjia(int userId, Integer pid) {
         final String sql = String.format("update %s set terminal = 1 where user_id = ? and product_id = ?", VarProperties.PRODUCT_KANJIA);
         jdbcTemplate.update(sql, new Object[]{userId, pid});
+    }
+
+    public List<Integer> getAllKanjiaingPids(int uid) {
+        final String sql = String.format("select id from %s where terminal = 0 and user_id = ?", VarProperties.PRODUCT_KANJIA);
+       try{
+           return jdbcTemplate.queryForList(sql, new Object[]{uid}, Integer.class);
+       }catch (Exception e){
+           return new ArrayList<>(1);
+       }
     }
 }
