@@ -196,6 +196,7 @@ public class ProductService {
         searchRequest.setSearchTerm(term);
         if(userid != null){
             searchService.addMySearchTerm(userid, term);
+            searchService.addHotSearch(term);
         }
         List<ProductListItem> notadmin = productDao.search(searchRequest, pageSize, pageNum, "NOTADMIN");
         notadmin.stream().forEach(pi ->{

@@ -1,5 +1,6 @@
 package com.sm.dao.dao;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -42,6 +43,21 @@ public class SearchDao {
     }
 
     public void addHotSearch(String term) {
+        if (!StringUtils.isNoneBlank(term)){
+            return;
+        }
+        String sql = String.format("select id from %s where search_term = ?", VarProperties.HOT_SEARCH);
+        String sql1 = String.format("update %s set cnt = cnt + 1 where id = ?", VarProperties.HOT_SEARCH);
+        String sql2 = String.format("insert into %s (search_term,cnt) values (?,?)", VarProperties.HOT_SEARCH );
+        try{
+            Integer id = jdbcTemplate.queryForObject(sql, new Object[]{term}, Integer.class);
+            if(id != null && id != 0){
+                jdbcTemplate.update(sql1, new Object[]{id});
+            }else{
+                jdbcTemplate.update(sql2, new Object[]{term, 1});
+            }
+        }catch (Exception e){
 
+        }
     }
 }

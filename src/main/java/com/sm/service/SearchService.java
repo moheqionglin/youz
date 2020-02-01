@@ -31,4 +31,8 @@ public class SearchService {
     public void deleteMySearch(int id) {
         searchDao.deleteMySearch(id);
     }
+
+    public void addHotSearch(String term) {
+        searchDao.addHotSearch(term);
+    }
 }
