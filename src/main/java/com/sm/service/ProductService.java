@@ -104,7 +104,7 @@ public class ProductService {
             KanjiaDetailInfo kajiaers = productDao.getKanjiaDetail(userId, productId);
 
             int maxKanjiaPerson = productSalesDetail.getMaxKanjiaPerson();
-            if(!kajiaers.isTerminal() && maxKanjiaPerson > 0 ){
+            if(kajiaers != null && !kajiaers.isTerminal() && maxKanjiaPerson > 0 ){
                 productSalesDetail.setHasKanjia(true);
                 List<UserSimpleInfo> kanjieHelpers = kajiaers.getKanjieHelpers();
                 productSalesDetail.setKanjiaHelpers(kanjieHelpers);
