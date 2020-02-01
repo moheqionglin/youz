@@ -46,7 +46,7 @@ public class ProductDao {
         }else if(ProductController.CategoryType.SECOND.equals(categoryType)){
             filterByCategory = " and second_category_id = ? ";
         }else if(ProductController.CategoryType.ZHUANQU.equals(categoryType)){
-            filterByCategory = " and zhuanqu_id = ? and zhuanqu_endTime < ? ";
+            filterByCategory = " and zhuanqu_id = ? and zhuanqu_endTime > ? ";
         }
 
         String adminPageColumns = "ADMIN".equalsIgnoreCase(pageType) ? ", t1.size as size, t1.sort as sort, t1.cost_price as cost_price" : "";
