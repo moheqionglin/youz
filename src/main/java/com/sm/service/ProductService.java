@@ -235,4 +235,8 @@ public class ProductService {
         productDao.startMyKanjia(uid, pid);
         return ResultJson.ok();
     }
+
+    public void terminateKanjia(int userId, Integer pid) {
+        productDao.terminateKanjia(userId, pid);
+    }
 }

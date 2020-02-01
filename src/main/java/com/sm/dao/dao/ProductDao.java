@@ -333,4 +333,9 @@ public class ProductDao {
         final String sql = String.format("insert into %s(user_id, product_id) values(?,?)", VarProperties.PRODUCT_KANJIA);
         jdbcTemplate.update(sql, new Object[]{uid, pid});
     }
+
+    public void terminateKanjia(int userId, Integer pid) {
+        final String sql = String.format("update %s set terminal = 1 where user_id = ? and product_id = ?", VarProperties.PRODUCT_KANJIA);
+        jdbcTemplate.update(sql, new Object[]{userId, pid});
+    }
 }

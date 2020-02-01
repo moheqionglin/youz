@@ -104,6 +104,7 @@ public class ShoppingCartController {
             }else{
                 cartItemInfo.setCartPrice(price);
                 shoppingCartService.addNewCart(userId, cartItemInfo);
+                productService.terminateKanjia(userId, cartItemInfo.getProduct().getId());
             }
         }else{
             if(cartItemId != null){
