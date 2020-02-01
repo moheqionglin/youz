@@ -1,5 +1,6 @@
 package com.sm.dao.dao;
 
+import com.google.errorprone.annotations.Var;
 import com.sm.controller.ProductController;
 import com.sm.message.order.OrderCommentsRequest;
 import com.sm.message.product.*;
@@ -329,7 +330,7 @@ public class ProductDao {
 
     public void startMyKanjia(int uid, Integer pid) {
 
-        final String sql = String.format("insert into %s(user_id, product_id) values(?,?)");
+        final String sql = String.format("insert into %s(user_id, product_id) values(?,?)", VarProperties.PRODUCT_KANJIA);
         jdbcTemplate.update(sql, new Object[]{uid, pid});
     }
 }
