@@ -91,9 +91,7 @@ public class ShoppingCartController {
             if(!salesDetail.isValidKanjiaProduct()){
                 return ResultJson.failure(HttpYzCode.PRODUCT_NOT_KANJIA);
             }
-            if(sc.isKanjiaProduct() && sc.getCartPrice() != null){
-                return ResultJson.failure(HttpYzCode.PRODUCT_CART_EXISTS_KANJIA);
-            }
+
             BigDecimal price =null;
             if(salesDetail.isHasKanjia()){
                 price = salesDetail.getCurrentKanjiaPrice();
@@ -104,6 +102,9 @@ public class ShoppingCartController {
                 return ResultJson.failure(HttpYzCode.PRODUCT_PRICE_ERROR);
             }
             if(sc != null){
+                if(sc.isKanjiaProduct() && sc.getCartPrice() != null){
+                    return ResultJson.failure(HttpYzCode.PRODUCT_CART_EXISTS_KANJIA);
+                }
                 shoppingCartService.updateKanjiaPriceAndCnt(sc.getId(), price, userId);
             }else{
                 cartItemInfo.setCartPrice(price);
