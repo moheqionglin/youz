@@ -57,7 +57,7 @@ public class SearchDao {
                 jdbcTemplate.update(sql2, new Object[]{term, 1});
             }
         }catch (Exception e){
-
+            jdbcTemplate.update(sql2, new Object[]{term, 1});
         }
     }
 }
