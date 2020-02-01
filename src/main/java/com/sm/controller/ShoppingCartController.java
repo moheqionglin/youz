@@ -102,7 +102,7 @@ public class ShoppingCartController {
                 return ResultJson.failure(HttpYzCode.PRODUCT_PRICE_ERROR);
             }
             if(sc != null){
-                if(sc.isKanjiaProduct() && sc.getCartPrice() != null){
+                if(sc.isKanjiaProduct() && sc.getCartPrice() != null && salesDetail.isHasKanjia()){
                     return ResultJson.failure(HttpYzCode.PRODUCT_CART_EXISTS_KANJIA);
                 }
                 shoppingCartService.updateKanjiaPriceAndCnt(sc.getId(), price, userId);
