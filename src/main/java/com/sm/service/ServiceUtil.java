@@ -36,8 +36,11 @@ public class ServiceUtil {
         return auth.uploadToken(bucketName, null, 3600 * 2, policy, true);
     }
 
+    public static boolean zhuanquValid(int zhuanquId, boolean zhuanquEnable, Long zhuanquEndTime){
+        return !(!zhuanquEnable || zhuanquId == 0 || zhuanquEndTime == null || new Date().getTime() > zhuanquEndTime);
+    }
     public static String zhuanquName(int zhuanquId, boolean zhuanquEnable, Long zhuanquEndTime){
-        if(!zhuanquEnable || zhuanquEndTime == null || new Date().getTime() > zhuanquEndTime){
+        if(!zhuanquValid(zhuanquId, zhuanquEnable, zhuanquEndTime)){
             return "";
         }
         if(zhuanquId == 1){
@@ -49,8 +52,17 @@ public class ServiceUtil {
         return null;
     }
 
+    /**
+     *
+     * @param currentPrice
+     * @param zhuanquPrice
+     * @param zhuanquEnable
+     * @param zhuanquId
+     * @param zhuanquEndTime
+     * @return
+     */
     public static BigDecimal calcCurrentPrice(BigDecimal currentPrice, BigDecimal zhuanquPrice, boolean zhuanquEnable, int zhuanquId, Long zhuanquEndTime) {
-        if(!zhuanquEnable || zhuanquId == 0 || zhuanquEndTime == null || new Date().getTime() > zhuanquEndTime){
+        if(!zhuanquValid(zhuanquId, zhuanquEnable, zhuanquEndTime)){
             return currentPrice;
         }
         return zhuanquPrice;

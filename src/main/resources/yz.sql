@@ -286,7 +286,7 @@ create table order_yongjin_percent(
 	modified_time timestamp  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-
+insert into order_yongjin_percent values (0);
 
 create table product_comment(
     id int auto_increment primary key,
@@ -591,3 +591,9 @@ update products set zhuanqu_endTime = 1612022400000
 
 select count(1) from orders where drawback_status = 'NONE' and chajia_status = 'WAIT_PAY' and user_id = 1
 select * from user_amonut_log
+
+select *from users
+select * from product_kanjia
+select * from products where id = 1463
+
+select helper_ids, terminal from product_kanjia where user_id = 1 and product_id = 1463 and terminal = 0

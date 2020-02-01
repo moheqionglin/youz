@@ -5,6 +5,7 @@ import com.sm.message.order.OrderCommentsRequest;
 import com.sm.message.product.*;
 import com.sm.message.profile.UserSimpleInfo;
 import com.sm.message.search.SearchRequest;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -68,25 +69,17 @@ public class ProductDao {
     }
 
     public KanjiaDetailInfo getKanjiaDetail(Integer userId, int productId) {
-        final String sql1 = String.format("select helper_ids, terminal from %s where user_id = ? and product_id = ?", VarProperties.PRODUCT_KANJIA);
+        final String sql1 = String.format("select helper_ids, terminal from %s where user_id = ? and product_id = ? and terminal = 0", VarProperties.PRODUCT_KANJIA);
         try{
-            Map<String, Object> stringObjectMap = jdbcTemplate.queryForMap(sql1, new Object[]{userId, productId});
-            String ids = String.valueOf(stringObjectMap.get("helper_ids"));
-            boolean terminal = (boolean)stringObjectMap.get("terminal");
-            List<Integer> uids = Arrays.stream(ids.split(",")).map(Integer::valueOf).collect(Collectors.toList());
-            KanjiaDetailInfo udi = new KanjiaDetailInfo();
-            udi.setTerminal(terminal);
-            if(ids.isEmpty()){
-                return udi;
-            }
+            KanjiaDetailInfo kdi = jdbcTemplate.query(sql1, new Object[]{userId, productId}, new KanjiaDetailInfo.SimpleOrderItemRowMapper()).stream().findFirst().orElse(null);
+            List<Integer> uids = kdi.getUids();
+
             final String sql = String.format("select id, nick_name, head_picture from %s where id in ( :ids ) ", VarProperties.USERS);
             if(uids != null && !uids.isEmpty()){
                 List<UserSimpleInfo> query = namedParameterJdbcTemplate.query(sql, Collections.singletonMap("ids", uids), new UserSimpleInfo.UserSimpleInfoRowMapper());
-                udi.getKanjieHelpers().addAll(query);
-                udi.setUserId(userId);
-                udi.setProductId(productId);
+                kdi.getKanjieHelpers().addAll(query);
             }
-            return udi;
+            return kdi;
         }catch (Exception e){
             return null;
         }
@@ -312,5 +305,31 @@ public class ProductDao {
             pams1.add(new Object[]{en.getKey()});
         });
         jdbcTemplate.batchUpdate(sql1, pams1);
+    }
+
+    public List<Integer> getHelpOtherKanjiaIds(Integer otherUserid, Integer pid) {
+        final String sql = String.format("select helper_ids from %s where user_id = ? and product_id = ? and terminal = 0", VarProperties.PRODUCT_KANJIA);
+        try{
+            String uids = jdbcTemplate.queryForObject(sql, new Object[]{otherUserid, pid}, String.class);
+            return Arrays.stream(uids.split(",")).filter(StringUtils::isNoneBlank).map(Integer::valueOf).collect(Collectors.toList());
+        }catch (Exception e){
+            return new ArrayList<>(1);
+        }
+    }
+
+    public void helpOtherKanjia(List<Integer> uids, Integer otherUserid, Integer pid) {
+        final String sql = String.format("update %s set helper_ids = ? where user_id = ? and product_id = ? and terminal = 0", VarProperties.PRODUCT_KANJIA);
+        jdbcTemplate.update(sql, new Object[]{uids.stream().map(String::valueOf).collect(Collectors.joining(",")), otherUserid, pid});
+    }
+
+    public boolean existsMyKanjia(int uid, Integer pid) {
+        final String sql = String.format("select count(1) from %s where user_id = ? and product_id = ? and terminal = 0", VarProperties.PRODUCT_KANJIA);
+        return jdbcTemplate.queryForObject(sql, new Object[]{uid, pid}, Long.class) > 0;
+    }
+
+    public void startMyKanjia(int uid, Integer pid) {
+
+        final String sql = String.format("insert into %s(user_id, product_id) values(?,?)");
+        jdbcTemplate.update(sql, new Object[]{uid, pid});
     }
 }

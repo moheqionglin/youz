@@ -41,11 +41,16 @@ public class ProductSalesDetail {
     private String zhuanquName;
     private boolean zhuanquEnable;
 
+    //标识该商品是否是有效的砍价商品
+    private boolean validKanjiaProduct = false;
+    //标识该商品自己是否已经发起过砍价
     private boolean hasKanjia = false;
     private List<UserSimpleInfo> kanjiaHelpers;
     private BigDecimal kanjiaSuccessAmount;
     private BigDecimal kanjiaLeaveAmount;
-
+    private int kanjiaLeavePerson;
+    private BigDecimal kanjiaUnitAmount;
+    private BigDecimal currentKanjiaPrice;
 
     public static class ProductSalesDetailRowMapper implements RowMapper<ProductSalesDetail> {
 
@@ -134,9 +139,34 @@ public class ProductSalesDetail {
         }
     }
 
+    public boolean isValidKanjiaProduct() {
+        return validKanjiaProduct;
+    }
+
+    public BigDecimal getCurrentKanjiaPrice() {
+        return currentKanjiaPrice;
+    }
+
+    public void setCurrentKanjiaPrice(BigDecimal currentKanjiaPrice) {
+        this.currentKanjiaPrice = currentKanjiaPrice;
+    }
+
+    public void setValidKanjiaProduct(boolean validKanjiaProduct) {
+        this.validKanjiaProduct = validKanjiaProduct;
+    }
+
     public boolean zhuanquExpired(){
         return this.zhuanquEndTime == null || new Date().getTime() > this.zhuanquEndTime;
     }
+
+    public int getKanjiaLeavePerson() {
+        return kanjiaLeavePerson;
+    }
+
+    public void setKanjiaLeavePerson(int kanjiaLeavePerson) {
+        this.kanjiaLeavePerson = kanjiaLeavePerson;
+    }
+
     public Integer getId() {
         return id;
     }
@@ -159,6 +189,14 @@ public class ProductSalesDetail {
 
     public void setZhuanquEnable(boolean zhuanquEnable) {
         this.zhuanquEnable = zhuanquEnable;
+    }
+
+    public BigDecimal getKanjiaUnitAmount() {
+        return kanjiaUnitAmount;
+    }
+
+    public void setKanjiaUnitAmount(BigDecimal kanjiaUnitAmount) {
+        this.kanjiaUnitAmount = kanjiaUnitAmount;
     }
 
     public void setHasKanjia(boolean hasKanjia) {

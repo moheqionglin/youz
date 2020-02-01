@@ -8,6 +8,7 @@ import com.sm.service.ProductService;
 import com.sm.service.ServiceUtil;
 import com.sm.service.ZhuanQuCategoryService;
 import com.sm.utils.SmUtil;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -141,4 +142,5 @@ public class ZhuanQuCategoryController {
                                         @Valid @NotNull @PathVariable("productId") int productId){
         zhuanQuCategoryService.deleteCategoryProduct(productId);
     }
+
 }

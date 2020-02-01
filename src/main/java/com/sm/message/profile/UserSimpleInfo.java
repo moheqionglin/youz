@@ -57,12 +57,12 @@ public class UserSimpleInfo {
             if(existsColumn(resultSet, "id")){
                 usi.setId(resultSet.getInt("id"));
             }
-            if(existsColumn(resultSet, "name")){
-                usi.setName(resultSet.getString("name"));
+            if(existsColumn(resultSet, "nick_name")){
+                usi.setName(resultSet.getString("nick_name"));
                 usi.setMockName(SmUtil.mockName(usi.getName()));
             }
-            if(existsColumn(resultSet, "headImage")){
-                usi.setHeadImage(resultSet.getString("headImage"));
+            if(existsColumn(resultSet, "head_picture")){
+                usi.setHeadImage(resultSet.getString("head_picture"));
             }
             return usi;
         }

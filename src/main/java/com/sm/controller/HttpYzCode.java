@@ -39,7 +39,10 @@ public enum  HttpYzCode {
     CATEGORY_HAS_CHILD(440, "分类下面有资源"),
 
     TIXIAN_AMOUNT_LESS(450, "提现金额小于1"),
-    YONGJIN_BILI_TOO_MAX(460, "佣金比例应该小于1");
+    YONGJIN_BILI_TOO_MAX(460, "佣金比例应该小于1"),
+
+    KANJIA_HELP_OTHER_EXISTS(470, "已经帮助别人砍过价"),
+    KANJIA_SELF_EXISTS(471, "已经发起过砍价");;
     private int code;
     private String messsage;
 

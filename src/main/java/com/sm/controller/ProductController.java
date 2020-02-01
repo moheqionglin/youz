@@ -1,14 +1,12 @@
 package com.sm.controller;
 
 import com.sm.config.UserDetail;
+import com.sm.message.ResultJson;
 import com.sm.message.product.CreateProductRequest;
 import com.sm.message.product.ProductListItem;
 import com.sm.message.product.ProductSalesDetail;
 import com.sm.service.ProductService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -16,6 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
@@ -162,6 +161,49 @@ public class ProductController {
         return productService.getSalesDetail(userId, productId);
 
     }
+
+    @GetMapping(path = "/product/help/{userid}/kanjia/{pid}")
+    @ApiOperation(value = "[判断是否给别人砍过价] ")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "userid", value = "userid", required = true, paramType = "path", dataType = "Integer"),
+            @ApiImplicitParam(name = "pid", value = "pid", required = true, paramType = "path", dataType = "Integer")
+    })
+    @PreAuthorize("hasAuthority('BUYER')")
+    public Boolean existsHelpOtherKanjia(@Valid @NotNull @PathVariable("userid") Integer userid,
+                                         @Valid @NotNull @PathVariable("pid") Integer pid){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
+        return productService.existsHelpOtherKanjia(userDetail.getId(), userid, pid);
+    }
+
+    @PutMapping(path = "/product/help/{userid}/kanjia/{pid}")
+    @ApiOperation(value = "[给别人砍价] ")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "userid", value = "userid", required = true, paramType = "path", dataType = "Integer"),
+            @ApiImplicitParam(name = "pid", value = "pid", required = true, paramType = "path", dataType = "Integer")
+    })
+    @PreAuthorize("hasAuthority('BUYER')")
+    @ApiResponses(value={@ApiResponse(code= 470, message="已经帮助别人砍过价")})
+    public ResultJson helpOtherKanjia(@Valid @NotNull @PathVariable("userid") Integer userid,
+                                      @Valid @NotNull @PathVariable("pid") Integer pid){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
+        return productService.helpOtherKanjia(userDetail.getId(), userid, pid);
+    }
+
+    @PutMapping(path = "/product/start/kanjia/{pid}")
+    @ApiOperation(value = "[发起自己的砍价] ")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "pid", value = "pid", required = true, paramType = "path", dataType = "Integer")
+    })
+    @PreAuthorize("hasAuthority('BUYER')")
+    @ApiResponses(value={@ApiResponse(code= 471, message="该商品已经发起过砍价")})
+    public ResultJson startMyKanjia( @Valid @NotNull @PathVariable("pid") Integer pid){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
+        return productService.startMyKanjia(userDetail.getId(), pid);
+    }
+
     public static enum CategoryType{
         ALL,
         FIRST,

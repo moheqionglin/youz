@@ -1,15 +1,18 @@
 package com.sm.service;
 
+import com.sm.controller.HttpYzCode;
 import com.sm.controller.ProductController;
 import com.sm.dao.dao.ProductCategoryDao;
 import com.sm.dao.dao.ProductDao;
 import com.sm.dao.dao.ShoppingCartDao;
+import com.sm.message.ResultJson;
 import com.sm.message.order.OrderCommentsRequest;
 import com.sm.message.product.*;
 import com.sm.message.profile.UserSimpleInfo;
 import com.sm.message.search.SearchRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -93,23 +96,36 @@ public class ProductService {
         }
         productSalesDetail.setZhuanquName(ServiceUtil.zhuanquName(productSalesDetail.getZhuanquId(), productSalesDetail.isZhuanquEnable(), productSalesDetail.getZhuanquEndTime()));
         productSalesDetail.setCurrentPrice(ServiceUtil.calcCurrentPrice(productSalesDetail.getCurrentPrice(), productSalesDetail.getZhuanquPrice(), productSalesDetail.isZhuanquEnable(), productSalesDetail.getZhuanquId(), productSalesDetail.getZhuanquEndTime()));
-        KanjiaDetailInfo kajiaers = productDao.getKanjiaDetail(userId, productId);
+        productSalesDetail.setValidKanjiaProduct(ServiceUtil.zhuanquValid(productSalesDetail.getZhuanquId(), productSalesDetail.isZhuanquEnable(), productSalesDetail.getZhuanquEndTime())
+                && ServiceUtil.isKanjia(productSalesDetail.getZhuanquId()));
+        //product上面的 专区有效，且是砍价专区的时候
+        if(ServiceUtil.zhuanquValid(productSalesDetail.getZhuanquId(), productSalesDetail.isZhuanquEnable(), productSalesDetail.getZhuanquEndTime())
+        && ServiceUtil.isKanjia(productSalesDetail.getZhuanquId())){
+            KanjiaDetailInfo kajiaers = productDao.getKanjiaDetail(userId, productId);
 
-        int maxKanjiaPerson = productSalesDetail.getMaxKanjiaPerson();
-        if(kajiaers != null && maxKanjiaPerson > 0){
-            productSalesDetail.setHasKanjia(true);
-            List<UserSimpleInfo> kanjieHelpers = kajiaers.getKanjieHelpers();
-            productSalesDetail.setKanjiaHelpers(kanjieHelpers);
+            int maxKanjiaPerson = productSalesDetail.getMaxKanjiaPerson();
+            if(!kajiaers.isTerminal() && maxKanjiaPerson > 0 ){
+                productSalesDetail.setHasKanjia(true);
+                List<UserSimpleInfo> kanjieHelpers = kajiaers.getKanjieHelpers();
+                productSalesDetail.setKanjiaHelpers(kanjieHelpers);
 
-            int kanjiaHelperCnt = kanjieHelpers == null || kanjieHelpers.isEmpty() ? 0 : kanjieHelpers.size();
-            BigDecimal maxsubtract = productSalesDetail.getCurrentPrice().subtract(productSalesDetail.getZhuanquPrice());
+                //确保砍价人数要 >0 <最大个数
+                int kanjiaHelperCnt = kanjieHelpers == null || kanjieHelpers.isEmpty() ? 0 : kanjieHelpers.size();
+                kanjiaHelperCnt = kanjiaHelperCnt > maxKanjiaPerson ? maxKanjiaPerson : kanjiaHelperCnt;
 
-            BigDecimal unitKanjiaAmount = maxsubtract.divide(BigDecimal.valueOf(maxKanjiaPerson));
-            BigDecimal successAmount = unitKanjiaAmount.multiply(BigDecimal.valueOf(kanjiaHelperCnt)).setScale(2, RoundingMode.UP);
-            productSalesDetail.setKanjiaSuccessAmount(successAmount);
-            productSalesDetail.setKanjiaLeaveAmount(maxsubtract.subtract(successAmount));
+                BigDecimal maxsubtract = productSalesDetail.getOriginPrice().subtract(productSalesDetail.getZhuanquPrice());
 
+                BigDecimal unitKanjiaAmount = maxsubtract.divide(BigDecimal.valueOf(maxKanjiaPerson)).setScale(2, RoundingMode.UP);
+                BigDecimal successAmount = unitKanjiaAmount.multiply(BigDecimal.valueOf(kanjiaHelperCnt)).setScale(2, RoundingMode.UP);
+                productSalesDetail.setKanjiaSuccessAmount(successAmount);
+                productSalesDetail.setKanjiaLeaveAmount(maxsubtract.subtract(successAmount));
+                productSalesDetail.setKanjiaUnitAmount(unitKanjiaAmount);
+                int leaveperson = maxKanjiaPerson - kanjiaHelperCnt;
+                productSalesDetail.setKanjiaLeavePerson(leaveperson > 0 ? leaveperson : 0);
+                productSalesDetail.setCurrentKanjiaPrice(productSalesDetail.getOriginPrice().subtract(successAmount).setScale(2, RoundingMode.UP));
+            }
         }
+
         return productSalesDetail;
 
     }
@@ -194,5 +210,29 @@ public class ProductService {
 
     public void subStock(HashMap<Integer, Integer> pid2cnt) {
         productDao.subStock(pid2cnt);
+    }
+
+    public Boolean existsHelpOtherKanjia(int selfUserid, Integer otherUserid, Integer pid) {
+        List<Integer> helpOtherKanjiaIds = productDao.getHelpOtherKanjiaIds(otherUserid, pid);
+        return helpOtherKanjiaIds != null && !helpOtherKanjiaIds.isEmpty() && helpOtherKanjiaIds.contains(selfUserid);
+    }
+
+    public ResultJson helpOtherKanjia(int selfUserid, Integer otherUserid, Integer pid) {
+        List<Integer> helpOtherKanjiaIds = productDao.getHelpOtherKanjiaIds(otherUserid, pid);
+
+        if(helpOtherKanjiaIds != null && !helpOtherKanjiaIds.isEmpty() && helpOtherKanjiaIds.contains(selfUserid)){
+            return ResultJson.failure(HttpYzCode.KANJIA_HELP_OTHER_EXISTS);
+        }
+        helpOtherKanjiaIds.add(selfUserid);
+        productDao.helpOtherKanjia(helpOtherKanjiaIds, otherUserid, pid);
+        return ResultJson.ok();
+    }
+
+    public ResultJson startMyKanjia(int uid, Integer pid) {
+        if(productDao.existsMyKanjia(uid, pid)){
+            return ResultJson.failure(HttpYzCode.KANJIA_SELF_EXISTS);
+        }
+        productDao.startMyKanjia(uid, pid);
+        return ResultJson.ok();
     }
 }
