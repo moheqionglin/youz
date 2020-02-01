@@ -8,6 +8,7 @@ import com.sm.message.product.ProductListItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -77,5 +78,9 @@ public class ShoppingCartService {
     public void updateSelected(Integer userid, List<Integer> cartIds, boolean selected) {
         shoppingCartDao.updateSelected(userid, cartIds, selected);
 
+    }
+
+    public void updateKanjiaPriceAndCnt(Integer cartItemId, BigDecimal price, Integer userId) {
+        shoppingCartDao.updateKanjiaPriceAndCnt(cartItemId, price, userId);
     }
 }

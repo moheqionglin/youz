@@ -13,6 +13,7 @@ public enum  HttpYzCode {
     LOGIN_ERROR(401, "登陆失败，用户名或密码无效"),
     FORBIDDEN(403, "禁止访问"),
     NOT_FOUND(404, "请求的资源不存在"),
+
     OPERATE_ERROR(405, "操作失败，请求操作的资源不存在"),
 
 
@@ -42,7 +43,11 @@ public enum  HttpYzCode {
     YONGJIN_BILI_TOO_MAX(460, "佣金比例应该小于1"),
 
     KANJIA_HELP_OTHER_EXISTS(470, "已经帮助别人砍过价"),
-    KANJIA_SELF_EXISTS(471, "已经发起过砍价");;
+    KANJIA_SELF_EXISTS(471, "已经发起过砍价"),
+    PRODUCT_NOT_EXISTS(472, "产品不存在"),
+    PRODUCT_NOT_KANJIA(473, "产品不是砍价商品"),
+    PRODUCT_PRICE_ERROR(474, "砍价商品价格错误"),
+    ;
     private int code;
     private String messsage;
 

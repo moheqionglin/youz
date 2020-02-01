@@ -4,6 +4,8 @@ import com.sm.config.UserDetail;
 import com.sm.message.ResultJson;
 import com.sm.message.order.CartInfo;
 import com.sm.message.order.CartItemInfo;
+import com.sm.message.product.ProductSalesDetail;
+import com.sm.service.ProductService;
 import com.sm.service.ServiceUtil;
 import com.sm.service.ShoppingCartService;
 import io.swagger.annotations.*;
@@ -33,6 +35,8 @@ public class ShoppingCartController {
     @Autowired
     private ShoppingCartService shoppingCartService;
 
+    @Autowired
+    private ProductService productService;
 
     @GetMapping(path = "/cart/list")
     @PreAuthorize("hasAuthority('BUYER')")
@@ -61,11 +65,13 @@ public class ShoppingCartController {
 
     @PostMapping(path = "/cart")
     @PreAuthorize("hasAuthority('BUYER')")
-    @ApiOperation(value = "[添加购物车] 406 代表购物车超过30个, 407 库存超过")
+    @ApiOperation(value = "[添加购物车] 406 代表购物车超过30个, 407 库存超过. 注意砍价商品，以最后一次添加的价格为准。")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "cartItemInfo", value = "cartItemInfo", required = true, paramType = "body", dataType = "CartItemInfo")
     })
-    @ApiResponses(value={@ApiResponse(code=406, message="购物车超过30个"), @ApiResponse(code=407, message="库存不足") })
+    @ApiResponses(value={@ApiResponse(code=406, message="购物车超过30个"), @ApiResponse(code=407, message="库存不足"),
+            @ApiResponse(code=472, message="产品不存在"), @ApiResponse(code=473, message="产品不是砍价商品"),
+            @ApiResponse(code=474, message="产品价格错误")})
     @Transactional
     public ResultJson<Long> addCart(@Valid @RequestBody CartItemInfo cartItemInfo){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -75,14 +81,41 @@ public class ShoppingCartController {
             return ResultJson.failure(HttpYzCode.CART_CNT_EXCEED_LIMIT);
         }
         Integer cartItemId = shoppingCartService.getCartItemId(userId, cartItemInfo.getProduct().getId());
-        if(cartItemId != null){
-            ResultJson<CartInfo> cie = this.updateCount(cartItemId, CountAction.ADD);
-            if(!HttpYzCode.SUCCESS.equals(cie.getHcode())){
-                return ResultJson.failure(cie.getHcode());
+        if(cartItemInfo.isKanjiaProduct()){//砍价商品
+            //计算目前砍价商品的实际价格，
+            ProductSalesDetail salesDetail = productService.getSalesDetail(userId, cartItemInfo.getProduct().getId());
+            if(salesDetail == null ){
+                return ResultJson.failure(HttpYzCode.PRODUCT_NOT_EXISTS);
+            }
+            if(!salesDetail.isValidKanjiaProduct()){
+                return ResultJson.failure(HttpYzCode.PRODUCT_NOT_KANJIA);
+            }
+            BigDecimal price =null;
+            if(salesDetail.isHasKanjia()){
+                price = salesDetail.getCurrentKanjiaPrice();
+            }else{
+                price = salesDetail.getOriginPrice();
+            }
+            if(price == null || price.compareTo(BigDecimal.ZERO) < 0){
+                return ResultJson.failure(HttpYzCode.PRODUCT_PRICE_ERROR);
+            }
+            if(cartItemId != null){
+                shoppingCartService.updateKanjiaPriceAndCnt(cartItemId, price, userId);
+            }else{
+                cartItemInfo.setCartPrice(price);
+                shoppingCartService.addNewCart(userId, cartItemInfo);
             }
         }else{
-            shoppingCartService.addNewCart(userId, cartItemInfo);
+            if(cartItemId != null){
+                ResultJson<CartInfo> cie = this.updateCount(cartItemId, CountAction.ADD);
+                if(!HttpYzCode.SUCCESS.equals(cie.getHcode())){
+                    return ResultJson.failure(cie.getHcode());
+                }
+            }else{
+                shoppingCartService.addNewCart(userId, cartItemInfo);
+            }
         }
+
         return ResultJson.ok(this.getCartItemsCount());
     }
 

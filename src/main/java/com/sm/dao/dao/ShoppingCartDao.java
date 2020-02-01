@@ -11,6 +11,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -116,5 +117,10 @@ public class ShoppingCartDao {
             pams.add(new Object[]{selected, userid, ci});
         });
         jdbcTemplate.batchUpdate(sql, pams);
+    }
+
+    public void updateKanjiaPriceAndCnt(Integer cartItemId, BigDecimal price, Integer userId) {
+        final String addSql = String.format("update %s set product_cnt = product_cnt + 1,kanjia_product = 1, cart_price= ? where id = ? and user_id = ?", VarProperties.SHOPPING_CART);
+        jdbcTemplate.update(addSql, new Object[]{price,cartItemId, userId});
     }
 }
