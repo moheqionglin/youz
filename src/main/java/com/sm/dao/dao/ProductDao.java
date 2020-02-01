@@ -343,7 +343,7 @@ public class ProductDao {
     }
 
     public List<Integer> getAllKanjiaingPids(int uid) {
-        final String sql = String.format("select id from %s where terminal = 0 and user_id = ?", VarProperties.PRODUCT_KANJIA);
+        final String sql = String.format("select product_id from %s where terminal = 0 and user_id = ?", VarProperties.PRODUCT_KANJIA);
        try{
            return jdbcTemplate.queryForList(sql, new Object[]{uid}, Integer.class);
        }catch (Exception e){
