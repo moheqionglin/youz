@@ -595,5 +595,5 @@ select * from user_amonut_log
 select *from users
 select * from product_kanjia
 select * from products where id = 1463
-
+select * from products where code = '6901209302220'
 select helper_ids, terminal from product_kanjia where user_id = 1 and product_id = 1463 and terminal = 0

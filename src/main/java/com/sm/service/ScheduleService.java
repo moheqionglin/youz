@@ -1,5 +1,8 @@
 package com.sm.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
@@ -13,4 +16,10 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class ScheduleService {
+    private Logger logger = LoggerFactory.getLogger(ScheduleService.class);
+    @Scheduled(cron = "0 1 23 * * *")
+    public void work() {
+        logger.info("start schedule...");
+
+    }
 }

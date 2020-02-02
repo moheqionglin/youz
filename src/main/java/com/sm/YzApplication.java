@@ -19,6 +19,7 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -38,6 +39,7 @@ import java.util.TimeZone;
  */
 @SpringBootApplication
 @Component("com.sm")
+@EnableScheduling
 public class YzApplication {
 	@Value("${rest.connection.timeout:6000}")
 	private Integer connectionTimeout;
