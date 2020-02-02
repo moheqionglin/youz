@@ -10,10 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -75,6 +72,7 @@ public class CategoryService {
         result.stream().forEach(c -> {
             c.setChildItems(map.get(c.getId()));
             if(c.getChildItems() != null){
+                c.getChildItems().stream().sorted(Comparator.comparing(CategoryItem::getSort));
                 c.getChildItems().stream().forEach(cc -> {
                     Integer cnt = id2ProductCnt.get(cc.getId());
                     cc.setProductCnt(cnt == null ? 0 : cnt);

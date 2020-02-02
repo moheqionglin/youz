@@ -73,7 +73,7 @@ public class ProductCategoryDao {
      * @return
      */
     public List<ProductCategory> getAllCategory(){
-        String sql = "select id, name, image , sort,parent_id from product_category ";
+        String sql = "select id, name, image , sort,parent_id from product_category order by sort asc";
         return jdbcTemplate.query(sql, new ProductCategoryRowMapper());
     }
 
