@@ -38,8 +38,6 @@ public class AuthServiceImpl {
     @Autowired
     private RestTemplate restTemplate;
 
-    @Autowired
-    private UserService userService;
     @Value("${sm.wx.appid}")
     private String appid;
     @Value("${sm.wx.appsec}")
