@@ -59,7 +59,7 @@ public class ProductCategoryDao {
      * @return
      */
     public List<ProductCategory> getLCategoryByParentId(int parentCategoryId){
-        String sql = "select id,name, image , sort,parent_id from product_category where parent_id = ?";
+        String sql = "select id,name, image , sort,parent_id from product_category where parent_id = ? order by sort asc";
         if(parentCategoryId == -1){
             sql = "select id,name, image , sort,parent_id from product_category where parent_id != ?";
             parentCategoryId = 0;
