@@ -141,7 +141,7 @@ public class ProductDao {
     public Integer create(CreateProductRequest product) {
         Integer sort = 0;
         try{
-            sort = jdbcTemplate.queryForObject("select id from " + VarProperties.PRODUCTS + " ordre by id desc limit 1", Integer.class);
+            sort = jdbcTemplate.queryForObject("select id from " + VarProperties.PRODUCTS + " order by id desc limit 1", Integer.class);
         }catch (Exception e){
 
         }
