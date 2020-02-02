@@ -4,7 +4,6 @@ import com.sm.dao.dao.UserAmountLogDao;
 import com.sm.dao.dao.UserDao;
 import com.sm.dao.domain.UserAmountLog;
 import com.sm.dao.domain.UserAmountLogType;
-import com.sm.message.ResultJson;
 import com.sm.message.profile.MyYueResponse;
 import com.sm.message.profile.ProfileUserInfoResponse;
 import com.sm.message.profile.UpdateProfileRequest;

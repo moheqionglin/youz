@@ -1,6 +1,5 @@
 package com.sm.dao.dao;
 
-import com.google.errorprone.annotations.Var;
 import com.sm.dao.domain.User;
 import com.sm.dao.domain.UserAmountLogType;
 import com.sm.dao.rowMapper.UserRowMapper;

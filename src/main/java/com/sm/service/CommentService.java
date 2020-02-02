@@ -1,11 +1,9 @@
 package com.sm.service;
 
 import com.sm.dao.dao.CommentDao;
-import com.sm.dao.dao.UserDao;
 import com.sm.message.comment.AppendCommentInfo;
 import com.sm.message.comment.AppendCommentRequest;
 import com.sm.message.comment.CommentInfo;
-import com.sm.message.profile.SimpleUserInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

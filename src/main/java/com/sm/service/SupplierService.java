@@ -2,7 +2,6 @@ package com.sm.service;
 
 import com.sm.dao.dao.SupplierDao;
 import com.sm.dao.domain.ProductSupplier;
-import com.sm.message.address.AddressDetailInfo;
 import com.sm.message.product.SupplierInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

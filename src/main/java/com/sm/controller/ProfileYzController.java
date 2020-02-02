@@ -2,7 +2,6 @@ package com.sm.controller;
 
 import com.sm.config.UserDetail;
 import com.sm.dao.domain.UserAmountLogType;
-import com.sm.message.ResultJson;
 import com.sm.message.profile.*;
 import com.sm.service.ProfileService;
 import com.sm.service.UserService;
@@ -15,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import java.math.BigDecimal;
 import java.util.List;
 
 

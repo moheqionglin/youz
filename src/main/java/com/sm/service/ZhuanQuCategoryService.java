@@ -15,7 +15,6 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -75,22 +74,16 @@ public class ZhuanQuCategoryService {
         if(zhuanqus.isEmpty()){
             return new ArrayList<>();
         }
-        //根据专区ID获取产品
-        List<Integer> zhuanquIds = zhuanqus.stream().map(c -> c.getId()).collect(Collectors.toList());
-        List<ProductListItem> prs = productService.getTop6ProductsByZhuanQuIds(zhuanquIds);
-        if(prs == null || prs.isEmpty()){
-            return new ArrayList<>();
-        }
-        Map<Integer, List<ProductListItem>> pid2P = prs.stream().collect(Collectors.groupingBy(ProductListItem::getZhuanquId));
-        //删除没有产品的专区
         for(Iterator<ZhuanquCategoryItem> iterator = zhuanqus.iterator(); iterator.hasNext();){
-            if(!pid2P.containsKey(iterator.next().getId())){
+            ZhuanquCategoryItem item = iterator.next();
+            List<ProductListItem> prs = productService.getTop6ProductsByZhuanQuId(item.getId());
+            if(prs == null || prs.isEmpty()){
                 iterator.remove();
+                continue;
             }
+            item.setTop6(prs);
         }
-        zhuanqus.stream().forEach(z -> {
-            z.setTop6(pid2P.get(z.getId()));
-        });
+
         return zhuanqus;
     }
 }

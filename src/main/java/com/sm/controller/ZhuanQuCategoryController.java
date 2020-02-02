@@ -1,14 +1,10 @@
 package com.sm.controller;
 
 import com.sm.message.product.KanjiaProductItem;
-import com.sm.message.product.ProductListItem;
 import com.sm.message.product.TejiaProductItem;
 import com.sm.message.product.ZhuanquCategoryItem;
-import com.sm.service.ProductService;
 import com.sm.service.ServiceUtil;
 import com.sm.service.ZhuanQuCategoryService;
-import com.sm.utils.SmUtil;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -35,8 +31,6 @@ public class ZhuanQuCategoryController {
     @Autowired
     private ZhuanQuCategoryService zhuanQuCategoryService;
 
-    @Autowired
-    private ProductService productService;
     @GetMapping(path = "/zhuanqucategory/list")
     @ApiOperation(value = "[获取所有特价/砍价 list] 注意专区id <10 的是保留专区, 如果为空返回空数组")
     public List<ZhuanquCategoryItem> getChildCategoryListByPid(){

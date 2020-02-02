@@ -12,7 +12,6 @@ import com.sm.message.profile.UserSimpleInfo;
 import com.sm.message.search.SearchRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -74,11 +73,11 @@ public class ProductService {
         return ps;
     }
 
-    public List<ProductListItem> getTop6ProductsByZhuanQuIds(List<Integer> zhuanquIds) {
-        if(zhuanquIds == null || zhuanquIds.isEmpty()){
+    public List<ProductListItem> getTop6ProductsByZhuanQuId(Integer zhuanquId) {
+        if(zhuanquId == null){
             return new ArrayList<>();
         }
-        List<ProductListItem> productsByZhuanQuIds = productDao.getTop6ProductsByZhuanQuIds(zhuanquIds);
+        List<ProductListItem> productsByZhuanQuIds = productDao.getTop6ProductsByZhuanQuId(zhuanquId);
         productsByZhuanQuIds.stream().forEach(pi ->{
             pi.setZhuanquName(ServiceUtil.zhuanquName(pi.getZhuanquId(), pi.isZhuanquEnable(), pi.getZhuanquEndTime()));
             pi.setCurrentPrice(ServiceUtil.calcCurrentPrice(pi.getCurrentPrice(), pi.getZhuanquPrice(), pi.isZhuanquEnable(), pi.getZhuanquId(), pi.getZhuanquEndTime()));

@@ -1,6 +1,5 @@
 package com.sm.utils;
 
-import org.apache.logging.log4j.util.PropertiesUtil;
 
 import java.security.MessageDigest;
 

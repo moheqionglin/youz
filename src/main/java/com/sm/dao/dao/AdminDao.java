@@ -1,12 +1,9 @@
 package com.sm.dao.dao;
 
-import com.google.errorprone.annotations.Var;
-import com.sm.controller.OrderController;
 import com.sm.dao.domain.UserAmountLog;
 import com.sm.dao.domain.UserAmountLogType;
 import com.sm.message.admin.JinXiaoCunInfo;
 import com.sm.message.admin.YzStatisticsInfo;
-import com.sm.message.order.CreateOrderInfo;
 import com.sm.message.order.SimpleOrder;
 import com.sm.utils.SmUtil;
 import org.slf4j.Logger;

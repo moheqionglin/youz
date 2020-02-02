@@ -1,6 +1,5 @@
 package com.sm.dao.dao;
 
-import com.google.errorprone.annotations.Var;
 import com.sm.controller.ProductController;
 import com.sm.message.order.OrderCommentsRequest;
 import com.sm.message.product.*;
@@ -53,7 +52,7 @@ public class ProductDao {
         String sort = "ADMIN".equalsIgnoreCase(pageType) ? "order by t1.sort asc " : "order by t1.sales_cnt desc, t1.sort asc ";
         final String sql = String.format("select t1.id as id, t1.name as name ,sanzhung,show_able,stock,origin_price,current_price,profile_img,sales_cnt, zhuanqu_id, t2.enable as zhuanquenable, zhuanqu_price,zhuanqu_endTime " + adminPageColumns +
                 " from %s as t1 left join %s as t2 on t1.zhuanqu_id = t2.id " +
-                " where t1.show_able = ? %s %s limit ?, ?", VarProperties.PRODUCTS, VarProperties.PRODUCT_ZHUANQU_CATEGORY, filterByCategory, sort);
+                " where t1.show_able = ? %s %s order by sort asc limit ?, ?", VarProperties.PRODUCTS, VarProperties.PRODUCT_ZHUANQU_CATEGORY, filterByCategory, sort);
         Object[] pams = new Object[]{isShow, categoryId, startIndex, pageSize};
         if(ProductController.CategoryType.ALL.equals(categoryType)){
             pams = new Object[]{isShow, startIndex, pageSize};
@@ -250,10 +249,10 @@ public class ProductDao {
             filterByCategory = " and second_category_id = ?";
             params.add(searchRequest.getCategoryId());
         }else if (SearchRequest.SearchType.ZHUAN_QU.equals(searchRequest.getType())){
-            filterByCategory = " and zhuanqu_id = ?";
+            filterByCategory = " and zhuanqu_id = ? and zhuanqu_endTime > " + new Date().getTime() + " ";
             params.add(searchRequest.getCategoryId());
         }else if (SearchRequest.SearchType.ALL_NOT_ZHUANQU.equals(searchRequest.getType())){
-            filterByCategory = " and zhuanqu_id <=0  ";
+            filterByCategory = " and ( zhuanqu_id <=0  or zhuanqu_endTime < " + new Date().getTime()+" ) ";
         }
 
         params.add(startIndex);
@@ -266,12 +265,12 @@ public class ProductDao {
         return jdbcTemplate.query(sql, params.toArray(), new ProductListItem.ProductListItemRowMapper());
     }
 
-    public List<ProductListItem> getTop6ProductsByZhuanQuIds(List<Integer> zhuanquIds) {
+    public List<ProductListItem> getTop6ProductsByZhuanQuId(Integer zhuanquId) {
         final String sql = String.format("select t1.id as id, t1.name as name ,sanzhung,stock,show_able,origin_price,current_price,profile_img,sales_cnt, zhuanqu_id, t2.enable as zhuanquenable, zhuanqu_price,zhuanqu_endTime" +
                 " from %s as t1 left join %s as t2 on t1.zhuanqu_id = t2.id " +
-                " where zhuanqu_id in (:ids) and show_able = true and zhuanqu_endTime > :time", VarProperties.PRODUCTS, VarProperties.PRODUCT_ZHUANQU_CATEGORY);
+                " where zhuanqu_id =:id and show_able = true and zhuanqu_endTime > :time order by sort asc limit 0,6", VarProperties.PRODUCTS, VarProperties.PRODUCT_ZHUANQU_CATEGORY);
         HashMap<String, Object> pams = new HashMap<>();
-        pams.put("ids", zhuanquIds);
+        pams.put("id", zhuanquId);
         pams.put("time", new Date().getTime());
         return namedParameterJdbcTemplate.query(sql, pams, new ProductListItem.ProductListItemRowMapper());
     }
