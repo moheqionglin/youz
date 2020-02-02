@@ -55,6 +55,9 @@ public class ProductService {
         ps.forEach(pi -> {
             pi.setZhuanquName(ServiceUtil.zhuanquName(pi.getZhuanquId(), pi.isZhuanquEnable(), pi.getZhuanquEndTime()));
             pi.setCurrentPrice(ServiceUtil.calcCurrentPrice(pi.getCurrentPrice(), pi.getZhuanquPrice(), pi.isZhuanquEnable(), pi.getZhuanquId(), pi.getZhuanquEndTime()));
+            pi.setValidKanjiaProduct(ServiceUtil.zhuanquValid(pi.getZhuanquId(), pi.isZhuanquEnable(), pi.getZhuanquEndTime())
+                    && ServiceUtil.isKanjia(pi.getZhuanquId()));
+
         });
         return ps;
     }
@@ -69,6 +72,8 @@ public class ProductService {
         ps.forEach(pi -> {
             pi.setZhuanquName(ServiceUtil.zhuanquName(pi.getZhuanquId(), pi.isZhuanquEnable(), pi.getZhuanquEndTime()));
             pi.setCurrentPrice(ServiceUtil.calcCurrentPrice(pi.getCurrentPrice(), pi.getZhuanquPrice(), pi.isZhuanquEnable(), pi.getZhuanquId(), pi.getZhuanquEndTime()));
+            pi.setValidKanjiaProduct(ServiceUtil.zhuanquValid(pi.getZhuanquId(), pi.isZhuanquEnable(), pi.getZhuanquEndTime())
+                    && ServiceUtil.isKanjia(pi.getZhuanquId()));
         });
         return ps;
     }
@@ -81,6 +86,8 @@ public class ProductService {
         productsByZhuanQuIds.stream().forEach(pi ->{
             pi.setZhuanquName(ServiceUtil.zhuanquName(pi.getZhuanquId(), pi.isZhuanquEnable(), pi.getZhuanquEndTime()));
             pi.setCurrentPrice(ServiceUtil.calcCurrentPrice(pi.getCurrentPrice(), pi.getZhuanquPrice(), pi.isZhuanquEnable(), pi.getZhuanquId(), pi.getZhuanquEndTime()));
+            pi.setValidKanjiaProduct(ServiceUtil.zhuanquValid(pi.getZhuanquId(), pi.isZhuanquEnable(), pi.getZhuanquEndTime())
+                    && ServiceUtil.isKanjia(pi.getZhuanquId()));
         });
         return productsByZhuanQuIds;
     }
@@ -185,6 +192,8 @@ public class ProductService {
         admin.stream().forEach(pi->{
             pi.setZhuanquName(ServiceUtil.zhuanquName(pi.getZhuanquId(), pi.isZhuanquEnable(), pi.getZhuanquEndTime()));
             pi.setCurrentPrice(ServiceUtil.calcCurrentPrice(pi.getCurrentPrice(), pi.getZhuanquPrice(), pi.isZhuanquEnable(), pi.getZhuanquId(), pi.getZhuanquEndTime()));
+            pi.setValidKanjiaProduct(ServiceUtil.zhuanquValid(pi.getZhuanquId(), pi.isZhuanquEnable(), pi.getZhuanquEndTime())
+                    && ServiceUtil.isKanjia(pi.getZhuanquId()));
         });
         return admin;
     }
@@ -201,6 +210,8 @@ public class ProductService {
         notadmin.stream().forEach(pi ->{
             pi.setZhuanquName(ServiceUtil.zhuanquName(pi.getZhuanquId(), pi.isZhuanquEnable(), pi.getZhuanquEndTime()));
             pi.setCurrentPrice(ServiceUtil.calcCurrentPrice(pi.getCurrentPrice(), pi.getZhuanquPrice(), pi.isZhuanquEnable(), pi.getZhuanquId(), pi.getZhuanquEndTime()));
+            pi.setValidKanjiaProduct(ServiceUtil.zhuanquValid(pi.getZhuanquId(), pi.isZhuanquEnable(), pi.getZhuanquEndTime())
+                    && ServiceUtil.isKanjia(pi.getZhuanquId()));
         });
         return notadmin;
     }
