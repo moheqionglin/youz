@@ -33,7 +33,7 @@ public class LunBoController {
         return ResultJson.ok(lunboService.getAll());
     }
 
-    @PostMapping(path = "/lunbo")
+    @PostMapping(path = "/lunbo/{type}")
     @PreAuthorize("hasAuthority('ADMIN')")
     @ApiOperation(value = "[新增轮播] linkId 不能为空， -1代表无效")
     @ApiImplicitParams({
