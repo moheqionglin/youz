@@ -82,12 +82,13 @@ public class ShoppingCartController {
             return ResultJson.failure(HttpYzCode.CART_CNT_EXCEED_LIMIT);
         }
         ShoppingCart sc = shoppingCartService.getCartItemId(userId, cartItemInfo.getProduct().getId());
+        ProductSalesDetail salesDetail = productService.getSalesDetail(userId, cartItemInfo.getProduct().getId());
+        if(salesDetail == null ){
+            return ResultJson.failure(HttpYzCode.PRODUCT_NOT_EXISTS);
+        }
         if(cartItemInfo.isKanjiaProduct()){//砍价商品
             //计算目前砍价商品的实际价格，
-            ProductSalesDetail salesDetail = productService.getSalesDetail(userId, cartItemInfo.getProduct().getId());
-            if(salesDetail == null ){
-                return ResultJson.failure(HttpYzCode.PRODUCT_NOT_EXISTS);
-            }
+
             if(!salesDetail.isValidKanjiaProduct()){
                 return ResultJson.failure(HttpYzCode.PRODUCT_NOT_KANJIA);
             }
