@@ -34,7 +34,7 @@ public class ShoppingCartService {
         Map<Integer, List<ProductListItem>> collect = products.stream().collect(Collectors.groupingBy(ProductListItem::getId));
         List<CartItemInfo> result = allCartItem.stream()
                 .map(ci -> new CartItemInfo(ci, collect.containsKey(ci.getProductId()) && !collect.get(ci.getProductId()).isEmpty() ? collect.get(ci.getProductId()).get(0) : null))
-                .collect(Collectors.toList()).stream().filter(c -> c.getProduct() != null).collect(Collectors.toList());
+                .filter(c -> c.getProduct() != null).collect(Collectors.toList());
         return result;
     }
 
