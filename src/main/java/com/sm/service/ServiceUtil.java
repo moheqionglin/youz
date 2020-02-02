@@ -85,7 +85,13 @@ public class ServiceUtil {
             if(c.getProductCnt() == 1){
                 return c.getCartPrice();
             }
-            return c.getCartPrice().add(product.getOriginPrice().multiply(BigDecimal.valueOf(c.getProductCnt() - 1))).setScale(2, RoundingMode.UP);
+            if(isKanjia(product.getZhuanquId()) && zhuanquValid(product.getZhuanquId(), product.isZhuanquEnable(), product.getZhuanquEndTime())){
+                //是砍价专区，同时砍价专区有效,返回原价
+                return c.getCartPrice().add(product.getOriginPrice().multiply(BigDecimal.valueOf(c.getProductCnt() - 1))).setScale(2, RoundingMode.UP);
+            }else{
+                BigDecimal currentprice = calcCurrentPrice(product.getCurrentPrice(), product.getZhuanquPrice(), product.isZhuanquEnable(), product.getZhuanquId(), product.getZhuanquEndTime());
+                return c.getCartPrice().add(currentprice.multiply(BigDecimal.valueOf(c.getProductCnt() - 1))).setScale(2, RoundingMode.UP);
+            }
         }
         BigDecimal currentprice = calcCurrentPrice(product.getCurrentPrice(), product.getZhuanquPrice(), product.isZhuanquEnable(), product.getZhuanquId(), product.getZhuanquEndTime());
         return currentprice.multiply(BigDecimal.valueOf(c.getProductCnt())).setScale(2, RoundingMode.UP);
