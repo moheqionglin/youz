@@ -52,7 +52,7 @@ public class ProductDao {
         String sort = "ADMIN".equalsIgnoreCase(pageType) ? "order by t1.sort asc " : "order by t1.sales_cnt desc, t1.sort asc ";
         final String sql = String.format("select t1.id as id, t1.name as name ,sanzhung,show_able,stock,origin_price,current_price,profile_img,sales_cnt, zhuanqu_id, t2.enable as zhuanquenable, zhuanqu_price,zhuanqu_endTime " + adminPageColumns +
                 " from %s as t1 left join %s as t2 on t1.zhuanqu_id = t2.id " +
-                " where t1.show_able = ? %s %s order by sort asc limit ?, ?", VarProperties.PRODUCTS, VarProperties.PRODUCT_ZHUANQU_CATEGORY, filterByCategory, sort);
+                " where t1.show_able = ? %s %s limit ?, ?", VarProperties.PRODUCTS, VarProperties.PRODUCT_ZHUANQU_CATEGORY, filterByCategory, sort);
         Object[] pams = new Object[]{isShow, categoryId, startIndex, pageSize};
         if(ProductController.CategoryType.ALL.equals(categoryType)){
             pams = new Object[]{isShow, startIndex, pageSize};
@@ -259,7 +259,7 @@ public class ProductDao {
         params.add(pageSize);
         final String sql = String.format("select t1.id as id, t1.name as name ,sanzhung,show_able,stock,origin_price,current_price,profile_img,sales_cnt, zhuanqu_id, t2.enable as zhuanquenable, zhuanqu_price , zhuanqu_endTime" +adminPageColumns +
                 " from %s as t1 left join %s as t2 on t1.zhuanqu_id = t2.id " +
-                " where t1.show_able = ? and t1.name like ? %s order by t1.sort asc limit ?, ?", VarProperties.PRODUCTS, VarProperties.PRODUCT_ZHUANQU_CATEGORY,
+                " where t1.show_able = ? and t1.name like ? %s order by t1.sales_cnt desc, t1.sort asc limit ?, ?", VarProperties.PRODUCTS, VarProperties.PRODUCT_ZHUANQU_CATEGORY,
                 filterByCategory);
 
         return jdbcTemplate.query(sql, params.toArray(), new ProductListItem.ProductListItemRowMapper());
@@ -268,7 +268,7 @@ public class ProductDao {
     public List<ProductListItem> getTop6ProductsByZhuanQuId(Integer zhuanquId) {
         final String sql = String.format("select t1.id as id, t1.name as name ,sanzhung,stock,show_able,origin_price,current_price,profile_img,sales_cnt, zhuanqu_id, t2.enable as zhuanquenable, zhuanqu_price,zhuanqu_endTime" +
                 " from %s as t1 left join %s as t2 on t1.zhuanqu_id = t2.id " +
-                " where zhuanqu_id =:id and show_able = true and zhuanqu_endTime > :time order by sort asc limit 0,6", VarProperties.PRODUCTS, VarProperties.PRODUCT_ZHUANQU_CATEGORY);
+                " where zhuanqu_id =:id and show_able = true and zhuanqu_endTime > :time order by sales_cnt desc, sort asc limit 0,6", VarProperties.PRODUCTS, VarProperties.PRODUCT_ZHUANQU_CATEGORY);
         HashMap<String, Object> pams = new HashMap<>();
         pams.put("id", zhuanquId);
         pams.put("time", new Date().getTime());
