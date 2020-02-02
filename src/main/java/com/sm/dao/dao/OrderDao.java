@@ -188,10 +188,10 @@ public class OrderDao {
             case ALL:
                 break;
             case NOT_SEND:
-                whereStr = "  and   has_fahuo = false";
+                whereStr = "  and  status = 'WAIT_SEND'";
                 break;
             case HAVE_SEND:
-                whereStr = " and   has_fahuo = true";
+                whereStr = " and   has_fahuo = true ";
                 break;
         }
         int startIndex = (pageNum - 1) * pageSize;
@@ -268,7 +268,16 @@ public class OrderDao {
 
     public List<OrderListItemInfo> getOrderListForJianHuoyuan(OrderAdminController.JianHYOrderStatus orderType, int pageSize, int pageNum) {
         int startIndex = (pageNum - 1) * pageSize;
-        final String sql = String.format("select id ,order_num,user_id ,address_id ,address_detail ,address_contract , status, total_price ,chajia_status,chajia_price, chajia_need_pay_money, chajia_had_pay_money, created_time, message,  jianhuo_status , has_fahuo from %s where jianhuo_status = ? and drawback_status = 'NONE' order by id desc limit ?, ?", VarProperties.ORDER);
+        String whereSql = "";
+        switch (orderType){
+            case NOT_JIANHUO:
+                whereSql = " and status = 'WAIT_SEND' ";
+                break;
+            default:
+                whereSql = "";
+                break;
+        }
+        final String sql = String.format("select id ,order_num,user_id ,address_id ,address_detail ,address_contract , status, total_price ,chajia_status,chajia_price, chajia_need_pay_money, chajia_had_pay_money, created_time, message,  jianhuo_status , has_fahuo from %s where jianhuo_status = ? and drawback_status in ( 'NONE', 'APPROVE_REJECT') %s order by id desc limit ?, ?", VarProperties.ORDER, whereSql);
         return jdbcTemplate.query(sql, new Object[]{orderType.toString(),  startIndex, pageSize}, new OrderListItemInfo.OrderListItemInfoRowMapper());
     }
 
