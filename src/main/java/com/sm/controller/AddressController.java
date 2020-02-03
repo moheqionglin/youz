@@ -1,5 +1,6 @@
 package com.sm.controller;
 
+import com.google.errorprone.annotations.Var;
 import com.sm.config.UserDetail;
 import com.sm.message.address.AddressDetailInfo;
 import com.sm.message.address.AddressListItem;
@@ -9,6 +10,7 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -31,6 +33,15 @@ public class AddressController {
     @Autowired
     private AddressService addressService;
 
+    @Value("${bd.tk}")
+    private String bdtk;
+
+    @GetMapping(path = "/address/tk")
+    @PreAuthorize("hasAuthority('BUYER')")
+    @ApiOperation(value = "[tk bd] ")
+    public String getTk(){
+        return bdtk;
+    }
 
     @GetMapping(path = "/address/list")
     @PreAuthorize("hasAuthority('BUYER')")
