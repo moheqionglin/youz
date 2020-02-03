@@ -600,3 +600,4 @@ select sales_cnt, sort, id from products order by sales_cnt desc, sort asc
 select helper_ids, terminal from product_kanjia where user_id = 1 and product_id = 1463 and terminal = 0
 
 select * from lunbo
+select * from product_category where parent_id = 0

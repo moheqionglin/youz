@@ -1,7 +1,6 @@
 package com.sm.service;
 
 import com.alibaba.fastjson.JSON;
-import com.sm.utils.AESUtil;
 import com.sm.utils.PayUtil;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
