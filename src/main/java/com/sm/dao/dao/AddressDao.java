@@ -33,7 +33,7 @@ public class AddressDao {
 
     public List<ShippingAddress> getAddressPaged(int userId) {
         String sql = "select id, link_person , phone, default_address, shipping_address, shipping_address_details " +
-                "from shipping_address where user_id = ? order by default_address";
+                "from shipping_address where user_id = ? order by default_address desc";
         List<ShippingAddress> rst = jdbcTemplate.query(sql, new Object[]{userId}, new ShippingAddressRowMapper());
         return rst;
     }
