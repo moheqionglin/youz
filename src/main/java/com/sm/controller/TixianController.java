@@ -1,13 +1,13 @@
 package com.sm.controller;
 
 import com.sm.config.UserDetail;
+import com.sm.dao.domain.UserAmountLogType;
 import com.sm.message.ResultJson;
 import com.sm.message.admin.TixianInfo;
+import com.sm.message.profile.MyYueResponse;
+import com.sm.service.ProfileService;
 import com.sm.service.TixianService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -33,18 +33,27 @@ public class TixianController {
     @Autowired
     private TixianService tixianService;
 
+    @Autowired
+    private ProfileService profileService;
     @PostMapping(path = "/tixian")
     @PreAuthorize("hasAuthority('BUYER')")
     @ApiOperation(value = "[提现申请] ")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "amount", value = "amount", required = true, paramType = "body", dataType = "BigDecimal")
     })
+    @ApiResponses(value={@ApiResponse(code= 450, message="提现金额小于1元"),
+            @ApiResponse(code=451, message="提现金额超过余额")})
     public ResultJson creteTixian(@Valid @NotNull @RequestBody BigDecimal amount){
         if(amount.compareTo(BigDecimal.ONE) < 0){
             return ResultJson.failure(HttpYzCode.TIXIAN_AMOUNT_LESS);
         }
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
+        MyYueResponse myAmount = profileService.getMyAmount(userDetail.getId(), UserAmountLogType.YUE);
+        if(myAmount.getTotal() == null || myAmount.getTotal().compareTo(amount) < 0){
+            return ResultJson.failure(HttpYzCode.TIXIAN_AMOUNT_EXCEED);
+        }
         tixianService.creteTixian(userDetail.getId(), amount);
         return ResultJson.ok();
     }
