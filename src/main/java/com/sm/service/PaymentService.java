@@ -56,11 +56,11 @@ public class PaymentService {
 	//微信支付API
 	public static final String WX_PAY_UNIFIED_ORDER = "https://api.mch.weixin.qq.com/pay/unifiedorder";
 
-	public Map<String, String> xcxPayment(String orderNum, double money, String openId) throws Exception {
+	public Map<String, String> xcxPayment(String orderNum, int money, String openId) throws Exception {
 		LOGGER.info("【小程序支付】 统一下单开始, 订单编号={}", orderNum);
 		SortedMap<String, String> resultMap = new TreeMap<>();
 		//生成支付金额，开发环境处理支付金额数到0.01、0.02、0.03元
-		double payAmount = PayUtil.getPayAmountByEnv(PROJECT_ENV, money);
+		int payAmount = PayUtil.getPayAmountByEnv(PROJECT_ENV, money);
 		//添加或更新支付记录(参数跟进自己业务需求添加), 去数据库中再次校验
 		int flag = this.addOrUpdatePaymentRecord(orderNum, payAmount);
 		if (flag < 0) {
@@ -96,7 +96,7 @@ public class PaymentService {
 	/**
 	 * 小程序支付统一下单
 	 */
-	private Map<String, String> xcxUnifieldOrder(String orderNum, String tradeType, double payAmount, String openid, String productDesc) throws Exception {
+	private Map<String, String> xcxUnifieldOrder(String orderNum, String tradeType, int payAmount, String openid, String productDesc) throws Exception {
 		//封装参数
 		SortedMap<String, String> paramMap = new TreeMap<String, String>();
 		paramMap.put("appid", XCX_APP_ID);
@@ -104,7 +104,7 @@ public class PaymentService {
 		paramMap.put("nonce_str", PayUtil.makeUUID(32));
 		paramMap.put("body", productDesc);
 		paramMap.put("out_trade_no", orderNum);
-		paramMap.put("total_fee", PayUtil.moneyToIntegerStr(payAmount));
+		paramMap.put("total_fee", String.valueOf(payAmount));
 		paramMap.put("spbill_create_ip", PayUtil.getLocalIp());
 		paramMap.put("notify_url", "https://yz.suimeikeji.com/api/v1/payment/callback");
 		paramMap.put("trade_type", tradeType);
@@ -126,7 +126,7 @@ public class PaymentService {
 	/**
 	 * 添加或更新支付记录
 	 */
-	public int addOrUpdatePaymentRecord(String orderNo, double payAmount) throws Exception {
+	public int addOrUpdatePaymentRecord(String orderNo, int payAmount) throws Exception {
 		//写自己的添加或更新支付记录的业务代码
 		return 1;
 	}

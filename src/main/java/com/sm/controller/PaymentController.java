@@ -66,9 +66,9 @@ public class PaymentController {
 			return ResultJson.failure(HttpYzCode.ORDER_STATUS_ERROR);
 		}
 
-		int amount = simpleOrder.getNeedPayMoney().multiply(BigDecimal.valueOf(100)).intValue();
+		int amount = simpleOrder.getNeedPayMoney().multiply(BigDecimal.valueOf(100)).setScale(2, RoundingMode.UP).intValue();
 		if(PayType.CHAJIA.equals(payType)){
-			amount = simpleOrder.getChajiaNeedPayMoney().multiply(BigDecimal.valueOf(100)).intValue();
+			amount = simpleOrder.getChajiaNeedPayMoney().multiply(BigDecimal.valueOf(100)).setScale(2, RoundingMode.UP).intValue();
 			orderNum = orderNum + "CJ";
 		}
 		//校验 订单是否存在？ 是否值已经支付？

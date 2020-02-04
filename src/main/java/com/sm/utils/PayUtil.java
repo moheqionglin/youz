@@ -262,16 +262,16 @@ public class PayUtil {
      * @param money
      * @return
      */
-    public static double getPayAmountByEnv(String env,Double money){
-    	double pay_money = 0.01;
+    public static int getPayAmountByEnv(String env,int money){
+    	int pay_money = 1;
     	//测试环境
     	if(!"PROD".equals(env)){
 			if(money>10000){
-				pay_money = 0.03;
+				pay_money = 3;
 			}else if(money>1000){
-				pay_money = 0.02;
+				pay_money = 2;
 			}else{
-				pay_money = 0.01;
+				pay_money = 1;
 			}
 			return pay_money;
     	}else{
