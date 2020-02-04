@@ -14,11 +14,21 @@ import java.util.Date;
 public class YueItemResponse {
     private String dealDate;
     private String message;
+    private BigDecimal amount;
 
     public YueItemResponse() {
     }
 
+    public BigDecimal getAmount() {
+        return amount;
+    }
+
+    public void setAmount(BigDecimal amount) {
+        this.amount = amount;
+    }
+
     public YueItemResponse(Date dealDate, String remark, BigDecimal amount) {
+        this.amount = amount;
         this.dealDate = dealDate != null ? SmUtil.parseLongToTMDHMS(dealDate.getTime()): "";
         this.message = String.format("%s %s元", remark, amount.setScale(2, RoundingMode.HALF_DOWN).toPlainString());
     }
