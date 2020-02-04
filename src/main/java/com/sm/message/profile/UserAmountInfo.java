@@ -15,7 +15,7 @@ import java.sql.SQLException;
 public class UserAmountInfo {
     private BigDecimal yue;
     private BigDecimal yongjin;
-
+    private String yongjincode;
     public static class UserAmountInfoRowMapper  implements RowMapper<UserAmountInfo> {
 
         @Override
@@ -27,6 +27,10 @@ public class UserAmountInfo {
             if (existsColumn(resultSet, "yongjin")) {
                 userAmountInfo.setYongjin(resultSet.getBigDecimal("yongjin"));
             }
+            if (existsColumn(resultSet, "yongjin_code")) {
+                userAmountInfo.setYongjincode(resultSet.getString("yongjin_code"));
+            }
+
             return userAmountInfo;
         }
 
@@ -56,6 +60,14 @@ public class UserAmountInfo {
 
     public BigDecimal getYongjin() {
         return yongjin;
+    }
+
+    public String getYongjincode() {
+        return yongjincode;
+    }
+
+    public void setYongjincode(String yongjincode) {
+        this.yongjincode = yongjincode;
     }
 
     public void setYongjin(BigDecimal yongjin) {

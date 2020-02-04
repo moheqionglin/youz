@@ -5,6 +5,7 @@ import org.junit.Test;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.UUID;
 
 /**
  * @author wanli.zhou
@@ -25,6 +26,10 @@ public class CommonTest {
         System.out.println(yue);
     }
 
+    @Test
+    public void uutest(){
+        System.out.println(UUID.randomUUID());
+    }
     @Test
     public void enmuTest2(){
         System.out.println(UserAmountLogType.valid("yue"));
