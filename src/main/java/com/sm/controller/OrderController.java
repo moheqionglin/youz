@@ -71,7 +71,7 @@ public class OrderController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
         //订单状态待支付
-        return orderService.actionOrder(userDetail.getId(), orderNum, actionType);
+        return orderService.actionOrder(userDetail, orderNum, actionType);
     }
 
     @PostMapping(path = "/order/drawbackOrder")

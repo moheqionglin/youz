@@ -49,7 +49,7 @@ public class AdminDao {
     }
 
     @Transactional
-    public void updateYongjinAndAddLog(String yongjinCode, BigDecimal total, SimpleOrder order, BigDecimal yongjinpercent) {
+    public void updateYongjinAndAddLog(String userName, String yongjinCode, BigDecimal total, SimpleOrder order, BigDecimal yongjinpercent) {
         final String userIDSql = String.format("select id from %s where yongjin_code = ?", VarProperties.USERS);
         Integer userId = null;
         try{
@@ -65,7 +65,7 @@ public class AdminDao {
         jdbcTemplate.update(sql, new Object[]{total, userId});
 
         //Integer userId, BigDecimal amount, String remark, UserAmountLogType logType , String remarkDetail
-        UserAmountLog userAmountLog = new UserAmountLog(userId, total, "好友下单赚取佣金", UserAmountLogType.YONGJIN, String.format("订单号：%s , 订单金额 ： %s, 佣金比例 %s", order.getOrderNum(), order.getYongjinBasePrice(), yongjinpercent.toPlainString()));
+        UserAmountLog userAmountLog = new UserAmountLog(userId, total, String.format("好友下单赚取佣金(好友昵称：%s)", userName), UserAmountLogType.YONGJIN, String.format("订单号：%s , 订单金额 ： %s, 佣金比例 %s", order.getOrderNum(), order.getYongjinBasePrice(), yongjinpercent.toPlainString()));
         userAmountLogDao.create(userAmountLog);
 
     }

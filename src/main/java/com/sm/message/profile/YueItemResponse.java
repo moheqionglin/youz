@@ -3,7 +3,6 @@ package com.sm.message.profile;
 import com.sm.utils.SmUtil;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.Date;
 
 /**
@@ -30,7 +29,7 @@ public class YueItemResponse {
     public YueItemResponse(Date dealDate, String remark, BigDecimal amount) {
         this.amount = amount;
         this.dealDate = dealDate != null ? SmUtil.parseLongToTMDHMS(dealDate.getTime()): "";
-        this.message = String.format("%s %s元", remark, amount.setScale(2, RoundingMode.HALF_DOWN).toPlainString());
+        this.message = remark;
     }
 
     public String getDealDate() {

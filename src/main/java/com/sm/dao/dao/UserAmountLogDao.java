@@ -58,7 +58,7 @@ public class UserAmountLogDao {
         userAmountLog.setUserId(simpleOrder.getUserId());
         userAmountLog.setAmount(simpleOrder.getUseYongjin());
         userAmountLog.setLogType(UserAmountLogType.YONGJIN);
-        userAmountLog.setRemark( "退款");
+        userAmountLog.setRemark(String.format( "退款(订单号：%s)", simpleOrder.getOrderNum()));
         userAmountLog.setRemarkDetail(String.format("退款订单 %s ，退还佣金", simpleOrder.getOrderNum()));
         this.create(userAmountLog);
     }
@@ -70,7 +70,7 @@ public class UserAmountLogDao {
         userAmountLog.setUserId(simpleOrder.getUserId());
         userAmountLog.setAmount(simpleOrder.getUseYue());
         userAmountLog.setLogType(UserAmountLogType.YUE);
-        userAmountLog.setRemark("退款");
+        userAmountLog.setRemark(String.format("退款（订单号:%s）", simpleOrder.getOrderNum()));
         userAmountLog.setRemarkDetail(String.format("退款订单 %s ，退还余额", simpleOrder.getOrderNum()));
         this.create(userAmountLog);
     }
@@ -82,7 +82,7 @@ public class UserAmountLogDao {
         userAmountLog.setUserId(simpleOrder.getUserId());
         userAmountLog.setAmount(amount);
         userAmountLog.setLogType(UserAmountLogType.YUE);
-        userAmountLog.setRemark("差价订单退款");
+        userAmountLog.setRemark(String.format("差价订单退款(订单号：%s)", simpleOrder.getOrderNum()));
         userAmountLog.setRemarkDetail(String.format("差价订单退款 %s ，退还余额", simpleOrder.getOrderNum()));
         this.create(userAmountLog);
     }
@@ -94,7 +94,7 @@ public class UserAmountLogDao {
         userAmountLog.setUserId(createOrderInfo.getUserId());
         userAmountLog.setAmount(createOrderInfo.getUseYongjin());
         userAmountLog.setLogType(UserAmountLogType.YONGJIN);
-        userAmountLog.setRemark( "下单使用");
+        userAmountLog.setRemark( String.format("下单使用(订单号：%s)", createOrderInfo.getOrderNum()));
         userAmountLog.setRemarkDetail(String.format("订单 %s ，下单使用", createOrderInfo.getOrderNum()));
         this.create(userAmountLog);
     }
@@ -107,7 +107,7 @@ public class UserAmountLogDao {
         userAmountLog.setUserId(createOrderInfo.getUserId());
         userAmountLog.setAmount(createOrderInfo.getUseYue());
         userAmountLog.setLogType(UserAmountLogType.YUE);
-        userAmountLog.setRemark( "下单使用");
+        userAmountLog.setRemark( String.format("下单使用(订单号：%s)", createOrderInfo.getOrderNum()));
         userAmountLog.setRemarkDetail(String.format("订单 %s ，下单使用", createOrderInfo.getOrderNum()));
         this.create(userAmountLog);
     }

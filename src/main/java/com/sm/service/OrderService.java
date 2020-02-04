@@ -1,11 +1,13 @@
 package com.sm.service;
 
+import com.sm.config.UserDetail;
 import com.sm.controller.HttpYzCode;
 import com.sm.controller.OrderAdminController;
 import com.sm.controller.OrderController;
 import com.sm.dao.dao.AdminDao;
 import com.sm.dao.dao.OrderDao;
 import com.sm.dao.dao.UserAmountLogDao;
+import com.sm.dao.dao.UserDao;
 import com.sm.message.ResultJson;
 import com.sm.message.address.AddressDetailInfo;
 import com.sm.message.order.*;
@@ -49,7 +51,8 @@ public class OrderService {
     private ProductService productService;
     @Autowired
     private PaymentService paymentService;
-
+    @Autowired
+    private UserDao userDao;
     @Autowired
     private UserAmountLogDao userAmountLogDao;
 
@@ -173,11 +176,13 @@ public class OrderService {
     public SimpleOrder getSimpleOrder(String orderNum){
         return orderDao.getSimpleOrder(orderNum);
     }
-    public ResultJson actionOrder(int userId, String orderNum, OrderController.ActionOrderType actionType) {
+    public ResultJson actionOrder(UserDetail user, String orderNum, OrderController.ActionOrderType actionType) {
         SimpleOrder simpleOrder = orderDao.getSimpleOrder(orderNum);
+        Integer userId = user.getId();
         if(simpleOrder == null || !simpleOrder.getUserId().equals(userId)){
             return ResultJson.failure(HttpYzCode.ORDER_NOT_EXISTS);
         }
+
         if(!(OrderController.BuyerOrderStatus.WAIT_PAY.toString().equalsIgnoreCase(simpleOrder.getStatus())
                 && OrderController.ActionOrderType.CANCEL_MANUAL.equals(actionType))
         && !(OrderController.BuyerOrderStatus.WAIT_RECEIVE.toString().equalsIgnoreCase(simpleOrder.getStatus())
@@ -192,7 +197,7 @@ public class OrderService {
                 BigDecimal yongJinPercent = adminDao.getYongJinPercent();
                 BigDecimal total = simpleOrder.getYongjinBasePrice();
                 if (yongJinPercent.compareTo(BigDecimal.ZERO) > 0 && yongJinPercent.compareTo(BigDecimal.ONE) < 0 && total !=null && total.compareTo(BigDecimal.ZERO)> 0){
-                    adminDao.updateYongjinAndAddLog(simpleOrder.getYongjincode(), total.multiply(yongJinPercent).setScale(2, RoundingMode.DOWN), simpleOrder, yongJinPercent);
+                    adminDao.updateYongjinAndAddLog(SmUtil.mockName(user.getUsername()), simpleOrder.getYongjincode(), total.multiply(yongJinPercent).setScale(2, RoundingMode.DOWN), simpleOrder, yongJinPercent);
                     logger.info("Update yongjin for order {}/{}, order total {}, yongjin = [{} * {}], ", simpleOrder.getId(), simpleOrder.getOrderNum(), simpleOrder.getNeedPayMoney(), total, yongJinPercent);
                 }
             }
