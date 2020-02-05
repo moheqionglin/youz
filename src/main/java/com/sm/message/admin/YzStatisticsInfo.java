@@ -30,16 +30,19 @@ public class YzStatisticsInfo {
                 statistics.setDate(SmUtil.parseLongToYMD(resultSet.getLong("day")));
             }
             if(existsColumn(resultSet, "total_price")){
-                statistics.setTotalPrice(resultSet.getBigDecimal("total_price"));
+                BigDecimal totalPrice = resultSet.getBigDecimal("total_price");
+                statistics.setTotalPrice(totalPrice == null ? BigDecimal.ZERO: totalPrice);
             }
             if(existsColumn(resultSet, "total_cnt")){
                 statistics.setTotalCnt(resultSet.getBigDecimal("total_cnt"));
             }
             if(existsColumn(resultSet, "total_cost")){
-                statistics.setTotalCost(resultSet.getBigDecimal("total_cost"));
+                BigDecimal totalCost = resultSet.getBigDecimal("total_cost");
+                statistics.setTotalCost(totalCost == null ? BigDecimal.ZERO:totalCost);
             }
             if(existsColumn(resultSet, "total_profit")){
-                statistics.setTotalProfit(resultSet.getBigDecimal("total_profit"));
+                BigDecimal totalProfit = resultSet.getBigDecimal("total_profit");
+                statistics.setTotalProfit(totalProfit == null ? BigDecimal.ZERO : totalProfit);
             }
             return statistics;
         }
