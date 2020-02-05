@@ -54,7 +54,9 @@ public class ProductService {
 
         ps.forEach(pi -> {
             pi.setZhuanquName(ServiceUtil.zhuanquName(pi.getZhuanquId(), pi.isZhuanquEnable(), pi.getZhuanquEndTime()));
-            pi.setCurrentPrice(ServiceUtil.calcCurrentPrice(pi.getCurrentPrice(), pi.getZhuanquPrice(), pi.isZhuanquEnable(), pi.getZhuanquId(), pi.getZhuanquEndTime()));
+            if(!("ADMIN".equals(pageType) && ProductController.CategoryType.ZHUANQU.equals(categoryType))){
+                pi.setCurrentPrice(ServiceUtil.calcCurrentPrice(pi.getCurrentPrice(), pi.getZhuanquPrice(), pi.isZhuanquEnable(), pi.getZhuanquId(), pi.getZhuanquEndTime()));
+            }
             pi.setValidKanjiaProduct(ServiceUtil.zhuanquValid(pi.getZhuanquId(), pi.isZhuanquEnable(), pi.getZhuanquEndTime())
                     && ServiceUtil.isKanjia(pi.getZhuanquId()));
 
