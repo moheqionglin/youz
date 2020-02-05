@@ -342,8 +342,9 @@ public class OrderService {
         SortedMap<String, String> data = new TreeMap<>();
         //这个不能使中文，否则出错
         BigDecimal hadPay = simpleOrder.getHadPayMoney();
-        if(hadPay != null && hadPay.compareTo(BigDecimal.ZERO) > 0){
 
+        if(hadPay != null && hadPay.compareTo(BigDecimal.ZERO) > 0){
+            int totalFree = hadPay.multiply(BigDecimal.valueOf(100)).intValue();
             data.put("out_refund_no", simpleOrder.getOrderNum()+"DW");
             data.put("out_trade_no", simpleOrder.getOrderNum());
 
@@ -352,7 +353,8 @@ public class OrderService {
                 hadPay = hadPay.subtract(simpleOrder.getChajiaNeedPayMoney().abs());
             }
             int found = hadPay.multiply(BigDecimal.valueOf(100)).intValue();
-            data.put("total_fee", found + "");
+
+            data.put("total_fee", totalFree + "");
             data.put("refund_fee", found + "");
             logger.info("Start dwawback for order {}, refound amount = {}  ", simpleOrder.getOrderNum(), found);
             String result = paymentService.refund(data);
