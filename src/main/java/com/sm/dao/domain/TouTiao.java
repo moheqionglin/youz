@@ -1,5 +1,10 @@
 package com.sm.dao.domain;
 
+import org.hibernate.validator.constraints.Length;
+import org.springframework.beans.factory.annotation.Value;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
 
@@ -8,11 +13,14 @@ import java.sql.Timestamp;
  * @description
  * @time 2020-01-16 22:24
  */
+@Valid
 public class TouTiao {
     private Integer id;
     @NotNull
+    @NotBlank
     private String title;
     @NotNull
+    @NotBlank
     private String content;
     private Timestamp createdTime;
     private Timestamp modifiedTime;
