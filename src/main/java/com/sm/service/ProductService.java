@@ -133,6 +133,7 @@ public class ProductService {
                 BigDecimal maxsubtract = productSalesDetail.getOriginPrice().subtract(productSalesDetail.getZhuanquPrice());
 
                 BigDecimal unitKanjiaAmount = maxsubtract.divide(BigDecimal.valueOf(maxKanjiaPerson)).setScale(2, RoundingMode.UP);
+                productSalesDetail.setKanjiaUnitAmount(unitKanjiaAmount);
                 //确保砍价人数要 >0 <最大个数
                 if(kanjieHelpers == null || kanjieHelpers.isEmpty()){
                     productSalesDetail.setKanjiaSuccessAmount(BigDecimal.ZERO);
