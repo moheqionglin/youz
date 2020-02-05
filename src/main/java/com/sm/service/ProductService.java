@@ -55,6 +55,7 @@ public class ProductService {
         ps.forEach(pi -> {
             pi.setZhuanquName(ServiceUtil.zhuanquName(pi.getZhuanquId(), pi.isZhuanquEnable(), pi.getZhuanquEndTime()));
             if(!("ADMIN".equals(pageType) && ProductController.CategoryType.ZHUANQU.equals(categoryType))){
+                //专区管理页面看到的currentPrice就是实际的售价
                 pi.setCurrentPrice(ServiceUtil.calcCurrentPrice(pi.getCurrentPrice(), pi.getZhuanquPrice(), pi.isZhuanquEnable(), pi.getZhuanquId(), pi.getZhuanquEndTime()));
             }
             pi.setValidKanjiaProduct(ServiceUtil.zhuanquValid(pi.getZhuanquId(), pi.isZhuanquEnable(), pi.getZhuanquEndTime())
