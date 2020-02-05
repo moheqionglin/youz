@@ -82,7 +82,7 @@ public class ShoppingCartController {
             return ResultJson.failure(HttpYzCode.CART_CNT_EXCEED_LIMIT);
         }
         ShoppingCart sc = shoppingCartService.getCartItemId(userId, cartItemInfo.getProduct().getId());
-        ProductSalesDetail salesDetail = productService.getSalesDetail(userId, cartItemInfo.getProduct().getId());
+        ProductSalesDetail salesDetail = productService.getSalesDetail(userId, cartItemInfo.getProduct().getId(), 0);
         if(salesDetail == null ){
             return ResultJson.failure(HttpYzCode.PRODUCT_NOT_EXISTS);
         }

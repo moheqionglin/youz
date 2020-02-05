@@ -95,8 +95,16 @@ public class ProductService {
         return productsByZhuanQuIds;
     }
 
+    /**
+     * 如果 kanjiaUserid 不为空 代表，帮别人砍价页面，要看的是别人的砍价情况。
+     * 如果kanjiaUserid为空，表明自己进入自己的砍价页面，看自己的砍价情况。
+     * @param userId
+     * @param productId
+     * @param kanjiaUserid
+     * @return
+     */
     @Transactional
-    public ProductSalesDetail getSalesDetail(Integer userId, int productId) {
+    public ProductSalesDetail getSalesDetail(Integer userId, int productId, Integer kanjiaUserid) {
         ProductSalesDetail productSalesDetail = productDao.getSalesDetail(productId);
         if (productSalesDetail == null){
             return null;
@@ -111,7 +119,11 @@ public class ProductService {
         //product上面的 专区有效，且是砍价专区的时候
         if(ServiceUtil.zhuanquValid(productSalesDetail.getZhuanquId(), productSalesDetail.isZhuanquEnable(), productSalesDetail.getZhuanquEndTime())
         && ServiceUtil.isKanjia(productSalesDetail.getZhuanquId())){
-            KanjiaDetailInfo kajiaers = productDao.getKanjiaDetail(userId, productId);
+            int trueKanjiaUserid = userId;
+            if(kanjiaUserid != null && kanjiaUserid > 0){
+                trueKanjiaUserid = kanjiaUserid;
+            }
+            KanjiaDetailInfo kajiaers = productDao.getKanjiaDetail(trueKanjiaUserid, productId);
 
             int maxKanjiaPerson = productSalesDetail.getMaxKanjiaPerson();
             if(kajiaers != null && !kajiaers.isTerminal() && maxKanjiaPerson > 0 ){

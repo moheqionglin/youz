@@ -160,16 +160,18 @@ public class ProductController {
     @GetMapping(path = "/product/{productId}/detail")
     @ApiOperation(value = "[获取商品详情] ")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "productId", value = "productId", required = true, paramType = "path", dataType = "Integer")
+             @ApiImplicitParam(name = "productId", value = "productId", required = true, paramType = "path", dataType = "Integer"),
+            @ApiImplicitParam(name = "kanjiaUserid", value = "kanjiaUserid", required = true, paramType = "query", dataType = "Integer")
     })
-    public ProductSalesDetail getSalesDetail(@Valid @NotNull @PathVariable("productId") int productId){
+    public ProductSalesDetail getSalesDetail(@Valid @NotNull @PathVariable("productId") int productId,
+                                             @RequestParam("kanjiaUserid") Integer kanjiaUserid){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
         Integer userId = userDetail.getId();
         if(userId <= 0 || userId == null){//没有登录的人的
             userId = null;
         }
-        return productService.getSalesDetail(userId, productId);
+        return productService.getSalesDetail(userId, productId, kanjiaUserid);
 
     }
 
