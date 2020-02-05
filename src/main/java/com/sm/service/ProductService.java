@@ -130,21 +130,27 @@ public class ProductService {
                 productSalesDetail.setHasKanjia(true);
                 List<UserSimpleInfo> kanjieHelpers = kajiaers.getKanjieHelpers();
                 productSalesDetail.setKanjiaHelpers(kanjieHelpers);
-
-                //确保砍价人数要 >0 <最大个数
-                int kanjiaHelperCnt = kanjieHelpers == null || kanjieHelpers.isEmpty() ? 0 : kanjieHelpers.size();
-                kanjiaHelperCnt = kanjiaHelperCnt > maxKanjiaPerson ? maxKanjiaPerson : kanjiaHelperCnt;
-
                 BigDecimal maxsubtract = productSalesDetail.getOriginPrice().subtract(productSalesDetail.getZhuanquPrice());
 
                 BigDecimal unitKanjiaAmount = maxsubtract.divide(BigDecimal.valueOf(maxKanjiaPerson)).setScale(2, RoundingMode.UP);
-                BigDecimal successAmount = unitKanjiaAmount.multiply(BigDecimal.valueOf(kanjiaHelperCnt)).setScale(2, RoundingMode.UP);
-                productSalesDetail.setKanjiaSuccessAmount(successAmount);
-                productSalesDetail.setKanjiaLeaveAmount(maxsubtract.subtract(successAmount));
-                productSalesDetail.setKanjiaUnitAmount(unitKanjiaAmount);
-                int leaveperson = maxKanjiaPerson - kanjiaHelperCnt;
-                productSalesDetail.setKanjiaLeavePerson(leaveperson > 0 ? leaveperson : 0);
-                productSalesDetail.setCurrentKanjiaPrice(productSalesDetail.getOriginPrice().subtract(successAmount).setScale(2, RoundingMode.UP));
+                //确保砍价人数要 >0 <最大个数
+                if(kanjieHelpers == null || kanjieHelpers.isEmpty()){
+                    productSalesDetail.setKanjiaSuccessAmount(BigDecimal.ZERO);
+                    productSalesDetail.setKanjiaLeaveAmount(maxsubtract);
+                    productSalesDetail.setKanjiaLeavePerson(maxKanjiaPerson);
+                    productSalesDetail.setCurrentKanjiaPrice(productSalesDetail.getOriginPrice());
+                }else if (kanjieHelpers.size() >= maxKanjiaPerson){
+                    productSalesDetail.setKanjiaSuccessAmount(maxsubtract);
+                    productSalesDetail.setKanjiaLeaveAmount(BigDecimal.ZERO);
+                    productSalesDetail.setKanjiaLeavePerson(0);
+                    productSalesDetail.setCurrentKanjiaPrice(productSalesDetail.getZhuanquPrice());
+                }else{
+                    BigDecimal successAmount = unitKanjiaAmount.multiply(BigDecimal.valueOf(kanjieHelpers.size())).setScale(2, RoundingMode.UP);
+                    productSalesDetail.setKanjiaSuccessAmount(successAmount);
+                    productSalesDetail.setKanjiaLeaveAmount(maxsubtract.subtract(successAmount));
+                    productSalesDetail.setKanjiaLeavePerson(maxKanjiaPerson - kanjieHelpers.size());
+                    productSalesDetail.setCurrentKanjiaPrice(productSalesDetail.getOriginPrice().subtract(successAmount).setScale(2, RoundingMode.UP));
+                }
             }
         }
 
