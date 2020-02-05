@@ -212,6 +212,7 @@ public class PaymentService {
 
 //		String sttr = restTemplate.postForObject(url, data, String.class);
 		String sttr1 = restTemplate.postForObject(url, requestEntity, String.class);
+		LOGGER.info("===>{}",sttr1);
 //		String sttr1 = response.getBody();
 		return PayUtil.xmlStrToMap(sttr1);
 
