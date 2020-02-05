@@ -1,6 +1,7 @@
 package com.sm.service;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.base.Charsets;
 import com.sm.utils.PayUtil;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
@@ -146,7 +147,7 @@ public class PaymentService {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		System.err.println(resp);
+
 		String return_code = resp.get("return_code");   //返回状态码
 		String return_msg = resp.get("return_msg");     //返回信息
 
@@ -200,7 +201,7 @@ public class PaymentService {
 		HttpHeaders requestHeaders = new HttpHeaders();
 		requestHeaders.add("Connection", "keep-alive");
 		requestHeaders.add("Accept", "*/*");
-//		requestHeaders.add("Content-Type", "text/xml; charset=UTF-8");
+		requestHeaders.add("Content-Type", "text/xml; charset=UTF-8");
 		requestHeaders.add("Host", "api.mch.weixin.qq.com");
 		requestHeaders.add("X-Requested-With", "XMLHttpRequest");
 //		requestHeaders.add("Cache-Control", "max-age=0");
