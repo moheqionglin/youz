@@ -348,7 +348,7 @@ public class OrderDao {
     }
 
     public boolean hasWaitPayChajiaOrder(int userID) {
-        final String sql = String.format("select count(1) from %s where drawback_status in ( 'NONE' , 'APPROVE_REJECT')  and chajia_status = 'WAIT_PAY' and user_id = ?", VarProperties.ORDER);
+        final String sql = String.format("select count(1) from %s where drawback_status in ( 'NONE' , 'APPROVE_REJECT')  and chajia_status = 'WAIT_PAY' and status != 'WAIT_SEND' and user_id = ?", VarProperties.ORDER);
         long count = jdbcTemplate.queryForObject(sql, new Object[]{userID}, Long.class);
         return count > 0;
     }
