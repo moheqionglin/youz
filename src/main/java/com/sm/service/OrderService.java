@@ -211,22 +211,16 @@ public class OrderService {
 
     public ResultJson drawbackOrder(int userId, DrawbackRequest drawbackRequest) {
         String orderNum = drawbackRequest.getOrderNum();
-        SimpleOrder simpleOrder = orderDao.getSimpleOrder(orderNum);
-        if(simpleOrder == null || !simpleOrder.getUserId().equals(userId)){
-            return ResultJson.failure(HttpYzCode.ORDER_NOT_EXISTS);
+        ResultJson<DrawBackAmount> drawBackAmountResultJson = drawbackOrderAmount(userId, orderNum);
+        if(drawBackAmountResultJson.getCode() != 200){
+            return drawBackAmountResultJson;
         }
-        if(!(OrderController.BuyerOrderStatus.WAIT_SEND.toString().equalsIgnoreCase(simpleOrder.getStatus())
-         || OrderController.BuyerOrderStatus.WAIT_RECEIVE.toString().equalsIgnoreCase(simpleOrder.getStatus())
-         || OrderController.BuyerOrderStatus.WAIT_COMMENT.toString().equalsIgnoreCase(simpleOrder.getStatus()))){
-            return ResultJson.failure(HttpYzCode.ORDER_STATUS_ERROR);
-        }
-        if(!OrderController.DrawbackStatus.NONE.toString().equals(simpleOrder.getDrawbackStatus())){
+        DrawBackAmount data = drawBackAmountResultJson.getData();
+        if(!OrderController.DrawbackStatus.NONE.toString().equals(data.getDrawbackStatus())){
             return ResultJson.failure(HttpYzCode.ORDER_DRAWBACK_REPEAT_ERROR);
         }
         orderDao.actionDrawbackStatus(orderNum, OrderController.DrawbackStatus.WAIT_APPROVE);
-        DrawBackAmount drawBackAmount = orderDao.getDrawbackAmount(orderNum);
-        drawBackAmount.calcDisplayTotal();
-        orderDao.creteDrawbackOrder(userId, simpleOrder.getId(), drawbackRequest, drawBackAmount.getDisplayTotalAmount(), drawBackAmount.getDisplayTotalYue() , drawBackAmount.getDisplayTotalYongjin(), drawBackAmount);
+        orderDao.creteDrawbackOrder(userId, data.getOrderId(), drawbackRequest, data.getDisplayTotalAmount(), data.getDisplayTotalYue() , data.getDisplayTotalYongjin(), data);
         return ResultJson.ok();
     }
 
@@ -242,6 +236,8 @@ public class OrderService {
         }
 
         DrawBackAmount drawBackAmount = orderDao.getDrawbackAmount(orderNum);
+        drawBackAmount.setDrawbackStatus(simpleOrder.getDrawbackStatus());
+        drawBackAmount.setOrderId(simpleOrder.getId());
         drawBackAmount.calcDisplayTotal();
         return ResultJson.ok(drawBackAmount);
     }
@@ -345,11 +341,17 @@ public class OrderService {
 
         SortedMap<String, String> data = new TreeMap<>();
         //这个不能使中文，否则出错
+        BigDecimal hadPay = simpleOrder.getHadPayMoney();
+        if(hadPay != null && hadPay.compareTo(BigDecimal.ZERO) > 0){
 
-        if(simpleOrder.getHadPayMoney() != null && simpleOrder.getHadPayMoney().compareTo(BigDecimal.ZERO) > 0){
             data.put("out_refund_no", simpleOrder.getOrderNum()+"DW");
             data.put("out_trade_no", simpleOrder.getOrderNum());
-            int found = simpleOrder.getHadPayMoney().multiply(BigDecimal.valueOf(100)).intValue();
+
+            if (simpleOrder.getChajiaNeedPayMoney() != null && simpleOrder.getChajiaNeedPayMoney().compareTo(BigDecimal.ZERO) < 0){
+                //这时候退款金额，应该是 订单金额 - 差价多退部分金额。
+                hadPay = hadPay.subtract(simpleOrder.getChajiaNeedPayMoney().abs());
+            }
+            int found = hadPay.multiply(BigDecimal.valueOf(100)).intValue();
             data.put("total_fee", found + "");
             data.put("refund_fee", found + "");
             logger.info("Start dwawback for order {}, refound amount = {}  ", simpleOrder.getOrderNum(), found);

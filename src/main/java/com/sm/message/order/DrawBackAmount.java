@@ -4,6 +4,7 @@ import com.sm.controller.OrderAdminController;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -30,9 +31,20 @@ public class DrawBackAmount {
     private BigDecimal chajiaUseYue;
     private BigDecimal chajiaNeedPayMoney;
     private BigDecimal chajiaHadPayMoney;
-
+    private Integer orderId;
+    private String drawbackStatus;
     public void calcDisplayTotal(){
-        this.displayTotalAmount = this.hadPayMoney.add(OrderAdminController.ChaJiaOrderStatus.HAD_PAY.toString().equals(this.chajiaStatus) && this.chajiaHadPayMoney != null ? this.chajiaHadPayMoney : BigDecimal.ZERO);
+        //有可能为负数
+        BigDecimal chajiaAmount = BigDecimal.ZERO;
+        if( OrderAdminController.ChaJiaOrderStatus.HAD_PAY.toString().equals(this.chajiaStatus)){
+            if(this.chajiaHadPayMoney != null && this.chajiaHadPayMoney.compareTo(BigDecimal.ZERO) > 0){
+                chajiaAmount = this.chajiaHadPayMoney;
+            }else if (this.chajiaNeedPayMoney != null && this.chajiaNeedPayMoney.compareTo(BigDecimal.ZERO) < 0){
+                //负数
+                chajiaAmount = this.chajiaNeedPayMoney;
+            }
+        }
+        this.displayTotalAmount = this.hadPayMoney.add(chajiaAmount).setScale(2, RoundingMode.UP);
         this.displayTotalYue = this.useYue;
         this.displayTotalYongjin = this.useYongjin;
     }
@@ -85,6 +97,21 @@ public class DrawBackAmount {
         }
     }
 
+    public Integer getOrderId() {
+        return orderId;
+    }
+
+    public void setOrderId(Integer orderId) {
+        this.orderId = orderId;
+    }
+
+    public String getDrawbackStatus() {
+        return drawbackStatus;
+    }
+
+    public void setDrawbackStatus(String drawbackStatus) {
+        this.drawbackStatus = drawbackStatus;
+    }
 
     public BigDecimal getTotalPrice() {
         return totalPrice;
