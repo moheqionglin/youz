@@ -38,6 +38,8 @@ public class AuthServiceImpl {
     @Autowired
     private RestTemplate restTemplate;
 
+    @Autowired
+    private CacheService cacheService;
     @Value("${sm.wx.appid}")
     private String appid;
     @Value("${sm.wx.appsec}")
@@ -99,6 +101,7 @@ public class AuthServiceImpl {
     public void logout(String token) {
         token = token.substring(tokenHead.length());
         int userId = jwtTokenUtil.getUserIdFromToken(token);
+        cacheService.invalidTokenCache(userId);
         tokenDao.deleteByUserid(userId);
     }
 

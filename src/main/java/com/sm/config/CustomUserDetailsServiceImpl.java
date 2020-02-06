@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * 登陆身份认证
@@ -21,22 +22,29 @@ public class CustomUserDetailsServiceImpl implements UserDetailsService {
     @Autowired
     private UserService userService;
 
+    private final ReentrantLock lock = new ReentrantLock();
     @Override
     public UserDetail loadUserByUsername(String openId) throws UsernameNotFoundException {
-        User user = userService.getUserByOpenId(openId);
+        lock.lock();
+        try{
+            User user = userService.getUserByOpenId(openId);
 
-        if(user == null){//获取用户信息，并创建用户完成注册流程
-            user = userService.regist(openId);
+            if(user == null){//获取用户信息，并创建用户完成注册流程
+                user = userService.regist(openId);
+            }
+            if(user.getId() == null){
+                throw new AuthenticationServiceException(String.format("user id is null for open code %s " , user.getOpenCode()));
+            }
+            if(user.isDisable()){
+                throw new AuthenticationServiceException(String.format("user openid %s had been disable " , user.getOpenCode()));
+            }
+            List<Role> roles = userService.getRolesByUserId(user.getId());
+            UserDetail userDetail = new UserDetail(user.getId(), user.getNickName(), roles, user.getPassword(), openId);
+            return userDetail;
+        }finally {
+            lock.unlock();
         }
-        if(user.getId() == null){
-            throw new AuthenticationServiceException(String.format("user id is null for open code %s " , user.getOpenCode()));
-        }
-        if(user.isDisable()){
-            throw new AuthenticationServiceException(String.format("user openid %s had been disable " , user.getOpenCode()));
-        }
-        List<Role> roles = userService.getRolesByUserId(user.getId());
-        UserDetail userDetail = new UserDetail(user.getId(), user.getNickName(), roles, user.getPassword(), openId);
 
-        return userDetail;
+
     }
 }

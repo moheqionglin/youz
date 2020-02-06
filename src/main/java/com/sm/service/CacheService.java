@@ -70,4 +70,7 @@ public class CacheService {
     }
 
 
+    public void invalidTokenCache(int userId) {
+        this.userId2Token.invalidate(userId);
+    }
 }

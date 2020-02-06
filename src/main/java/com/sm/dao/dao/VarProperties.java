@@ -27,4 +27,5 @@ public class VarProperties {
     public static final String MY_SEARCH="my_search";
     public static final String HOT_SEARCH = "hot_search";
     public static final String FEEBACK = "feeback";
+
 }

@@ -8,12 +8,20 @@ import com.qiniu.storage.Configuration;
 import com.qiniu.storage.Region;
 import com.qiniu.storage.UploadManager;
 import com.qiniu.util.Auth;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.ssl.SSLContextBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -21,7 +29,15 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.security.*;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -42,12 +58,48 @@ public class YzApplication {
 	String accessKey ;
 	@Value("${q.n.s}")
 	String secretKey;
+	@Value("${sm.wx.appid}")
+	public  String XCX_APP_ID;
+	@Value("${sm.wx.mid}")
+	public  String XCX_MCH_ID;
+	@Value("${sm.wx.key}")
+	public  String XCX_KEY;
 
 	@Bean
+	@Primary
 	public RestTemplate registerTemplate() {
 		RestTemplate restTemplate = new RestTemplate(getFactory());
 		//这个地方需要配置消息转换器，不然收到消息后转换会出现异常
 		restTemplate.setMessageConverters(getConverts());
+		return restTemplate;
+	}
+
+	@Bean(name = "refountRestTemplate")
+	public RestTemplate refountRestTemplate() throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException, KeyManagementException {
+		KeyStore keyStore = KeyStore.getInstance("PKCS12");
+		FileInputStream instream = new FileInputStream(new File("/Users/wanli.zhou/cert/apiclient_cert.p12"));
+		keyStore.load(instream, XCX_MCH_ID.toCharArray());
+		// Trust own CA and all self-signed certs
+		SSLContext sslcontext = SSLContextBuilder.create()
+				.loadKeyMaterial(keyStore, XCX_MCH_ID.toCharArray())
+				.build();
+
+		// Allow TLSv1 protocol only
+		HostnameVerifier hostnameVerifier = NoopHostnameVerifier.INSTANCE;
+		SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslcontext,  new String[]{"TLSv1"},
+				null,hostnameVerifier);
+
+		CloseableHttpClient httpclient = HttpClients.custom()
+				.setSSLSocketFactory(sslsf)
+				.build();
+
+		HttpComponentsClientHttpRequestFactory clientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory(httpclient);
+		RestTemplate restTemplate = new RestTemplate(clientHttpRequestFactory);
+
+		ByteArrayHttpMessageConverter b = new ByteArrayHttpMessageConverter();
+		b.setSupportedMediaTypes(Arrays.asList(new MediaType[]{MediaType.APPLICATION_FORM_URLENCODED}));
+		restTemplate.getMessageConverters().set(1, new StringHttpMessageConverter(StandardCharsets.UTF_8));
+		restTemplate.getMessageConverters().add(b);
 		return restTemplate;
 	}
 	@Bean

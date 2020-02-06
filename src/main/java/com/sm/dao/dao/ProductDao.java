@@ -349,4 +349,9 @@ public class ProductDao {
            return new ArrayList<>(1);
        }
     }
+
+    public void tejiaProductGuoqiCheck() {
+        final String sql = String.format("update %s set zhuanqu_id = 0 where zhuanqu_endTime < ?", VarProperties.PRODUCTS);
+        jdbcTemplate.update(sql, new Object[]{new Date().getTime()});
+    }
 }

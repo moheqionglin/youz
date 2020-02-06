@@ -16,6 +16,7 @@ import java.time.format.DateTimeFormatter;
  */
 public class YzStatisticsInfo {
     private String date;
+    private long datelong;
     private BigDecimal totalPrice;
     private BigDecimal totalCnt;
     private BigDecimal totalCost;
@@ -56,6 +57,14 @@ public class YzStatisticsInfo {
     }
     public String getDate() {
         return date;
+    }
+
+    public long getDatelong() {
+        return datelong;
+    }
+
+    public void setDatelong(long datelong) {
+        this.datelong = datelong;
     }
 
     public void setDate(String date) {

@@ -1,7 +1,15 @@
 package com.sm.service;
 
+import com.sm.dao.dao.AdminDao;
+import com.sm.dao.dao.OrderDao;
+import com.sm.dao.dao.ProductDao;
+import com.sm.dao.dao.ShoppingCartDao;
+import com.sm.message.admin.YzStatisticsInfo;
+import com.sm.utils.SmUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -17,9 +25,74 @@ import org.springframework.stereotype.Component;
 @Component
 public class ScheduleService {
     private Logger logger = LoggerFactory.getLogger(ScheduleService.class);
-    @Scheduled(cron = "0 1 23 * * *")
+    @Autowired
+    private AdminDao adminDao;
+    @Autowired
+    private OrderDao orderDao;
+    @Autowired
+    private ShoppingCartDao shoppingCartDao;
+    @Autowired
+    private ProductDao productDao;
+    @Scheduled(cron = "0 30 0 * * *")
     public void work() {
         logger.info("start schedule...");
+        try{
+            statisticsOrder();
+        }catch (Exception e){
+            logger.error("statisticsOrder", e);
+        }
+        try{
+            orderStatusCheck();
+        }catch (Exception e){
+            logger.error("orderStatusCheck", e);
+        }
+        try{
+            cartDeleteCheck();
+        }catch (Exception e){
+            logger.error("cartDeleteCheck", e);
+        }
+        try{
+            tejiaProductGuoqiCheck();
+        }catch (Exception e){
+            logger.error("tejiaProductGuoqiCheck", e);
+        }
 
     }
+
+    private void tejiaProductGuoqiCheck() {
+        logger.info("start  特价商品过期校验");
+        productDao.tejiaProductGuoqiCheck();
+        logger.info("finish 特价商品过期校验");
+    }
+
+    /**
+     * 删除购物车中删除的商品
+     */
+    private void cartDeleteCheck() {
+        logger.info("start  cart Delete Check");
+        shoppingCartDao.cartDeleteCheck();
+        logger.info("finish  cart Delete Check");
+    }
+
+    /**
+     * 修改超时支付订单状态
+     */
+    private void orderStatusCheck() {
+        logger.info("start  order Status Check");
+        orderDao.fixCancelTimeoutOrder();
+        logger.info("finish  order Status Check");
+    }
+
+    /**
+     * 统计订单
+     */
+    private void statisticsOrder() {
+        logger.info("start order statistics");
+        YzStatisticsInfo lastdayStatistics = adminDao.getLastdayStatistics();
+        lastdayStatistics.setDatelong(SmUtil.getLongTimeFromYMDHMS(SmUtil.getLastTodayYMD() + " 00:00:00"));
+        adminDao.createStatistics(lastdayStatistics);
+        logger.info("finish order statistics");
+    }
+
+
 }

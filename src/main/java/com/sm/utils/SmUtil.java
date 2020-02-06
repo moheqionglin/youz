@@ -30,7 +30,10 @@ public class SmUtil {
     public static String getTodayYMD(){
         return ymr.format(LocalDateTime.ofInstant(Instant.ofEpochMilli(new Date().getTime()), ZoneId.systemDefault()));
     }
-
+    public static Object getLastTodayYMD() {
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(new Date().getTime()), ZoneId.systemDefault());
+        return ymr.format(localDateTime.minusDays(1));
+    }
     public static String mockName(String name){
         if(StringUtils.isBlank(name)){
             return name;
@@ -68,7 +71,9 @@ public class SmUtil {
         return Date.from(instant).getTime();
     }
 
-    public static void main(String[] args) {
 
+    public static void main(String[] args) {
+        System.out.println(getTodayYMD());
+        System.out.println(getLastTodayYMD());
     }
 }

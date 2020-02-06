@@ -123,4 +123,9 @@ public class ShoppingCartDao {
         final String addSql = String.format("update %s set product_cnt = product_cnt + 1,kanjia_product = 1, cart_price= ? where id = ? and user_id = ?", VarProperties.SHOPPING_CART);
         jdbcTemplate.update(addSql, new Object[]{price,cartItemId, userId});
     }
+
+    public void cartDeleteCheck() {
+        final String sql = String.format("delete from %s where product_id not in (select id from %s)", VarProperties.SHOPPING_CART, VarProperties.PRODUCTS);
+        jdbcTemplate.update(sql);
+    }
 }

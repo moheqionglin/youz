@@ -601,3 +601,8 @@ select helper_ids, terminal from product_kanjia where user_id = 1 and product_id
 
 select * from lunbo
 select * from product_category where parent_id = 0
+select CURRENT_TIMESTAMP
+select * from products where zhuanqu_endTime > unix_timestamp(now())
+select *   from shopping_cart where product_id not in (select id from products)
+
+select * from orders where status = 'WAIT_PAY' and  now() > DATE_ADD(created_time, INTERVAL 15 MINUTE )

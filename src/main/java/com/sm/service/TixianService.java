@@ -6,10 +6,15 @@ import com.sm.dao.dao.TixianDao;
 import com.sm.dao.dao.UserDao;
 import com.sm.message.ResultJson;
 import com.sm.message.admin.TixianInfo;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -22,11 +27,14 @@ import java.util.stream.Collectors;
  */
 @Component
 public class TixianService {
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     @Autowired
     private TixianDao tixianDao;
     @Autowired
     private UserDao userDao;
 
+    @Autowired
+    private PaymentService paymentService;
     public void creteTixian(int userid, BigDecimal amount) {
         tixianDao.creteTixian(userid, amount);
     }
@@ -46,15 +54,29 @@ public class TixianService {
         return tixianList;
     }
 
+
     public ResultJson approveTixian(Integer userid, Integer id, TixianController.TiXianType type) {
-        if(!checkApproveTixian(id, type)){
+        TixianInfo tiXianDetail = tixianDao.getTiXianDetail(id);
+        if(tiXianDetail == null || !TixianController.TiXianType.WAIT_APPROVE.toString().equals(tiXianDetail.getApproveStatus()) ||
+                tiXianDetail.getAmount().compareTo(BigDecimal.ONE) < 0){
             return ResultJson.failure(HttpYzCode.BAD_REQUEST);
         }
+        if(TixianController.TiXianType.APPROVE_PASS.equals(type)){
+            String opencode = userDao.getOpenIdByUserID(tiXianDetail.getUserId());
+            if(StringUtils.isBlank(opencode)){
+                return ResultJson.failure(HttpYzCode.BAD_REQUEST);
+            }
+            int amount = tiXianDetail.getAmount().multiply(BigDecimal.valueOf(100)).setScale(2, RoundingMode.UP).intValue();
+            try {
+                paymentService.tixian(opencode, amount);
+                logger.info("提现 成功 for {}, amount {}", opencode, amount);
+            } catch (UnknownHostException e) {
+                logger.error("提现 错误", e);
+            }
+        }
         tixianDao.approveTixian(userid, id, type);
+
         return ResultJson.ok();
     }
 
-    private boolean checkApproveTixian(Integer id, TixianController.TiXianType type) {
-        return true;
-    }
 }

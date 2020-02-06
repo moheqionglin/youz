@@ -107,4 +107,13 @@ public class UserDao {
         String sql = String.format("insert into %s(user_id,content, phone) values(?,?,?)", VarProperties.FEEBACK);
         jdbcTemplate.update(sql, new Object[]{userId, feeback.getContent(), feeback.getPhone()});
     }
+
+    public String getOpenIdByUserID(Integer userId) {
+        final String sql = String.format("select open_code from %s where id = ?", VarProperties.USERS);
+        try{
+            return jdbcTemplate.queryForObject(sql, new Object[]{userId}, String.class);
+        }catch (Exception e){
+            return null;
+        }
+    }
 }

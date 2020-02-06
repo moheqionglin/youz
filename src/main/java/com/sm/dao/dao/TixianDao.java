@@ -57,4 +57,14 @@ public class TixianDao {
         final String sql = String.format("update %s set approve_status = ? , approve_id = ? where id =?", VarProperties.TIXIAN_APPROVE);
         jdbcTemplate.update(sql, new Object[]{type.toString(), userid, id});
     }
+
+    public TixianInfo getTiXianDetail(Integer id) {
+        final String sql = String.format("select id,user_id, amount, approve_status,approve_id,approve_comment from %s where id = ?",VarProperties.TIXIAN_APPROVE);
+        try {
+            return jdbcTemplate.queryForObject(sql, new Object[]{id}, new TixianInfo.TixianInfoRowMapper());
+        }catch (Exception e){
+            return null;
+        }
+
+    }
 }

@@ -95,7 +95,20 @@ public class AdminDao {
         YzStatisticsInfo yzStatisticsInfo = namedParameterJdbcTemplate.query(sql, map, new YzStatisticsInfo.YzStatisticsInfoRowMapper()).stream().findFirst().orElse(null);
         return yzStatisticsInfo;
     }
+    public YzStatisticsInfo getLastdayStatistics() {
+        final String sql = String.format("select sum(total_price + chajia_price) as total_price, count(1) as total_cnt, sum(total_cost_price) as total_cost,  sum(total_price + chajia_price) - sum(total_cost_price)  as total_profit from %s where status in(:status) and created_time >= :time1  and created_time <= :time2", VarProperties.ORDER);
+        HashMap<String, Object> map = new HashMap();
+        map.put("status", Stream.of(new String[]{WAIT_SEND.toString(),WAIT_RECEIVE.toString(),WAIT_COMMENT.toString(),FINISH.toString()}).collect(Collectors.toList()));
+        map.put("time1",SmUtil.getLastTodayYMD() + " 0:0:0");
+        map.put("time2",SmUtil.getTodayYMD() + " 0:0:0");
+        YzStatisticsInfo yzStatisticsInfo = namedParameterJdbcTemplate.query(sql, map, new YzStatisticsInfo.YzStatisticsInfoRowMapper()).stream().findFirst().orElse(null);
+        return yzStatisticsInfo;
+    }
 
+    public void createStatistics(YzStatisticsInfo yzStatisticsInfo){
+        final String sql = String.format("insert into %s (day,total_price,total_cnt,total_cost,total_profit) values(?,?,?,?,?)", VarProperties.STATISTICS);
+        jdbcTemplate.update(sql, new Object[]{yzStatisticsInfo.getDatelong(), yzStatisticsInfo.getTotalPrice(), yzStatisticsInfo.getTotalCnt(), yzStatisticsInfo.getTotalCost(), yzStatisticsInfo.getTotalProfit()});
+    }
     public List<YzStatisticsInfo> getStatistics(Long start, Long end, int pageSize, int pageNum) {
         if(pageNum <= 0 ){
             pageNum = 1;

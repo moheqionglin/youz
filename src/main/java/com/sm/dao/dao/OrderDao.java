@@ -352,4 +352,9 @@ public class OrderDao {
         long count = jdbcTemplate.queryForObject(sql, new Object[]{userID}, Long.class);
         return count > 0;
     }
+
+    public void fixCancelTimeoutOrder() {
+        final String sql = String.format("update %s set status = 'CANCEL_TIMEOUT' where status = 'WAIT_PAY' and  now() > DATE_ADD(created_time, INTERVAL 15 MINUTE )", VarProperties.ORDER);
+        jdbcTemplate.update(sql);
+    }
 }

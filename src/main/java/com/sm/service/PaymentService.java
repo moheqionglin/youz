@@ -11,6 +11,7 @@ import org.apache.http.ssl.SSLContextBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
@@ -24,13 +25,16 @@ import javax.net.ssl.SSLContext;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.cert.CertificateException;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.*;
+
 @Component
 /**
  * 1. 统一下单接口，在微信端 创建一个支付单
@@ -43,6 +47,10 @@ public class PaymentService {
 
 	@Autowired
 	private RestTemplate restTemplate;
+	@Autowired
+	@Qualifier("refountRestTemplate")
+	private RestTemplate refountRestTemplate;
+
 	@Value("${spring.profiles.active:DEV}")
 	private String PROJECT_ENV;
 
@@ -145,7 +153,7 @@ public class PaymentService {
 		try {
 			resp = TransferRestTemplate(url, PayUtil.mapToXml(data));
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("TransferRestTemplate error", e);
 		}
 
 		String return_code = resp.get("return_code");   //返回状态码
@@ -160,61 +168,80 @@ public class PaymentService {
 				//修改用户订单状态为退款申请中（暂时未写）
 				resultReturn = "退款申请成功";
 			} else {
-				LOGGER.info("订单号:{}错误信息:{}", err_code_des);
+				LOGGER.info("订单号:{}错误信息:{}", data.get("out_trade_no"), resp);
 				resultReturn = err_code_des;
 			}
 		} else {
-			LOGGER.info("订单号:{}错误信息:{}", return_msg);
+			LOGGER.info("订单号:{}错误信息:{}", data.get("out_trade_no"), resp);
 			resultReturn = return_msg;
 		}
 		return JSON.toJSONString(resultReturn);
 	}
 
-	public Map<String, String> TransferRestTemplate(String url,String data) throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException, UnrecoverableKeyException, KeyManagementException {
-		KeyStore keyStore = KeyStore.getInstance("PKCS12");
-		FileInputStream instream = new FileInputStream(new File("/Users/wanli.zhou/cert/apiclient_cert.p12"));
-		keyStore.load(instream, XCX_MCH_ID.toCharArray());
-		// Trust own CA and all self-signed certs
-		SSLContext sslcontext = SSLContextBuilder.create()
-				.loadKeyMaterial(keyStore, XCX_MCH_ID.toCharArray())
-				.build();
+	public Map<String, String> TransferRestTemplate(String url,String data) {
 
-		// Allow TLSv1 protocol only
-		HostnameVerifier hostnameVerifier = NoopHostnameVerifier.INSTANCE;
-		SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslcontext,  new String[]{"TLSv1"},
-				null,hostnameVerifier);
-
-		CloseableHttpClient httpclient = HttpClients.custom()
-				.setSSLSocketFactory(sslsf)
-				.build();
-
-		HttpComponentsClientHttpRequestFactory clientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory(httpclient);
-		RestTemplate restTemplate = new RestTemplate(clientHttpRequestFactory);
-
-		StringHttpMessageConverter utf8 = new StringHttpMessageConverter(Charset.forName("UTF-8"));
-		utf8.setSupportedMediaTypes(Arrays.asList(new MediaType[]{MediaType.TEXT_XML,MediaType.TEXT_PLAIN,MediaType.APPLICATION_FORM_URLENCODED}));
-
-		ByteArrayHttpMessageConverter b = new ByteArrayHttpMessageConverter();
-		b.setSupportedMediaTypes(Arrays.asList(new MediaType[]{MediaType.APPLICATION_FORM_URLENCODED}));
-		restTemplate.getMessageConverters().add(utf8);
-		restTemplate.getMessageConverters().add(b);
 		HttpHeaders requestHeaders = new HttpHeaders();
 		requestHeaders.add("Connection", "keep-alive");
 		requestHeaders.add("Accept", "*/*");
 		requestHeaders.add("Content-Type", "text/xml; charset=UTF-8");
 		requestHeaders.add("Host", "api.mch.weixin.qq.com");
 		requestHeaders.add("X-Requested-With", "XMLHttpRequest");
-//		requestHeaders.add("Cache-Control", "max-age=0");
-//		requestHeaders.add("User-Agent", "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0) ");
 
 		org.springframework.http.HttpEntity<String> requestEntity =
 				new  org.springframework.http.HttpEntity(data);
 
-//		String sttr = restTemplate.postForObject(url, data, String.class);
-		String sttr1 = restTemplate.postForObject(url, requestEntity, String.class);
-		LOGGER.info("===>{}",sttr1);
-//		String sttr1 = response.getBody();
-		return PayUtil.xmlStrToMap(sttr1);
+		String sttr1 = refountRestTemplate.postForObject(url, requestEntity, String.class);
+		Map<String, String> stringStringMap = PayUtil.xmlStrToMap(sttr1);
+		if(stringStringMap !=null ){
+			stringStringMap.remove("mch_appid");
+			stringStringMap.remove("mchid");
+			stringStringMap.remove("mch_id");
+			stringStringMap.remove("sign");
+			stringStringMap.remove("appid");
 
+		}
+		return stringStringMap;
+	}
+
+	public String tixian(String openId, int amount) throws UnknownHostException {
+		String url = "https://api.mch.weixin.qq.com/mmpaymkttransfers/promotion/transfers";
+
+		SortedMap<String, String> data = new TreeMap<>();
+		data.put("mch_appid", XCX_APP_ID);
+		data.put("mchid", XCX_MCH_ID);
+		data.put("partner_trade_no", UUID.randomUUID().toString().replaceAll("-",""));
+		data.put("nonce_str", PayUtil.makeUUID(32));
+		data.put("openid", openId);
+		data.put("check_name", "NO_CHECK");
+		data.put("amount", amount+"");
+		data.put("spbill_create_ip", InetAddress.getLocalHost().getHostAddress());
+		data.put("desc", "悠哉商城提现"+ BigDecimal.valueOf(amount).divide(BigDecimal.valueOf(100)).setScale(2, RoundingMode.UP).toPlainString() +"元");
+		data.put("sign", PayUtil.createSign(data, XCX_KEY));
+
+		Map<String, String> resp = null;
+		try {
+			resp = TransferRestTemplate(url, PayUtil.mapToXml(data));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		String return_code = resp.get("return_code");   //返回状态码
+		String return_msg = resp.get("return_msg");     //返回信息
+
+		String resultReturn = null;
+		if ("SUCCESS".equals(return_code)) {
+			String result_code = resp.get("result_code");       //业务结果
+			String err_code_des = resp.get("err_code_des");     //错误代码描述
+			if ("SUCCESS".equals(result_code)) {
+				resultReturn = "提现申请成功";
+			} else {
+				LOGGER.info("提现失败 {}, 错误信息:{}", data.get("partner_trade_no"), resp);
+				resultReturn = err_code_des;
+			}
+		} else {
+			LOGGER.info("提现失败:{}错误信息:{}", data.get("partner_trade_no"), resp);
+			resultReturn = return_msg;
+		}
+		return JSON.toJSONString(resultReturn);
 	}
 }

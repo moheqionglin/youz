@@ -1,11 +1,15 @@
 package com.example.auth.demo.common;
 
+import com.alibaba.fastjson.JSON;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.sm.dao.domain.UserAmountLogType;
 import org.junit.Test;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author wanli.zhou
@@ -13,6 +17,18 @@ import java.util.UUID;
  * @time 2020-01-08 20:45
  */
 public class CommonTest {
+    private final Cache<Integer, String> userId2Token = CacheBuilder.newBuilder()
+            .expireAfterWrite(120, TimeUnit.MINUTES)
+            .maximumSize(10000)
+            .build();
+
+    @Test
+    public void invalid(){
+        userId2Token.put(1, "111");
+        System.out.println(userId2Token.getIfPresent(1));
+        userId2Token.invalidate(1);
+        System.out.println(userId2Token.getIfPresent(1));
+    }
     @Test
     public void stringFormatTest(){
         String v = null;
@@ -20,15 +36,20 @@ public class CommonTest {
         System.out.println(String.format("%s %f", v, bigDecimal.setScale(2, RoundingMode.HALF_DOWN)));
     }
 
+
     @Test
     public void enumTest(){
         UserAmountLogType yue = UserAmountLogType.YUE;
         System.out.println(yue);
     }
+    @Test
+    public void a(){
+        System.out.println(JSON.toJSONString("xxxs"));
+    }
 
     @Test
     public void uutest(){
-        System.out.println(UUID.randomUUID());
+        System.out.println(UUID.randomUUID().toString().replaceAll("-",""));
     }
     @Test
     public void enmuTest2(){
