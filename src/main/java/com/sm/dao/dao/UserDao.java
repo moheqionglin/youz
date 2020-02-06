@@ -39,7 +39,7 @@ public class UserDao {
 
     public User create(String openid, String pwd) {
         String sql = "insert into users(open_code, password, nick_name, head_picture,yongjin_code) values (?, ?, ?, 'http://img.suimeikeji.com/touxiang.png',?) ";
-        jdbcTemplate.update(sql, new Object[]{openid, pwd, "新用户"+random.nextInt(10000), UUID.randomUUID().toString()});
+        jdbcTemplate.update(sql, new Object[]{openid, pwd, "新用户_"+random.nextInt(10000), UUID.randomUUID().toString()});
         int userId = jdbcTemplate.queryForObject("select id from users where open_code = ?", new Object[]{openid}, Integer.class);
         User user = new User();
         user.setId(userId);
