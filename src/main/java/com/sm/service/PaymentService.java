@@ -191,7 +191,7 @@ public class PaymentService {
 		HttpComponentsClientHttpRequestFactory clientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory(httpclient);
 		RestTemplate restTemplate = new RestTemplate(clientHttpRequestFactory);
 
-		StringHttpMessageConverter utf8 = new StringHttpMessageConverter(Charset.forName("utf8"));
+		StringHttpMessageConverter utf8 = new StringHttpMessageConverter(Charset.forName("UTF-8"));
 		utf8.setSupportedMediaTypes(Arrays.asList(new MediaType[]{MediaType.TEXT_XML,MediaType.TEXT_PLAIN,MediaType.APPLICATION_FORM_URLENCODED}));
 
 		ByteArrayHttpMessageConverter b = new ByteArrayHttpMessageConverter();
