@@ -335,7 +335,7 @@ public class OrderService {
     @Transactional
     public ResultJson adminActionOrder(int userId, String orderNum, OrderAdminController.AdminActionOrderType actionType, String attach) {
         SimpleOrder simpleOrder = orderDao.getSimpleOrder(orderNum);
-        if(simpleOrder == null || !simpleOrder.getUserId().equals(userId)){
+        if(simpleOrder == null ){
             return ResultJson.failure(HttpYzCode.ORDER_NOT_EXISTS);
         }
 
