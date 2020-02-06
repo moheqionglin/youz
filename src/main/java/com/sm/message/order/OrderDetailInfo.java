@@ -52,6 +52,9 @@ public class OrderDetailInfo {
             if(existsColumn(resultSet, "id")){
                 odi.setId(resultSet.getInt("id"));
             }
+            if(existsColumn(resultSet, "user_id")){
+                odi.setUserId(resultSet.getInt("user_id"));
+            }
             if(existsColumn(resultSet, "order_id")){
                 odi.setId(resultSet.getInt("order_id"));
             }

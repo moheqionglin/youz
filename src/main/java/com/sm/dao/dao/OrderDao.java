@@ -173,7 +173,7 @@ public class OrderDao {
     }
 
     public OrderDetailInfo getOrderDetail(String orderNum) {
-        String sql = String.format("select id,order_num,address_detail,address_contract,yongjin_code,status,total_price,drawback_status,use_yongjin,use_yue,need_pay_money,had_pay_money,chajia_status,chajia_price,chajia_use_yongjin,chajia_use_yue,chajia_need_pay_money,chajia_had_pay_money,message,jianhuoyuan_id,jianhuo_status,has_fahuo,created_time from %s where order_num = ?", VarProperties.ORDER);
+        String sql = String.format("select id, user_id, order_num,address_detail,address_contract,yongjin_code,status,total_price,drawback_status,use_yongjin,use_yue,need_pay_money,had_pay_money,chajia_status,chajia_price,chajia_use_yongjin,chajia_use_yue,chajia_need_pay_money,chajia_had_pay_money,message,jianhuoyuan_id,jianhuo_status,has_fahuo,created_time from %s where order_num = ?", VarProperties.ORDER);
         return jdbcTemplate.query(sql, new Object[]{orderNum}, new OrderDetailInfo.OrderDetailInfoRowMapper()).stream().findFirst().orElse(null);
     }
 
