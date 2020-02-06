@@ -99,7 +99,7 @@ public class CategoryController {
     }
 
     @GetMapping(path = "/category/imgtoken")
-    @PreAuthorize("hasAuthority('ADMIN') ")
+    @PreAuthorize("hasAuthority('BUYER') ")
     @ApiOperation(value = "[ ] ")
     public String gett(){
         return serviceUtil.getNewImgToken();
