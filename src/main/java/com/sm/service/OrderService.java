@@ -242,9 +242,9 @@ public class OrderService {
         return ResultJson.ok(drawBackAmount);
     }
 
-    public ResultJson<DrawbackOrderDetailInfo> getDrawbackOrderDetail(int userId, String orderNum) {
+    public ResultJson<DrawbackOrderDetailInfo> getDrawbackOrderDetail(int userId, String orderNum, boolean admin) {
         SimpleOrder simpleOrder = orderDao.getSimpleOrder(orderNum);
-        if(simpleOrder == null || !simpleOrder.getUserId().equals(userId)){
+        if(simpleOrder == null || (!admin && !simpleOrder.getUserId().equals(userId))){
             return ResultJson.failure(HttpYzCode.ORDER_NOT_EXISTS);
         }
         DrawbackOrderDetailInfo di = orderDao.getDrawbackOrderDetail(simpleOrder.getId());

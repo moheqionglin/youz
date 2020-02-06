@@ -117,8 +117,8 @@ public class OrderController {
     public ResultJson<DrawbackOrderDetailInfo> getDrawbackOrderDetail(@Valid @NotNull @PathVariable("orderNum") String orderNum){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
-
-        return orderService.getDrawbackOrderDetail(userDetail.getId(), orderNum);
+        boolean admin = authentication.getAuthorities().stream().filter((a) -> a.getAuthority().equals("ADMIN")).count() > 0;
+        return orderService.getDrawbackOrderDetail(userDetail.getId(), orderNum, admin);
     }
 
     @GetMapping(path = "/order/drawbackOrder/{orderNum}/cancel")
@@ -131,7 +131,7 @@ public class OrderController {
     public ResultJson cancelDrawback(@Valid @NotNull @PathVariable("orderNum") String orderNum){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
-
+        boolean admin = authentication.getAuthorities().stream().filter((a) -> a.getAuthority().equals("ADMIN")).count() > 0;
         return orderService.cancelDrawback(userDetail.getId(), orderNum);
     }
 
