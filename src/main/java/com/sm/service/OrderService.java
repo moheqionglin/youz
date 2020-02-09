@@ -388,12 +388,13 @@ public class OrderService {
         //退还主订单
         BigDecimal mainOrderAmount = drawBackAmount.getDisplayOrderAmount();
         if(mainOrderAmount != null && mainOrderAmount.compareTo(BigDecimal.ZERO) > 0){
-            int totalFree = mainOrderAmount.multiply(BigDecimal.valueOf(100)).intValue();
+            int refoundfree = mainOrderAmount.multiply(BigDecimal.valueOf(100)).intValue();
+            int totalFree = drawBackAmount.getHadPayMoney().multiply(BigDecimal.valueOf(100)).intValue();
             SortedMap<String, String> data = new TreeMap<>();
             data.put("out_refund_no", simpleOrder.getOrderNum()+"DW");
             data.put("out_trade_no", simpleOrder.getOrderNum());
             data.put("total_fee", totalFree + "");
-            data.put("refund_fee", totalFree + "");
+            data.put("refund_fee", refoundfree + "");
             logger.info("Start dwawback for [main order] {}, refound amount = {}  ", simpleOrder.getOrderNum(), totalFree);
             String result = paymentService.refund(data);
             if (result.equals("\"退款申请成功\"")) {
