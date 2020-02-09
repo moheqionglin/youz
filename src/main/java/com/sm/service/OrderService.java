@@ -13,6 +13,9 @@ import com.sm.message.address.AddressDetailInfo;
 import com.sm.message.order.*;
 import com.sm.message.product.ProductListItem;
 import com.sm.message.profile.UserAmountInfo;
+import com.sm.third.message.OrderItem;
+import com.sm.third.message.OrderPrintBean;
+import com.sm.third.yilianyun.Prienter;
 import com.sm.utils.SmUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -52,9 +55,10 @@ public class OrderService {
     @Autowired
     private PaymentService paymentService;
     @Autowired
-    private UserDao userDao;
-    @Autowired
     private UserAmountLogDao userAmountLogDao;
+
+    @Autowired
+    private Prienter prienter;
 
     public boolean hasWaitPayChajiaOrder(int userID){
         return orderDao.hasWaitPayChajiaOrder(userID);
@@ -159,7 +163,29 @@ public class OrderService {
 
         //删除购物车
         shoppingCartService.deleteCartItem(userID, order.getCartIds());
+        try{
+            OrderPrintBean orderPrintBean = new OrderPrintBean();
+            List<OrderItem> items = new ArrayList<>();
+            orderPrintBean.setItems(items);
 
+            for(CreateOrderItemInfo i : collect){
+                OrderItem orderItem = new OrderItem();
+                items.add(orderItem);
+                orderItem.setAmount(i.getProductTotalPrice());
+                orderItem.setName(i.getProductName());
+                orderItem.setSize(i.getProductSize());
+                orderItem.setCount(i.getProductCnt());
+            }
+
+            orderPrintBean.setOrderNum(createOrderInfo.getOrderNum());
+            orderPrintBean.setOrderTime(SmUtil.parseLongToTMDHMS(System.currentTimeMillis()));
+            orderPrintBean.setAddress(createOrderInfo.getAddressDetail());
+            orderPrintBean.setLink(createOrderInfo.getAddressContract());
+            orderPrintBean.setMessage(createOrderInfo.getMessage());
+            prienter.print(orderPrintBean);
+        }catch (Exception e){
+            logger.error("打印错误", e);
+        }
         return ResultJson.ok(createOrderInfo.getOrderNum());
     }
 
@@ -235,11 +261,23 @@ public class OrderService {
             return ResultJson.failure(HttpYzCode.ORDER_STATUS_ERROR);
         }
 
+        DrawBackAmount drawBackAmount = doCalcDrawBackAmount(simpleOrder);
+        if(drawBackAmount == null){
+            return ResultJson.failure(HttpYzCode.ORDER_NOT_EXISTS);
+        }
+        return ResultJson.ok(drawBackAmount);
+    }
+
+    private DrawBackAmount doCalcDrawBackAmount(SimpleOrder simpleOrder) {
+        String orderNum = simpleOrder.getOrderNum();
         DrawBackAmount drawBackAmount = orderDao.getDrawbackAmount(orderNum);
+        if(drawBackAmount == null){
+            return null;
+        }
         drawBackAmount.setDrawbackStatus(simpleOrder.getDrawbackStatus());
         drawBackAmount.setOrderId(simpleOrder.getId());
         drawBackAmount.calcDisplayTotal();
-        return ResultJson.ok(drawBackAmount);
+        return drawBackAmount;
     }
 
     public ResultJson<DrawbackOrderDetailInfo> getDrawbackOrderDetail(int userId, String orderNum, boolean admin) {
@@ -346,9 +384,9 @@ public class OrderService {
                 drawbackChajiaToYue(simpleOrder);
                 break;
             case DRAWBACK_APPROVE_PASS:
-                orderDao.adminApproveDrawback(userId, simpleOrder.getId(), orderNum, OrderController.DrawbackStatus.APPROVE_PASS, attach);
                 //发起退款
                 doDrawback(simpleOrder);
+                orderDao.adminApproveDrawback(userId, simpleOrder.getId(), orderNum, OrderController.DrawbackStatus.APPROVE_PASS, attach);
                 break;
             case DRAWBACK_APPROVE_FAIL:
                 orderDao.adminApproveDrawback(userId, simpleOrder.getId(), orderNum, OrderController.DrawbackStatus.APPROVE_REJECT, attach);
@@ -365,233 +403,69 @@ public class OrderService {
     }
 
     private void doDrawback(SimpleOrder simpleOrder){
-
-
-        //这个不能使中文，否则出错
-        BigDecimal hadPay = simpleOrder.getHadPayMoney();
-
-        if(hadPay != null && hadPay.compareTo(BigDecimal.ZERO) > 0){
-            //1. 差价订单已支付且 > 0
-            if (OrderAdminController.ChaJiaOrderStatus.HAD_PAY.toString().equals(simpleOrder.getChajiaStatus())
-                    && simpleOrder.getChajiaHadPayMoney() != null && simpleOrder.getChajiaHadPayMoney().compareTo(BigDecimal.ZERO) > 0){
-               //退还主订单金额
-                int totalFree = hadPay.multiply(BigDecimal.valueOf(100)).intValue();
-                SortedMap<String, String> data = new TreeMap<>();
-                data.put("out_refund_no", simpleOrder.getOrderNum()+"DW");
-                data.put("out_trade_no", simpleOrder.getOrderNum());
-                data.put("total_fee", totalFree + "");
-                data.put("refund_fee", totalFree + "");
-                logger.info("[退款，差价支付>0]Start dwawback for order {}, refound amount = {}  ", simpleOrder.getOrderNum(), totalFree);
-                String result = paymentService.refund(data);
-                if (result.equals("\"退款申请成功\"")) {
-                    logger.info("[退款，差价支付>0]Dwawback SUCCESS for order {}, refound amount = {}  ", simpleOrder.getOrderNum(), totalFree);
-                    orderDao.fillDrawbackNum(simpleOrder.getOrderNum()+"DW", simpleOrder.getId());
-                }else{
-                    logger.error("[退款，差价支付>0]Dwawback ERROR for order {}, refound amount = {}  ", simpleOrder.getOrderNum(), totalFree);
-                }
-
-                //退还差价订单金额
-                SortedMap<String, String> dataCJ = new TreeMap<>();
-                dataCJ.put("out_refund_no", simpleOrder.getOrderNum()+"CJDW");
-                dataCJ.put("out_trade_no", simpleOrder.getOrderNum()+"CJ");
-                int foundCJ = simpleOrder.getChajiaHadPayMoney().multiply(BigDecimal.valueOf(100)).intValue();
-                dataCJ.put("total_fee", foundCJ + "");
-                dataCJ.put("refund_fee", foundCJ + "");
-                logger.info("[退款，差价支付>0]Start dwawback for 差价  order {}, refound amount = {}  ", simpleOrder.getOrderNum() + "CJ", foundCJ);
-                String resultCJ = paymentService.refund(dataCJ);
-                if (resultCJ.equals("\"退款申请成功\"")) {
-                    orderDao.fillDrawbackNum(simpleOrder.getOrderNum()+"CJDW", simpleOrder.getId());
-                    logger.info("[退款，差价支付>0]Dwawback SUCCESS for 差价 order {}, refound amount = {}  ", simpleOrder.getOrderNum()+ "CJ", foundCJ);
-                }else{
-                    logger.error("[退款，差价支付>0]Dwawback ERROR for 差价 order {}, refound amount = {}  ", simpleOrder.getOrderNum()+ "CJ", foundCJ);
-                }
-                //退还佣金
-                if (simpleOrder.getUseYongjin()!=null && simpleOrder.getUseYongjin().compareTo(BigDecimal.ZERO) > 0){
-                    userAmountLogDao.drawbackYongjin(simpleOrder);
-                    logger.info("[退款，差价支付>0]退还佣金给 order {}, 佣金 = {}  ", simpleOrder.getOrderNum(), simpleOrder.getUseYongjin());
-                }
-                //退还余额
-                if (simpleOrder.getUseYue() != null && simpleOrder.getUseYue().compareTo(BigDecimal.ZERO) > 0){
-                    userAmountLogDao.drawbackYue(simpleOrder);
-                    logger.info("[退款，差价支付>0]退还余额给 order {}, 余额 = {}  ", simpleOrder.getOrderNum(), simpleOrder.getUseYue());
-                }
-
-            }else if(OrderAdminController.ChaJiaOrderStatus.HAD_PAY.toString().equals(simpleOrder.getChajiaStatus())
-                    && simpleOrder.getChajiaHadPayMoney() != null && simpleOrder.getChajiaHadPayMoney().compareTo(BigDecimal.ZERO) == 0 &&
-                    simpleOrder.getChajiaNeedPayMoney() != null && simpleOrder.getChajiaNeedPayMoney().compareTo(BigDecimal.ZERO) < 0){
-                //2. 差价订单已支付且 < 0, 此时商城已经把 差价金额退还到余额。 这部分钱先从退款中抵扣。
-                BigDecimal zhudingdansubChjiaAmount = hadPay.add(simpleOrder.getChajiaNeedPayMoney());
-                if(zhudingdansubChjiaAmount.compareTo(BigDecimal.ZERO) <= 0){
-                    logger.info("[退款，差价支付为0] 实际支付金额{} < 差价部分金额{}, 不退款给用户", simpleOrder.getHadPayMoney(), simpleOrder.getChajiaNeedPayMoney());
-                    //先从佣金扣减。
-                    //退还佣金
-                    if (simpleOrder.getUseYongjin()!=null && simpleOrder.getUseYongjin().compareTo(BigDecimal.ZERO) > 0){
-                        zhudingdansubChjiaAmount = simpleOrder.getUseYongjin().add(zhudingdansubChjiaAmount);
-                        if(zhudingdansubChjiaAmount.compareTo(BigDecimal.ZERO) <= 0){
-                            logger.info("[退款，差价支付为0] 实际支付佣金{} < 差价部分金额{}, 不退佣金给用户", simpleOrder.getUseYongjin(), zhudingdansubChjiaAmount);
-                            //再从余额上上扣除。
-                            if (simpleOrder.getUseYue() != null && simpleOrder.getUseYue().compareTo(BigDecimal.ZERO) > 0){
-                                zhudingdansubChjiaAmount =  simpleOrder.getUseYue().add(zhudingdansubChjiaAmount);
-                                if(zhudingdansubChjiaAmount.compareTo(BigDecimal.ZERO) <= 0){
-                                    logger.info("[退款，差价支付为0] 实际支付余额{} < 差价部分金额{}, 不退余额给用户", simpleOrder.getUseYue(), zhudingdansubChjiaAmount);
-                                }else{
-                                    //退还余额给用户
-                                    SimpleOrder simo = new SimpleOrder();
-                                    simo.setUseYue(zhudingdansubChjiaAmount);
-                                    simo.setUserId(simpleOrder.getUserId());
-                                    simo.setOrderNum(simpleOrder.getOrderNum());
-                                    userAmountLogDao.drawbackYue(simpleOrder);
-                                    logger.info("[退款，差价支付为0]退还余额给 order {}, 余额= {}  ", simpleOrder.getOrderNum(), zhudingdansubChjiaAmount);
-                                }
-
-                            }
-                        }else{
-                            SimpleOrder simo = new SimpleOrder();
-                            simo.setUseYongjin(zhudingdansubChjiaAmount);
-                            simo.setUserId(simpleOrder.getUserId());
-                            simo.setOrderNum(simpleOrder.getOrderNum());
-                            userAmountLogDao.drawbackYongjin(simo);
-                            logger.info("[退款，差价支付为0]退还佣金给 order {}, 佣金 = {}  ", simpleOrder.getOrderNum(), zhudingdansubChjiaAmount);
-                            //退还余额
-                            if (simpleOrder.getUseYue() != null && simpleOrder.getUseYue().compareTo(BigDecimal.ZERO) > 0){
-                                userAmountLogDao.drawbackYue(simpleOrder);
-                                logger.info("[退款，差价支付为0]退还余额给 order {}, 余额 = {}  ", simpleOrder.getOrderNum(), simpleOrder.getUseYue());
-                            }
-                        }
-
-                    }else if(simpleOrder.getUseYue()!=null && simpleOrder.getUseYue().compareTo(BigDecimal.ZERO) > 0){
-                        //没有用佣金支付，但是用余额支付了。
-                        zhudingdansubChjiaAmount = simpleOrder.getUseYue().add(zhudingdansubChjiaAmount);
-                        if(zhudingdansubChjiaAmount.compareTo(BigDecimal.ZERO) <=0){
-                            logger.info("[退款，差价支付为0] 实际支付余额{} < 差价部分金额{}, 不退余额给用户", simpleOrder.getUseYue(), zhudingdansubChjiaAmount);
-                        }else{
-                            SimpleOrder simo = new SimpleOrder();
-                            simo.setUseYue(zhudingdansubChjiaAmount);
-                            simo.setUserId(simpleOrder.getUserId());
-                            simo.setOrderNum(simpleOrder.getOrderNum());
-                            userAmountLogDao.drawbackYue(simpleOrder);
-                            logger.info("[退款，差价支付为0]退还余额给 order {}, 余额= {}  ", simpleOrder.getOrderNum(), zhudingdansubChjiaAmount);
-                        }
-                    }
-                }else{
-                    int totalFree = hadPay.multiply(BigDecimal.valueOf(100)).intValue();
-                    int tuihuanFree = zhudingdansubChjiaAmount.multiply(BigDecimal.valueOf(100)).intValue();
-                    //退还主订单。
-                    SortedMap<String, String> data = new TreeMap<>();
-                    data.put("out_refund_no", simpleOrder.getOrderNum()+"DW");
-                    data.put("out_trade_no", simpleOrder.getOrderNum());
-                    data.put("total_fee", totalFree + "");
-                    data.put("refund_fee", tuihuanFree + "");
-                    logger.info("[退款，差价支付为0]Start dwawback for order {}, refound amount = {}  ", simpleOrder.getOrderNum(), tuihuanFree);
-                    String result = paymentService.refund(data);
-                    if (result.equals("\"退款申请成功\"")) {
-                        logger.info("[退款，差价支付为0]Dwawback SUCCESS for order {}, refound amount = {}  ", simpleOrder.getOrderNum(), totalFree);
-                        orderDao.fillDrawbackNum(simpleOrder.getOrderNum()+"DW", simpleOrder.getId());
-                    }else{
-                        logger.error("[退款，差价支付为0]Dwawback ERROR for order {}, refound amount = {}  ", simpleOrder.getOrderNum(), totalFree);
-                    }
-                    //退还佣金
-                    if (simpleOrder.getUseYongjin()!=null && simpleOrder.getUseYongjin().compareTo(BigDecimal.ZERO) > 0){
-                        userAmountLogDao.drawbackYongjin(simpleOrder);
-                        logger.info("[退款，差价支付为0]退还佣金给 order {}, 佣金 = {}  ", simpleOrder.getOrderNum(), simpleOrder.getUseYongjin());
-                    }
-                    //退还余额
-                    if (simpleOrder.getUseYue() != null && simpleOrder.getUseYue().compareTo(BigDecimal.ZERO) > 0){
-                        userAmountLogDao.drawbackYue(simpleOrder);
-                        logger.info("[退款，差价支付为0]退还余额给 order {}, 余额 = {}  ", simpleOrder.getOrderNum(), simpleOrder.getUseYue());
-                    }
-                }
-
-            }
-        }else{
-            //实际支付为0.
-            //退还主订单金额
-            logger.error("[退款，实际支付=0]不退款 for order {} ", simpleOrder.getOrderNum());
-
-            if (OrderAdminController.ChaJiaOrderStatus.HAD_PAY.toString().equals(simpleOrder.getChajiaStatus())
-                    && simpleOrder.getChajiaHadPayMoney() != null && simpleOrder.getChajiaHadPayMoney().compareTo(BigDecimal.ZERO) > 0){
-
-                //退还差价订单金额
-                SortedMap<String, String> dataCJ = new TreeMap<>();
-                dataCJ.put("out_refund_no", simpleOrder.getOrderNum()+"CJDW");
-                dataCJ.put("out_trade_no", simpleOrder.getOrderNum()+"CJ");
-                int foundCJ = simpleOrder.getChajiaHadPayMoney().multiply(BigDecimal.valueOf(100)).intValue();
-                dataCJ.put("total_fee", foundCJ + "");
-                dataCJ.put("refund_fee", foundCJ + "");
-                logger.info("[退款，实际支付=0]Start dwawback for 差价  order {}, refound amount = {}  ", simpleOrder.getOrderNum() + "CJ", foundCJ);
-                String resultCJ = paymentService.refund(dataCJ);
-                if (resultCJ.equals("\"退款申请成功\"")) {
-                    orderDao.fillDrawbackNum(simpleOrder.getOrderNum()+"CJDW", simpleOrder.getId());
-                    logger.info("[退款，实际支付=0]Dwawback SUCCESS for 差价 order {}, refound amount = {}  ", simpleOrder.getOrderNum()+ "CJ", foundCJ);
-                }else{
-                    logger.error("[退款，实际支付=0]Dwawback ERROR for 差价 order {}, refound amount = {}  ", simpleOrder.getOrderNum()+ "CJ", foundCJ);
-                }
-                //退还佣金
-                if (simpleOrder.getUseYongjin()!=null && simpleOrder.getUseYongjin().compareTo(BigDecimal.ZERO) > 0){
-                    userAmountLogDao.drawbackYongjin(simpleOrder);
-                    logger.info("[退款，实际支付=0]退还佣金给 order {}, 佣金 = {}  ", simpleOrder.getOrderNum(), simpleOrder.getUseYongjin());
-                }
-                //退还余额
-                if (simpleOrder.getUseYue() != null && simpleOrder.getUseYue().compareTo(BigDecimal.ZERO) > 0){
-                    userAmountLogDao.drawbackYue(simpleOrder);
-                    logger.info("[退款，实际支付=0]退还余额给 order {}, 余额 = {}  ", simpleOrder.getOrderNum(), simpleOrder.getUseYue());
-                }
-
-            }else if(OrderAdminController.ChaJiaOrderStatus.HAD_PAY.toString().equals(simpleOrder.getChajiaStatus())
-                    && simpleOrder.getChajiaHadPayMoney() != null && simpleOrder.getChajiaHadPayMoney().compareTo(BigDecimal.ZERO) <= 0&&
-                    simpleOrder.getChajiaNeedPayMoney() != null && simpleOrder.getChajiaNeedPayMoney().compareTo(BigDecimal.ZERO) < 0){
-                //从佣金扣除
-                BigDecimal zhudingdansubChjiaAmount = simpleOrder.getChajiaNeedPayMoney();
-                if (simpleOrder.getUseYongjin()!=null && simpleOrder.getUseYongjin().compareTo(BigDecimal.ZERO) > 0){
-                    zhudingdansubChjiaAmount = simpleOrder.getUseYongjin().add(zhudingdansubChjiaAmount);
-                    if(zhudingdansubChjiaAmount.compareTo(BigDecimal.ZERO) <= 0){
-                        logger.info("[退款，差价支付=0] 实际支付佣金{} < 差价部分金额{}, 不退佣金给用户", simpleOrder.getUseYongjin(), zhudingdansubChjiaAmount);
-                        //再从余额上上扣除。
-                        if (simpleOrder.getUseYue() != null && simpleOrder.getUseYue().compareTo(BigDecimal.ZERO) > 0){
-                            zhudingdansubChjiaAmount =  simpleOrder.getUseYue().add(zhudingdansubChjiaAmount);
-                            if(zhudingdansubChjiaAmount.compareTo(BigDecimal.ZERO) <= 0){
-                                logger.info("[退款，差价支付=0] 实际支付余额{} < 差价部分金额{}, 不退余额给用户", simpleOrder.getUseYue(), zhudingdansubChjiaAmount);
-                            }else{
-                                //退还余额给用户
-                                SimpleOrder simo = new SimpleOrder();
-                                simo.setUseYue(zhudingdansubChjiaAmount);
-                                simo.setUserId(simpleOrder.getUserId());
-                                simo.setOrderNum(simpleOrder.getOrderNum());
-                                userAmountLogDao.drawbackYue(simpleOrder);
-                                logger.info("[退款，差价支付=0]退还余额给 order {}, 余额= {}  ", simpleOrder.getOrderNum(), zhudingdansubChjiaAmount);
-                            }
-
-                        }
-                    }else{
-                        SimpleOrder simo = new SimpleOrder();
-                        simo.setUseYongjin(zhudingdansubChjiaAmount);
-                        simo.setUserId(simpleOrder.getUserId());
-                        simo.setOrderNum(simpleOrder.getOrderNum());
-                        userAmountLogDao.drawbackYongjin(simo);
-                        logger.info("[退款，差价支付=0]退还佣金给 order {}, 佣金 = {}  ", simpleOrder.getOrderNum(), zhudingdansubChjiaAmount);
-                        //退还余额
-                        if (simpleOrder.getUseYue() != null && simpleOrder.getUseYue().compareTo(BigDecimal.ZERO) > 0){
-                            userAmountLogDao.drawbackYue(simpleOrder);
-                            logger.info("[退款，差价支付=0]退还余额给 order {}, 余额 = {}  ", simpleOrder.getOrderNum(), simpleOrder.getUseYue());
-                        }
-                    }
-
-                }else if(simpleOrder.getUseYue()!=null && simpleOrder.getUseYue().compareTo(BigDecimal.ZERO) > 0){
-                    //没有用佣金支付，但是用余额支付了。
-                    zhudingdansubChjiaAmount = simpleOrder.getUseYue().add(zhudingdansubChjiaAmount);
-                    if(zhudingdansubChjiaAmount.compareTo(BigDecimal.ZERO) <=0){
-                        logger.info("[退款，差价支付=0] 实际支付余额{} < 差价部分金额{}, 不退余额给用户", simpleOrder.getUseYue(), zhudingdansubChjiaAmount);
-                    }else{
-                        SimpleOrder simo = new SimpleOrder();
-                        simo.setUseYue(zhudingdansubChjiaAmount);
-                        simo.setUserId(simpleOrder.getUserId());
-                        simo.setOrderNum(simpleOrder.getOrderNum());
-                        userAmountLogDao.drawbackYue(simpleOrder);
-                        logger.info("[退款，差价支付=0]退还余额给 order {}, 余额= {}  ", simpleOrder.getOrderNum(), zhudingdansubChjiaAmount);
-                    }
-                }
+        DrawBackAmount drawBackAmount = this.doCalcDrawBackAmount(simpleOrder);
+        if(drawBackAmount == null){
+            logger.error("doDrawback order not exists " + simpleOrder.getOrderNum());
+            return;
+        }
+        //退还主订单
+        BigDecimal mainOrderAmount = drawBackAmount.getDisplayOrderAmount();
+        if(mainOrderAmount != null && mainOrderAmount.compareTo(BigDecimal.ZERO) > 0){
+            int totalFree = mainOrderAmount.multiply(BigDecimal.valueOf(100)).intValue();
+            SortedMap<String, String> data = new TreeMap<>();
+            data.put("out_refund_no", simpleOrder.getOrderNum()+"DW");
+            data.put("out_trade_no", simpleOrder.getOrderNum());
+            data.put("total_fee", totalFree + "");
+            data.put("refund_fee", totalFree + "");
+            logger.info("Start dwawback for [main order] {}, refound amount = {}  ", simpleOrder.getOrderNum(), totalFree);
+            String result = paymentService.refund(data);
+            if (result.equals("\"退款申请成功\"")) {
+                logger.info("Dwawback SUCCESS for [main order] {}, refound amount = {}  ", simpleOrder.getOrderNum(), totalFree);
+                orderDao.fillDrawbackNum(simpleOrder.getOrderNum()+"DW", simpleOrder.getId());
+            }else{
+                logger.error("Dwawback ERROR for [main order] "+simpleOrder.getOrderNum()+", error msg "+result);
             }
         }
+        //退还差价订单
+        BigDecimal chajiaOrderAmount = drawBackAmount.getDisplayChajiaAmount();
+        if(chajiaOrderAmount != null && chajiaOrderAmount.compareTo(BigDecimal.ZERO) > 0){
+            SortedMap<String, String> dataCJ = new TreeMap<>();
+            dataCJ.put("out_refund_no", simpleOrder.getOrderNum()+"CJDW");
+            dataCJ.put("out_trade_no", simpleOrder.getOrderNum()+"CJ");
+            int foundCJ = chajiaOrderAmount.multiply(BigDecimal.valueOf(100)).intValue();
+            dataCJ.put("total_fee", foundCJ + "");
+            dataCJ.put("refund_fee", foundCJ + "");
+            logger.info("Start dwawback for [chajia order] {}, refound amount = {}  ", simpleOrder.getOrderNum() + "CJ", foundCJ);
+            String resultCJ = paymentService.refund(dataCJ);
+            if (resultCJ.equals("\"退款申请成功\"")) {
+                orderDao.fillDrawbackNum(simpleOrder.getOrderNum()+"CJDW", simpleOrder.getId());
+                logger.info("Dwawback SUCCESS for [chajia order] {}, refound amount = {}  ", simpleOrder.getOrderNum()+ "CJ", foundCJ);
+            }else{
+                logger.error("Dwawback ERROR for [chajia order] "+simpleOrder.getOrderNum()+"CJ, refound amount = "+ foundCJ+", error msg " +resultCJ);
+            }
+        }
+        //退还佣金
+        BigDecimal yongjinAmount = drawBackAmount.getDisplayTotalYongjin();
+        if(yongjinAmount != null && yongjinAmount.compareTo(BigDecimal.ZERO) > 0){
+            SimpleOrder simo = new SimpleOrder();
+            simo.setUseYongjin(yongjinAmount);
+            simo.setUserId(simpleOrder.getUserId());
+            simo.setOrderNum(simpleOrder.getOrderNum());
+            userAmountLogDao.drawbackYue(simpleOrder);
+            userAmountLogDao.drawbackYue(simpleOrder);
+            logger.info("退还佣金给 order {}, 佣金 = {}  ", simpleOrder.getOrderNum(), simpleOrder.getUseYongjin());
+        }
+        //退还余额
+        BigDecimal yueAmount = drawBackAmount.getUseYue();
+        if(yueAmount != null && yueAmount.compareTo(BigDecimal.ZERO) > 0){
+            SimpleOrder simo = new SimpleOrder();
+            simo.setUseYue(yueAmount);
+            simo.setUserId(simpleOrder.getUserId());
+            simo.setOrderNum(simpleOrder.getOrderNum());
+            userAmountLogDao.drawbackYue(simpleOrder);
+            logger.info("退还余额给 order {}, 余额 = {}  ", simpleOrder.getOrderNum(), simpleOrder.getUseYue());
+        }
+
     }
     public ResultJson updateChajiaOrder(String orderNum, ChaJiaOrderItemRequest chajia) {
         SimpleOrder simpleOrder = orderDao.getSimpleOrder(orderNum);

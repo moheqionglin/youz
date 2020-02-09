@@ -1,9 +1,6 @@
 package com.sm.service;
 
-import com.sm.dao.dao.AdminDao;
-import com.sm.dao.dao.OrderDao;
-import com.sm.dao.dao.ProductDao;
-import com.sm.dao.dao.ShoppingCartDao;
+import com.sm.dao.dao.*;
 import com.sm.message.admin.YzStatisticsInfo;
 import com.sm.utils.SmUtil;
 import org.slf4j.Logger;
@@ -33,6 +30,8 @@ public class ScheduleService {
     private ShoppingCartDao shoppingCartDao;
     @Autowired
     private ProductDao productDao;
+    @Autowired
+    private SearchDao searchDao;
     @Scheduled(cron = "0 30 0 * * *")
     public void work() {
         logger.info("start schedule...");
@@ -56,7 +55,19 @@ public class ScheduleService {
         }catch (Exception e){
             logger.error("tejiaProductGuoqiCheck", e);
         }
+        try{
+            deleteMySearch();
+        }catch (Exception e){
+            logger.error("deleteMySearch", e);
+        }
 
+    }
+
+    private void deleteMySearch() {
+
+        logger.info("start  deleteMySearch");
+        searchDao.deleteMySearch();
+        logger.info("finish deleteMySearch");
     }
 
     private void tejiaProductGuoqiCheck() {

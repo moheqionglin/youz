@@ -96,7 +96,7 @@ public class PaymentService {
 			} else {
 				resultMap.put("returnCode", resMap.get("return_code"));
 				resultMap.put("returnMsg", resMap.get("err_code_des"));
-				LOGGER.info("【小程序支付】统一下单失败，失败原因:" + resMap.get("return_msg"));
+				LOGGER.error("【小程序支付】统一下单失败，失败原因: " + resMap.get("return_msg"));
 			}
 		}
 		return resultMap;
@@ -168,11 +168,11 @@ public class PaymentService {
 				//修改用户订单状态为退款申请中（暂时未写）
 				resultReturn = "退款申请成功";
 			} else {
-				LOGGER.info("订单号:{}错误信息:{}", data.get("out_trade_no"), resp);
+				LOGGER.error("订单号:"+data.get("out_trade_no")+" 错误信息 : "+resp);
 				resultReturn = err_code_des;
 			}
 		} else {
-			LOGGER.info("订单号:{}错误信息:{}", data.get("out_trade_no"), resp);
+			LOGGER.error("订单号:"+data.get("out_trade_no")+", 错误信息 : " +resp);
 			resultReturn = return_msg;
 		}
 		return JSON.toJSONString(resultReturn);
@@ -235,11 +235,11 @@ public class PaymentService {
 			if ("SUCCESS".equals(result_code)) {
 				resultReturn = "提现申请成功";
 			} else {
-				LOGGER.info("提现失败 {}, 错误信息:{}", data.get("partner_trade_no"), resp);
+				LOGGER.error("提现失败 "+ data.get("partner_trade_no")+", 错误信息 : " + resp);
 				resultReturn = err_code_des;
 			}
 		} else {
-			LOGGER.info("提现失败:{}错误信息:{}", data.get("partner_trade_no"), resp);
+			LOGGER.error("提现失败:"+data.get("partner_trade_no")+", 错误信息 : " + resp);
 			resultReturn = return_msg;
 		}
 		return JSON.toJSONString(resultReturn);

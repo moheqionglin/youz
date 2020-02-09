@@ -92,7 +92,7 @@ public class UserAmountLogDao {
 
         UserAmountLog userAmountLog = new UserAmountLog();
         userAmountLog.setUserId(createOrderInfo.getUserId());
-        userAmountLog.setAmount(createOrderInfo.getUseYongjin());
+        userAmountLog.setAmount(createOrderInfo.getUseYongjin().negate());
         userAmountLog.setLogType(UserAmountLogType.YONGJIN);
         userAmountLog.setRemark( String.format("下单使用(订单号：%s)", createOrderInfo.getOrderNum()));
         userAmountLog.setRemarkDetail(String.format("订单 %s ，下单使用", createOrderInfo.getOrderNum()));
@@ -105,7 +105,7 @@ public class UserAmountLogDao {
 
         UserAmountLog userAmountLog = new UserAmountLog();
         userAmountLog.setUserId(createOrderInfo.getUserId());
-        userAmountLog.setAmount(createOrderInfo.getUseYue());
+        userAmountLog.setAmount(createOrderInfo.getUseYue().negate());
         userAmountLog.setLogType(UserAmountLogType.YUE);
         userAmountLog.setRemark( String.format("下单使用(订单号：%s)", createOrderInfo.getOrderNum()));
         userAmountLog.setRemarkDetail(String.format("订单 %s ，下单使用", createOrderInfo.getOrderNum()));

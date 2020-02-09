@@ -23,6 +23,15 @@ public class CommonTest {
             .build();
 
     @Test
+    public void bigdecimalTest(){
+        BigDecimal bigDecimal = new BigDecimal(1.34567);
+        System.out.println(bigDecimal.negate());
+        BigDecimal zero = BigDecimal.ZERO;
+        System.out.println(zero.setScale(2, RoundingMode.UP));
+        System.out.println(bigDecimal.setScale(2, RoundingMode.UP).toPlainString());
+    }
+
+    @Test
     public void invalid(){
         userId2Token.put(1, "111");
         System.out.println(userId2Token.getIfPresent(1));

@@ -11,6 +11,7 @@ import com.sm.message.product.ZhuanquCategoryItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -46,11 +47,13 @@ public class ZhuanQuCategoryService {
         tejiaCategoryDao.update(productCategoryItem);
     }
 
+    @Transactional
     public ResponseEntity delete(int categoryid) {
         if(tejiaCategoryDao.countProductByZhuanQuIt(categoryid) > 0){
             return ResponseEntity.status(HttpYzCode.CATEGORY_HAS_CHILD.getCode()).build();
         }
         tejiaCategoryDao.delete(categoryid);
+        productDao.deleteZhuanqu(categoryid);
         return ResponseEntity.ok().build();
     }
 

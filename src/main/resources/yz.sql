@@ -192,9 +192,9 @@ create table orders(
     total_cost_price decimal(10, 2) not null ,
 
     total_price decimal(10, 2) not null ,
-    use_yongjin decimal(10, 2) not null ,
-    use_yue decimal(10, 2) not null ,
-    need_pay_money decimal(10, 2) not null ,
+    use_yongjin decimal(10, 2) not null default 0 ,
+    use_yue decimal(10, 2) not null default 0 ,
+    need_pay_money decimal(10, 2) not null  ,
     had_pay_money decimal(10, 2) default 0 not null ,
 
     chajia_status varchar(50) not null default 'NO' comment 'NO 不是差价订单， WAIT_PAY差价订单待支付，HAD_PAY差价订单已支付',
@@ -219,7 +219,6 @@ create table orders(
 
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-alter table orders modify yongjin_base_price decimal(10,2) not null default 0;
 alter table orders
 	add yongjin_base_price decimal(10,2) not null default 0;
 create table orders_item(
@@ -364,7 +363,7 @@ create table my_search(
     user_id int,
     created_time timestamp DEFAULT CURRENT_TIMESTAMP
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
-CREATE UNIQUE INDEX my_search_term_idx ON my_search (search_term)
+CREATE UNIQUE INDEX my_search_term_idx ON my_search (search_term,user_id);
 
 create table hot_search(
     id int auto_increment primary key,
@@ -604,5 +603,18 @@ select * from product_category where parent_id = 0
 select CURRENT_TIMESTAMP
 select * from products where zhuanqu_endTime > unix_timestamp(now())
 select *   from shopping_cart where product_id not in (select id from products)
-
+select * from user_tokes
+select * from user_roles
 select * from orders where status = 'WAIT_PAY' and  now() > DATE_ADD(created_time, INTERVAL 15 MINUTE )
+
+
+select profile_img,lunbo_imgs,detail_imgs from products;
+select image from lunbo;
+select product_profile_img from orders_item;
+select image from product_category
+select image from product_zhuanqu_category
+select * from product_comment
+select *from products order by id desc
+select * from orders
+select * from product_category order by id desc
+

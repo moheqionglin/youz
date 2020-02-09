@@ -34,7 +34,7 @@ public class TixianInfo {
         public TixianInfo mapRow(ResultSet resultSet, int i) throws SQLException {
             TixianInfo tixianInfo = new TixianInfo();
             if(existsColumn(resultSet, "id")){
-                tixianInfo.setId(resultSet.getInt("user_id"));
+                tixianInfo.setId(resultSet.getInt("id"));
             }
             if(existsColumn(resultSet, "user_id")){
                 tixianInfo.setUserId(resultSet.getInt("user_id"));

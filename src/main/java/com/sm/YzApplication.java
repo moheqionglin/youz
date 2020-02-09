@@ -8,6 +8,7 @@ import com.qiniu.storage.Configuration;
 import com.qiniu.storage.Region;
 import com.qiniu.storage.UploadManager;
 import com.qiniu.util.Auth;
+import com.sm.third.yilianyun.LYYService;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -65,6 +66,13 @@ public class YzApplication {
 	@Value("${sm.wx.key}")
 	public  String XCX_KEY;
 
+
+	@Bean
+	public LYYService lyyService(){
+		LYYService lyyService = new LYYService();
+		return lyyService;
+
+	}
 	@Bean
 	@Primary
 	public RestTemplate registerTemplate() {

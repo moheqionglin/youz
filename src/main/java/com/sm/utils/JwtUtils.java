@@ -115,14 +115,15 @@ public class JwtUtils {
     }
 
     private Boolean isTokenExpired(String token) {
-        Date expiration;
-        try {
-            final Claims claims = getClaimsFromToken(token);
-            expiration = claims.getExpiration();
-        } catch (Exception e) {
-            expiration = null;
-        }
-        return expiration.before(new Date());
+        return false;
+//        Date expiration;
+//        try {
+//            final Claims claims = getClaimsFromToken(token);
+//            expiration = claims.getExpiration();
+//        } catch (Exception e) {
+//            expiration = null;
+//        }
+//        return expiration.before(new Date());
     }
 
     private String generateAccessToken(String subject, Map<String, Object> claims) {

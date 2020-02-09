@@ -64,7 +64,7 @@ public class CacheService {
         UserToken userToken = tokenDao.queryByUserId(userid);
         if(userToken != null){
             userId2Token.put(userid, userToken.getToken());
-            return true;
+            return userToken.equals(ifPresent);
         }
         return false;
     }

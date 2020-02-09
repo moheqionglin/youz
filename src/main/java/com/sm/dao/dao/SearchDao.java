@@ -33,7 +33,7 @@ public class SearchDao {
     }
 
     public List<String> getMySearchTop10(Integer userid) {
-        final String sql = String.format("select search_term from %s where user_id = ?", VarProperties.MY_SEARCH);
+        final String sql = String.format("select search_term from %s where user_id = ? order by id desc limit 10", VarProperties.MY_SEARCH);
         return jdbcTemplate.queryForList(sql, new Object[]{userid}, String.class);
     }
 
@@ -59,5 +59,9 @@ public class SearchDao {
         }catch (Exception e){
             jdbcTemplate.update(sql2, new Object[]{term, 1});
         }
+    }
+
+    public void deleteMySearch() {
+
     }
 }

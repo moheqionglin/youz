@@ -257,7 +257,7 @@ public class ProductDao {
 
         params.add(startIndex);
         params.add(pageSize);
-        final String sql = String.format("select t1.id as id, t1.name as name ,sanzhung,show_able,stock,origin_price,current_price,profile_img,sales_cnt, zhuanqu_id, t2.enable as zhuanquenable, zhuanqu_price , zhuanqu_endTime" +adminPageColumns +
+        final String sql = String.format("select t1.id as id, t1.name as name ,t1.sort as sort, sanzhung,show_able,stock,origin_price,current_price,profile_img,sales_cnt, zhuanqu_id, t2.enable as zhuanquenable, zhuanqu_price , zhuanqu_endTime" +adminPageColumns +
                 " from %s as t1 left join %s as t2 on t1.zhuanqu_id = t2.id " +
                 " where t1.show_able = ? and t1.name like ? %s order by t1.sales_cnt desc, t1.sort asc limit ?, ?", VarProperties.PRODUCTS, VarProperties.PRODUCT_ZHUANQU_CATEGORY,
                 filterByCategory);
@@ -352,6 +352,13 @@ public class ProductDao {
 
     public void tejiaProductGuoqiCheck() {
         final String sql = String.format("update %s set zhuanqu_id = 0 where zhuanqu_endTime < ?", VarProperties.PRODUCTS);
+        final String sql2 = String.format("update %s set zhuanqu_id = 0 where zhuanqu_id != 0 and zhuanqu_id not in (select id from %s)", VarProperties.PRODUCTS, VarProperties.PRODUCT_ZHUANQU_CATEGORY);
         jdbcTemplate.update(sql, new Object[]{new Date().getTime()});
+        jdbcTemplate.update(sql2);
+    }
+
+    public void deleteZhuanqu(int categoryid) {
+        final String sql = String.format("update %s set zhuanqu_id = 0 where zhuanqu_id = ?", VarProperties.PRODUCTS);
+        jdbcTemplate.update(sql, new Object[]{categoryid});
     }
 }
