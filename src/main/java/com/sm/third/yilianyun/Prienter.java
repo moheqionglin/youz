@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -25,6 +26,7 @@ import java.util.concurrent.Executors;
 @Component
 public class Prienter{
 	private Logger log = LoggerFactory.getLogger(this.getClass());
+	Random random = new Random();
 	@Autowired
 	private LYYService lyyService;
 	private ExecutorService executorService = Executors.newFixedThreadPool(1);;
@@ -91,7 +93,7 @@ public class Prienter{
 			@Override
 			public void run() {
 				try{
-					lyyService.print(lyyService.mochineCode, sb.toString(), orderPrintBean.getOrderNum());
+					lyyService.print(lyyService.mochineCode, sb.toString(), System.currentTimeMillis() + " " +random.nextInt(1000));
 				}catch (Exception e){
 					log.error("Print error", e);
 				}
