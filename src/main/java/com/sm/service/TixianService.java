@@ -83,6 +83,8 @@ public class TixianService {
                 logger.error("提现 错误", e);
                 return ResultJson.failure(HttpYzCode.TIXIAN_ERROR);
             }
+        }else{
+            tixianDao.approveTixian(userid, id, type);
         }
 
         return ResultJson.ok();
