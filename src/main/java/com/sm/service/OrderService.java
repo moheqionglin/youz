@@ -395,10 +395,10 @@ public class OrderService {
             data.put("out_trade_no", simpleOrder.getOrderNum());
             data.put("total_fee", totalFree + "");
             data.put("refund_fee", refoundfree + "");
-            logger.info("Start dwawback for [main order] {}, refound amount = {}  ", simpleOrder.getOrderNum(), totalFree);
+            logger.info("Start dwawback for [main order] {}, refound amount = {}  ", simpleOrder.getOrderNum(), refoundfree);
             String result = paymentService.refund(data);
             if (result.equals("\"退款申请成功\"")) {
-                logger.info("Dwawback SUCCESS for [main order] {}, refound amount = {}  ", simpleOrder.getOrderNum(), totalFree);
+                logger.info("Dwawback SUCCESS for [main order] {}, refound amount = {}  ", simpleOrder.getOrderNum(), refoundfree);
                 orderDao.fillDrawbackNum(simpleOrder.getOrderNum()+"DW", simpleOrder.getId());
             }else{
                 logger.error("Dwawback ERROR for [main order] "+simpleOrder.getOrderNum()+", error msg "+result);
