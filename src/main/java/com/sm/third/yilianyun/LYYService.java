@@ -2,6 +2,7 @@ package com.sm.third.yilianyun;
 
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,11 +35,13 @@ public class LYYService {
      * token token = "1c55fd95920649f2820253c28daeb412"
      * refresh_token = "354844a1fec54c4b9e8da16508a00352"
      */
+    @Value("${YLY.t:}")
     public String token;
 
     /**
      * 刷新token需要的 refreshtoken f25ed1d0b3bd4dd0b5577c6d0781b9d1
      */
+    @Value("${YLY.r.t:}")
     public String refresh_token;
 
 
@@ -49,9 +52,17 @@ public class LYYService {
 
     @PostConstruct
     public void doInit(){
-        this.getFreedomToken();
-//        this.refreshToken();
-        this.addPrinter(mochineCode, mochineSec);
+        try{
+            if(StringUtils.isBlank(token) || StringUtils.isBlank(refresh_token)){
+                this.getFreedomToken();
+            }
+//            this.refreshToken();
+            this.addPrinter(mochineCode, mochineSec);
+        }catch (Exception e){
+            log.error("init printer error", e);
+        }
+
+
     }
     /**
      * 开放式初始化
