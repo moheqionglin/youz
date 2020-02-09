@@ -434,7 +434,7 @@ public class OrderService {
             logger.info("退还佣金给 order {}, 佣金 = {}  ", simpleOrder.getOrderNum(), simpleOrder.getUseYongjin());
         }
         //退还余额
-        BigDecimal yueAmount = drawBackAmount.getUseYue();
+        BigDecimal yueAmount = drawBackAmount.getDisplayTotalYue();
         if(yueAmount != null && yueAmount.compareTo(BigDecimal.ZERO) > 0){
             SimpleOrder simo = new SimpleOrder();
             simo.setUseYue(yueAmount);
