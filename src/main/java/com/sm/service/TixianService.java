@@ -68,13 +68,21 @@ public class TixianService {
             }
             int amount = tiXianDetail.getAmount().multiply(BigDecimal.valueOf(100)).setScale(2, RoundingMode.UP).intValue();
             try {
-                paymentService.tixian(opencode, amount);
-                logger.info("提现 成功 for {}, amount {}", opencode, amount);
+                String rest = paymentService.tixian(opencode, amount);
+                if (rest.equals("\"提现申请成功\"")) {
+                    logger.info("提现 成功 for {}, amount {}", opencode, amount);
+                    tixianDao.approveTixian(userid, id, type);
+                    return ResultJson.ok();
+                }else{
+                    logger.error("提现 错误 "+ rest);
+                    return ResultJson.failure(HttpYzCode.TIXIAN_ERROR);
+                }
+
             } catch (UnknownHostException e) {
                 logger.error("提现 错误", e);
+                return ResultJson.failure(HttpYzCode.TIXIAN_ERROR);
             }
         }
-        tixianDao.approveTixian(userid, id, type);
 
         return ResultJson.ok();
     }

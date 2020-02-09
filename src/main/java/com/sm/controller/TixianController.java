@@ -81,6 +81,8 @@ public class TixianController {
             @ApiImplicitParam(name = "id", value = "id", required = true, paramType = "path", dataType = "Integer"),
             @ApiImplicitParam(name = "type", value = "type", required = true, paramType = "path", dataType = "TiXianApproveControllerType")
     })
+    @ApiResponses(value={@ApiResponse(code= 400, message="提现金额小于1元"),
+            @ApiResponse(code=452, message="提现失败")})
     public ResultJson approveTixian(@Valid @NotNull @PathVariable("type") TiXianApproveControllerType ctype,
                               @Valid @NotNull @PathVariable("id") Integer id){
         TiXianType type = TiXianType.APPROVE_REJECT;

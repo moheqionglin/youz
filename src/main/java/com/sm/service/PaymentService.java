@@ -240,7 +240,7 @@ public class PaymentService {
 			}
 		} else {
 			LOGGER.error("提现失败:"+data.get("partner_trade_no")+", 错误信息 : " + resp);
-			resultReturn = return_msg;
+			resultReturn = resp.toString();
 		}
 		return JSON.toJSONString(resultReturn);
 	}
