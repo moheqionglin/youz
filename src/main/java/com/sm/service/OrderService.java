@@ -163,29 +163,6 @@ public class OrderService {
 
         //删除购物车
         shoppingCartService.deleteCartItem(userID, order.getCartIds());
-        try{
-            OrderPrintBean orderPrintBean = new OrderPrintBean();
-            List<OrderItem> items = new ArrayList<>();
-            orderPrintBean.setItems(items);
-
-            for(CreateOrderItemInfo i : collect){
-                OrderItem orderItem = new OrderItem();
-                items.add(orderItem);
-                orderItem.setAmount(i.getProductTotalPrice());
-                orderItem.setName(i.getProductName());
-                orderItem.setSize(i.getProductSize());
-                orderItem.setCount(i.getProductCnt());
-            }
-
-            orderPrintBean.setOrderNum(createOrderInfo.getOrderNum());
-            orderPrintBean.setOrderTime(SmUtil.parseLongToTMDHMS(System.currentTimeMillis()));
-            orderPrintBean.setAddress(createOrderInfo.getAddressDetail());
-            orderPrintBean.setLink(createOrderInfo.getAddressContract());
-            orderPrintBean.setMessage(createOrderInfo.getMessage());
-            prienter.print(orderPrintBean);
-        }catch (Exception e){
-            logger.error("打印错误", e);
-        }
         return ResultJson.ok(createOrderInfo.getOrderNum());
     }
 
@@ -606,15 +583,40 @@ public class OrderService {
         }
         BigDecimal payAmount = BigDecimal.valueOf(money).divide(BigDecimal.valueOf(100)).setScale(2, RoundingMode.UP);
         String simpon = orderNum.replaceAll("CJ", "");
-        SimpleOrder simpleOrder = orderDao.getSimpleOrder(simpon);
-        if(simpleOrder == null){
+        OrderDetailInfo orderDetailInfo =  orderDao.getOrderDetail(simpon);
+        if(orderDetailInfo == null){
             return -1;
         }
-        if(!(simpleOrder.getStatus().equals(OrderController.BuyerOrderStatus.WAIT_PAY.toString()) ||
-                simpleOrder.getChajiaStatus().equals(OrderAdminController.ChaJiaOrderStatus.WAIT_PAY.toString()))){
+        if(!(orderDetailInfo.getStatus().equals(OrderController.BuyerOrderStatus.WAIT_PAY.toString()) ||
+                orderDetailInfo.getChajiaStatus().equals(OrderAdminController.ChaJiaOrderStatus.WAIT_PAY.toString()))){
             return -1;
         }
-        orderDao.surePayment(simpleOrder.getId(), payAmount, orderNum.contains("CJ"));
+        orderDao.surePayment(orderDetailInfo.getId(), payAmount, orderNum.contains("CJ"));
+        if(!orderNum.contains("CJ")){
+            try{
+                OrderPrintBean orderPrintBean = new OrderPrintBean();
+                List<OrderItem> items = new ArrayList<>();
+                orderPrintBean.setItems(items);
+                List<OrderDetailItemInfo> collect = orderDao.getOrderDetailItem(orderDetailInfo.getId());
+                for(OrderDetailItemInfo i : collect){
+                    OrderItem orderItem = new OrderItem();
+                    items.add(orderItem);
+                    orderItem.setAmount(i.getProductTotalPrice());
+                    orderItem.setName(i.getProductName());
+                    orderItem.setSize(i.getProductSize());
+                    orderItem.setCount(i.getProductCnt());
+                }
+
+                orderPrintBean.setOrderNum(orderDetailInfo.getOrderNum());
+                orderPrintBean.setOrderTime(SmUtil.parseLongToTMDHMS(orderDetailInfo.getCreatedTime().getTime()));
+                orderPrintBean.setAddress(orderDetailInfo.getAddressDetail());
+                orderPrintBean.setLink(orderDetailInfo.getAddressContract());
+                orderPrintBean.setMessage(orderDetailInfo.getMessage());
+                prienter.print(orderPrintBean);
+            }catch (Exception e){
+                logger.error("打印错误", e);
+            }
+        }
         return 1;
     }
 
