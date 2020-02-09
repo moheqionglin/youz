@@ -72,6 +72,7 @@ public class TixianService {
                 if (rest.equals("\"提现申请成功\"")) {
                     logger.info("提现 成功 for {}, amount {}", opencode, amount);
                     tixianDao.approveTixian(userid, id, type);
+                    userDao.tixianSuccess(tiXianDetail.getUserId(), tiXianDetail.getAmount());
                     return ResultJson.ok();
                 }else{
                     logger.error("提现 错误 "+ rest);

@@ -3,6 +3,7 @@ package com.sm.dao.dao;
 import com.sm.dao.domain.User;
 import com.sm.dao.domain.UserAmountLogType;
 import com.sm.dao.rowMapper.UserRowMapper;
+import com.sm.message.admin.TixianInfo;
 import com.sm.message.profile.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -115,5 +116,8 @@ public class UserDao {
         }catch (Exception e){
             return null;
         }
+    }
+
+    public void tixianSuccess(Integer userId, BigDecimal amount) {
     }
 }
