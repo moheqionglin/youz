@@ -91,5 +91,14 @@ public class AdminController {
         return adminService.getStatistics(st, en, pageSize, pageNum);
     }
 
+    @GetMapping(path = "/adminother/print/order/{orderNum}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @ApiOperation(value = "获取佣金比例 ")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "orderNum", value = "orderNum", required = true, paramType = "path", dataType = "String")
+    })
+    public void printOrder(@Valid @NotNull @PathVariable("orderNum") String orderNum){
+        adminService.printOrder(orderNum);
+    }
 
 }

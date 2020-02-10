@@ -593,31 +593,35 @@ public class OrderService {
         }
         orderDao.surePayment(orderDetailInfo.getId(), payAmount, orderNum.contains("CJ"));
         if(!orderNum.contains("CJ")){
-            try{
-                OrderPrintBean orderPrintBean = new OrderPrintBean();
-                List<OrderItem> items = new ArrayList<>();
-                orderPrintBean.setItems(items);
-                List<OrderDetailItemInfo> collect = orderDao.getOrderDetailItem(orderDetailInfo.getId());
-                for(OrderDetailItemInfo i : collect){
-                    OrderItem orderItem = new OrderItem();
-                    items.add(orderItem);
-                    orderItem.setAmount(i.getProductTotalPrice());
-                    orderItem.setName(i.getProductName());
-                    orderItem.setSize(i.getProductSize());
-                    orderItem.setCount(i.getProductCnt());
-                }
-
-                orderPrintBean.setOrderNum(orderDetailInfo.getOrderNum());
-                orderPrintBean.setOrderTime(SmUtil.parseLongToTMDHMS(orderDetailInfo.getCreatedTime().getTime()));
-                orderPrintBean.setAddress(orderDetailInfo.getAddressDetail());
-                orderPrintBean.setLink(orderDetailInfo.getAddressContract());
-                orderPrintBean.setMessage(orderDetailInfo.getMessage());
-                prienter.print(orderPrintBean);
-            }catch (Exception e){
-                logger.error("打印错误", e);
-            }
+            printOrder(orderDetailInfo);
         }
         return 1;
+    }
+
+    public void printOrder(OrderDetailInfo orderDetailInfo) {
+        try{
+            OrderPrintBean orderPrintBean = new OrderPrintBean();
+            List<OrderItem> items = new ArrayList<>();
+            orderPrintBean.setItems(items);
+            List<OrderDetailItemInfo> collect = orderDao.getOrderDetailItem(orderDetailInfo.getId());
+            for(OrderDetailItemInfo i : collect){
+                OrderItem orderItem = new OrderItem();
+                items.add(orderItem);
+                orderItem.setAmount(i.getProductTotalPrice());
+                orderItem.setName(i.getProductName());
+                orderItem.setSize(i.getProductSize());
+                orderItem.setCount(i.getProductCnt());
+            }
+
+            orderPrintBean.setOrderNum(orderDetailInfo.getOrderNum());
+            orderPrintBean.setOrderTime(SmUtil.parseLongToTMDHMS(orderDetailInfo.getCreatedTime().getTime()));
+            orderPrintBean.setAddress(orderDetailInfo.getAddressDetail());
+            orderPrintBean.setLink(orderDetailInfo.getAddressContract());
+            orderPrintBean.setMessage(orderDetailInfo.getMessage());
+            prienter.print(orderPrintBean);
+        }catch (Exception e){
+            logger.error("打印错误", e);
+        }
     }
 
     public int sureDrawbackPayment(BigDecimal refAmnt, String refundNum, String orderNum) {
