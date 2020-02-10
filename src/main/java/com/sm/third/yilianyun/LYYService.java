@@ -18,8 +18,6 @@ public class LYYService {
     /**
      * 易联云颁发给开发者的应用ID 非空值
      *
-     * token = "0c9a05fe2542463590dac2c5f8ebec9f"
-     * refresh_token = "0756664c443640f29b96205c093cb03b"
      */
     @Value("${YLY.c.i}")
     public String CLIENT_ID;
@@ -35,14 +33,12 @@ public class LYYService {
     @Value("${YLY.m.s}")
     public String mochineSec;
     /**
-     * token token = "1c55fd95920649f2820253c28daeb412"
-     * refresh_token = "354844a1fec54c4b9e8da16508a00352"
      */
     @Value("${YLY.t:}")
     public String token;
 
     /**
-     * 刷新token需要的 refreshtoken f25ed1d0b3bd4dd0b5577c6d0781b9d1
+     * 刷新token需要的  
      */
     @Value("${YLY.r.t:}")
     public String refresh_token;
