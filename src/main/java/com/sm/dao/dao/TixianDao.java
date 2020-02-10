@@ -67,4 +67,14 @@ public class TixianDao {
         }
 
     }
+
+    public BigDecimal getDongjieYueAmount(int userId) {
+        final String sql = String.format("select sum(amount) as amount from %s where user_id = ? and approve_status = 'WAIT_APPROVE'", VarProperties.TIXIAN_APPROVE);
+        try{
+            BigDecimal bigDecimal = jdbcTemplate.queryForObject(sql, new Object[]{userId}, BigDecimal.class);
+            return bigDecimal == null ? BigDecimal.ZERO : bigDecimal;
+        }catch (Exception e){
+            return BigDecimal.ZERO;
+        }
+    }
 }

@@ -11,6 +11,7 @@ import java.util.List;
  */
 public class MyYueResponse {
     private BigDecimal total = BigDecimal.ZERO;
+    private BigDecimal totalDongjie = BigDecimal.ZERO;
     private List<YueItemResponse> yueItems = new ArrayList<>();
 
     public MyYueResponse() {
@@ -27,6 +28,14 @@ public class MyYueResponse {
 
     public void setTotal(BigDecimal total) {
         this.total = total;
+    }
+
+    public BigDecimal getTotalDongjie() {
+        return totalDongjie;
+    }
+
+    public void setTotalDongjie(BigDecimal totalDongjie) {
+        this.totalDongjie = totalDongjie;
     }
 
     public List<YueItemResponse> getYueItems() {

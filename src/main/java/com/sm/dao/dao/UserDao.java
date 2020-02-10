@@ -5,6 +5,7 @@ import com.sm.dao.domain.UserAmountLogType;
 import com.sm.dao.rowMapper.UserRowMapper;
 import com.sm.message.admin.TixianInfo;
 import com.sm.message.profile.*;
+import org.apache.logging.log4j.message.StringFormattedMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -118,6 +119,14 @@ public class UserDao {
         }
     }
 
-    public void tixianSuccess(Integer userId, BigDecimal amount) {
+    public void tixianReject(Integer userId, BigDecimal amount) {
+        final String sql = String.format("update %s set amount = amount + ? where id = ?", VarProperties.USERS);
+        jdbcTemplate.update(sql, new Object[]{amount, userId});
+    }
+
+    public void tixianRequest(int userid, BigDecimal amount) {
+        final String sql = String.format("update %s set amount = amount - ? where id = ?", VarProperties.USERS);
+        jdbcTemplate.update(sql, new Object[]{amount, userid});
+
     }
 }

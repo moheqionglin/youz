@@ -1,5 +1,6 @@
 package com.sm.service;
 
+import com.sm.dao.dao.TixianDao;
 import com.sm.dao.dao.UserAmountLogDao;
 import com.sm.dao.dao.UserDao;
 import com.sm.dao.domain.UserAmountLog;
@@ -29,15 +30,23 @@ public class ProfileService {
     @Autowired
     private UserAmountLogDao userAmountLogDao;
 
+    @Autowired
+    private TixianDao tixianDao;
     public void update(int userId, UpdateProfileRequest request) {
         userDao.updateBaseInfo(userId, request);
     }
 
     public MyYueResponse getMyAmount(int userId, UserAmountLogType type) {
         BigDecimal amount = userDao.getAmountByType(userId, type);
+
         List<UserAmountLog> amountLogByUserId = userAmountLogDao.getAmountLogByUserId(userId, type, 30, 1);
         List<YueItemResponse> yips = amountLogByUserId.stream().map(al -> new YueItemResponse(al.getModifiedTime(), al.getRemark(), al.getAmount())).collect(Collectors.toList());
-        return new MyYueResponse(amount, yips);
+        MyYueResponse myYueResponse = new MyYueResponse(amount, yips);
+        if(UserAmountLogType.YUE.equals(type)){
+            BigDecimal dongjie = tixianDao.getDongjieYueAmount(userId);
+            myYueResponse.setTotalDongjie(dongjie);
+        }
+        return myYueResponse;
     }
 
     public List<YueItemResponse> getAmountLogPaged(int userId, UserAmountLogType type, int pageSize, int pageNum) {
