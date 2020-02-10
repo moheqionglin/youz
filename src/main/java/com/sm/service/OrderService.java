@@ -429,9 +429,8 @@ public class OrderService {
             simo.setUseYongjin(yongjinAmount);
             simo.setUserId(simpleOrder.getUserId());
             simo.setOrderNum(simpleOrder.getOrderNum());
-            userAmountLogDao.drawbackYue(simpleOrder);
-            userAmountLogDao.drawbackYue(simpleOrder);
-            logger.info("退还佣金给 order {}, 佣金 = {}  ", simpleOrder.getOrderNum(), simpleOrder.getUseYongjin());
+            userAmountLogDao.drawbackYongjin(simo);
+            logger.info("退还佣金给 order {}, 佣金 = {}  ", simo.getOrderNum(), simo.getUseYongjin());
         }
         //退还余额
         BigDecimal yueAmount = drawBackAmount.getDisplayTotalYue();
@@ -440,8 +439,8 @@ public class OrderService {
             simo.setUseYue(yueAmount);
             simo.setUserId(simpleOrder.getUserId());
             simo.setOrderNum(simpleOrder.getOrderNum());
-            userAmountLogDao.drawbackYue(simpleOrder);
-            logger.info("退还余额给 order {}, 余额 = {}  ", simpleOrder.getOrderNum(), simpleOrder.getUseYue());
+            userAmountLogDao.drawbackYue(simo);
+            logger.info("退还余额给 order {}, 余额 = {}  ", simo.getOrderNum(), simo.getUseYue());
         }
 
     }

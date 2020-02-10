@@ -38,7 +38,7 @@ public class LYYService {
     public String token;
 
     /**
-     * 刷新token需要的  
+     * 刷新token需要的
      */
     @Value("${YLY.r.t:}")
     public String refresh_token;

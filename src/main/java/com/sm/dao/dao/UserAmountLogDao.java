@@ -82,7 +82,7 @@ public class UserAmountLogDao {
         userAmountLog.setUserId(simpleOrder.getUserId());
         userAmountLog.setAmount(amount);
         userAmountLog.setLogType(UserAmountLogType.YUE);
-        userAmountLog.setRemark(String.format("差价订单退款(订单号：%s)", simpleOrder.getOrderNum()));
+        userAmountLog.setRemark(String.format("差价订单退还(订单号：%s)", simpleOrder.getOrderNum()));
         userAmountLog.setRemarkDetail(String.format("差价订单退款 %s ，退还余额", simpleOrder.getOrderNum()));
         this.create(userAmountLog);
     }
