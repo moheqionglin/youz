@@ -17,6 +17,9 @@ public class LYYService {
     private Logger log = LoggerFactory.getLogger(this.getClass());
     /**
      * 易联云颁发给开发者的应用ID 非空值
+     *
+     * token = "0c9a05fe2542463590dac2c5f8ebec9f"
+     * refresh_token = "0756664c443640f29b96205c093cb03b"
      */
     @Value("${YLY.c.i}")
     public String CLIENT_ID;
@@ -54,6 +57,7 @@ public class LYYService {
     public void doInit(){
         try{
             if(StringUtils.isBlank(token) || StringUtils.isBlank(refresh_token)){
+                log.info("Refresh get token ");
                 this.getFreedomToken();
             }
 //            this.refreshToken();
@@ -119,6 +123,7 @@ public class LYYService {
                 "all",
                 timestamp,
                 LAVApi.getuuid());
+        log.info("获取打印机token {}", result);
         try {
             JSONObject json = JSONObject.parseObject(result);
             JSONObject body = json.getJSONObject("body");
