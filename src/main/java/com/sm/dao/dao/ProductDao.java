@@ -237,7 +237,7 @@ public class ProductDao {
         }
         int startIndex = (pageNum - 1) * pageSize;
         String adminPageColumns = "ADMIN".equalsIgnoreCase(pageType) ? ", t1.size as size, t1.cost_price as cost_price" : "";
-
+        String sort = "ADMIN".equalsIgnoreCase(pageType) ? " t1.sort asc " : " t1.sales_cnt desc, t1.sort asc ";
         List<Object> params = new ArrayList<>();
         params.add(searchRequest.isShow());
         params.add("%"+searchRequest.getSearchTerm()+"%");
@@ -259,8 +259,8 @@ public class ProductDao {
         params.add(pageSize);
         final String sql = String.format("select t1.id as id, t1.name as name ,t1.sort as sort, sanzhung,show_able,stock,origin_price,current_price,profile_img,sales_cnt, zhuanqu_id, t2.enable as zhuanquenable, zhuanqu_price , zhuanqu_endTime" +adminPageColumns +
                 " from %s as t1 left join %s as t2 on t1.zhuanqu_id = t2.id " +
-                " where t1.show_able = ? and t1.name like ? %s order by t1.sales_cnt desc, t1.sort asc limit ?, ?", VarProperties.PRODUCTS, VarProperties.PRODUCT_ZHUANQU_CATEGORY,
-                filterByCategory);
+                " where t1.show_able = ? and t1.name like ? %s order by %s limit ?, ?", VarProperties.PRODUCTS, VarProperties.PRODUCT_ZHUANQU_CATEGORY,
+                filterByCategory, sort);
 
         return jdbcTemplate.query(sql, params.toArray(), new ProductListItem.ProductListItemRowMapper());
     }
