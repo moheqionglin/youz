@@ -617,4 +617,6 @@ select * from product_comment
 select *from products order by id desc
 select * from orders
 select * from product_category order by id desc
-
+select * from product_category order by id desc
+select * from shipping_address
+select * from products order by id desc

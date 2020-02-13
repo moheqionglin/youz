@@ -12,7 +12,6 @@ import javax.validation.constraints.NotNull;
 public class FeebackRequest {
     @NotNull
     private String content;
-    @NotNull
     private String phone;
 
     public String getContent() {

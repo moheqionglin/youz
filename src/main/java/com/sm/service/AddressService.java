@@ -53,6 +53,9 @@ public class AddressService {
 
     public AddressListItem getDefaultAddress(int userId) {
         ShippingAddress a = addressDao.getDefaultAddress(userId);
+        if(a == null){
+            return null;
+        }
         return new AddressListItem(a.getId(), a.getShippingAddress(), a.getShippingAddressDetails(), a.getLinkPerson(), a.getPhone(), a.isDefaultAddress());
     }
 }
