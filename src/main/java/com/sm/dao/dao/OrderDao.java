@@ -359,12 +359,21 @@ public class OrderDao {
     }
 
     public long getJianhuoCnt(int userId, OrderAdminController.JianHYOrderStatus type) {
+
         String userCon = "";
+        switch (type){
+            case NOT_JIANHUO:
+                userCon = "  and status = 'WAIT_SEND'  ";
+                break;
+            default:
+                userCon = " and jianhuoyuan_id = " + userId;
+                break;
+        }
         if(OrderAdminController.JianHYOrderStatus.HAD_JIANHUO.equals(type) ||
                 OrderAdminController.JianHYOrderStatus.ING_JIANHUO.equals(type) ){
             userCon = " and jianhuoyuan_id = " + userId;
         }
-        final String sql = String.format("select count(1) from %s where jianhuo_status = ? %s ", VarProperties.ORDER, userCon);
+        final String sql = String.format("select count(1) from %s where jianhuo_status = ? and drawback_status in ( 'NONE', 'APPROVE_REJECT') %s ", VarProperties.ORDER, userCon);
         return jdbcTemplate.queryForObject(sql, new Object[]{type.toString()}, Long.class);
     }
 }
