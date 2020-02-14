@@ -244,10 +244,10 @@ public class ProductDao {
 
         String whereCon = "";
         if(StringUtils.isNotBlank(searchRequest.getBarcode())){
-            whereCon = " t1.code = ? ";
+            whereCon = " and t1.code = ? ";
             params.add(searchRequest.getBarcode());
         }else if (StringUtils.isNotBlank(searchRequest.getSearchTerm())){
-            whereCon = " t1.name like ? ";
+            whereCon = " and t1.name like ? ";
             params.add("%"+searchRequest.getSearchTerm()+"%");
         }
 
@@ -271,7 +271,7 @@ public class ProductDao {
 
         final String sql = String.format("select t1.id as id, t1.name as name ,t1.sort as sort, sanzhung,show_able,stock,origin_price,current_price,profile_img,sales_cnt, zhuanqu_id, t2.enable as zhuanquenable, zhuanqu_price , zhuanqu_endTime" +adminPageColumns +
                 " from %s as t1 left join %s as t2 on t1.zhuanqu_id = t2.id " +
-                " where t1.show_able = ? and %s %s order by %s limit ?, ?", VarProperties.PRODUCTS, VarProperties.PRODUCT_ZHUANQU_CATEGORY,
+                " where t1.show_able = ?  %s %s order by %s limit ?, ?", VarProperties.PRODUCTS, VarProperties.PRODUCT_ZHUANQU_CATEGORY,
                 whereCon, filterByCategory, sort);
 
         return jdbcTemplate.query(sql, params.toArray(), new ProductListItem.ProductListItemRowMapper());
