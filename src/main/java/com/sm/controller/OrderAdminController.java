@@ -165,7 +165,7 @@ public class OrderAdminController {
             @ApiImplicitParam(name = "type", value = "type", required = true, paramType = "path", dataType = "JianHYOrderStatus"),
     })
     @ApiResponses(value={@ApiResponse(code= 420, message="订单不存在"), @ApiResponse(code= 430, message="订单有人认领")})
-    public ResultJson getJianhuoCnt(@Valid @NotNull @RequestParam("type") JianHYOrderStatus type){
+    public ResultJson getJianhuoCnt(@Valid @NotNull @PathVariable("type") JianHYOrderStatus type){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
         return orderService.getJianhuoCnt(userDetail.getId(), type);
