@@ -246,7 +246,7 @@ public class ProductDao {
         if(StringUtils.isNotBlank(searchRequest.getBarcode())){
             whereCon = " t1.code = ? ";
             params.add(searchRequest.getBarcode());
-        }else{
+        }else if (StringUtils.isNotBlank(searchRequest.getSearchTerm())){
             whereCon = " t1.name like ? ";
             params.add("%"+searchRequest.getSearchTerm()+"%");
         }
