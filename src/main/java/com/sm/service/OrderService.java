@@ -527,8 +527,8 @@ public class OrderService {
         return drawbackApproveList;
     }
 
-    public List<OrderListItemInfo> getOrderListForJianHuoyuan(OrderAdminController.JianHYOrderStatus orderType, int pageSize, int pageNum) {
-        List<OrderListItemInfo> orderListForJianHuoyuan = orderDao.getOrderListForJianHuoyuan(orderType, pageSize, pageNum);
+    public List<OrderListItemInfo> getOrderListForJianHuoyuan(Integer userId, OrderAdminController.JianHYOrderStatus orderType, int pageSize, int pageNum) {
+        List<OrderListItemInfo> orderListForJianHuoyuan = orderDao.getOrderListForJianHuoyuan(userId, orderType, pageSize, pageNum);
         fillOrderItemImg(orderListForJianHuoyuan);
         return orderListForJianHuoyuan;
     }

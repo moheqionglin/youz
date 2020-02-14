@@ -74,8 +74,9 @@ public class OrderAdminController {
             @Valid @NotNull @PathVariable("orderType") JianHYOrderStatus orderType,
             @Valid @NotNull @RequestParam("page_size") int pageSize,
             @Valid @NotNull @RequestParam("page_num") int pageNum){
-
-        return orderService.getOrderListForJianHuoyuan(orderType, pageSize, pageNum);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
+        return orderService.getOrderListForJianHuoyuan(userDetail.getId(), orderType, pageSize, pageNum);
     }
 
     @PutMapping(path = "/aorder/{actionType}/action")

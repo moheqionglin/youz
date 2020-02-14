@@ -266,7 +266,7 @@ public class OrderDao {
         return jdbcTemplate.query(sql, new Object[]{ startIndex, pageSize}, new OrderListItemInfo.OrderListItemInfoRowMapper());
     }
 
-    public List<OrderListItemInfo> getOrderListForJianHuoyuan(OrderAdminController.JianHYOrderStatus orderType, int pageSize, int pageNum) {
+    public List<OrderListItemInfo> getOrderListForJianHuoyuan(Integer userid, OrderAdminController.JianHYOrderStatus orderType, int pageSize, int pageNum) {
         int startIndex = (pageNum - 1) * pageSize;
         String whereSql = "";
         switch (orderType){
@@ -274,7 +274,7 @@ public class OrderDao {
                 whereSql = " and status = 'WAIT_SEND' ";
                 break;
             default:
-                whereSql = "";
+                whereSql = "and jianhuoyuan_id = " + userid + " ";
                 break;
         }
         final String sql = String.format("select id ,order_num,user_id ,address_id ,address_detail ,address_contract , status, total_price ,chajia_status,chajia_price, chajia_need_pay_money, chajia_had_pay_money, created_time, message,  jianhuo_status , has_fahuo from %s where jianhuo_status = ? and drawback_status in ( 'NONE', 'APPROVE_REJECT') %s order by id desc limit ?, ?", VarProperties.ORDER, whereSql);
