@@ -11,6 +11,8 @@ import javax.validation.constraints.NotNull;
  */
 @Valid
 public class SearchRequest {
+
+    private String barcode;
     @NotNull
     private String searchTerm;
     @NotNull
@@ -46,6 +48,14 @@ public class SearchRequest {
 
     public Integer getCategoryId() {
         return categoryId;
+    }
+
+    public String getBarcode() {
+        return barcode;
+    }
+
+    public void setBarcode(String barcode) {
+        this.barcode = barcode;
     }
 
     public void setCategoryId(Integer categoryId) {

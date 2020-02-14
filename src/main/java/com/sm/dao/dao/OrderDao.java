@@ -357,4 +357,14 @@ public class OrderDao {
         final String sql = String.format("update %s set status = 'CANCEL_TIMEOUT' where status = 'WAIT_PAY' and  now() > DATE_ADD(created_time, INTERVAL 15 MINUTE )", VarProperties.ORDER);
         jdbcTemplate.update(sql);
     }
+
+    public long getJianhuoCnt(int userId, OrderAdminController.JianHYOrderStatus type) {
+        String userCon = "";
+        if(OrderAdminController.JianHYOrderStatus.HAD_JIANHUO.equals(type) ||
+                OrderAdminController.JianHYOrderStatus.ING_JIANHUO.equals(type) ){
+            userCon = " and jianhuoyuan_id = " + userId;
+        }
+        final String sql = String.format("select count(1) from %s where jianhuo_status = ? %s ", VarProperties.ORDER, userCon);
+        return jdbcTemplate.queryForObject(sql, new Object[]{type.toString()}, Long.class);
+    }
 }

@@ -36,7 +36,7 @@ public class SearchController {
     private SearchService searchService;
 
     @PostMapping(path = "/search/list")
-    @ApiOperation(value = "[管理员在编辑产品页面搜索]  添加专区商品页面， 轮播管理页面")
+    @ApiOperation(value = "[管理员在编辑产品页面搜索]  添加专区商品页面， 轮播管理页面(当扫码搜索的时候 SearchRequest.searchTerm = barcode)")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page_size", value ="page_size", required = true, paramType = "query", dataType = "Integer"),
             @ApiImplicitParam(name = "page_num", value = "page_num", required = true, paramType = "query", dataType = "Integer"),
@@ -83,7 +83,15 @@ public class SearchController {
     @GetMapping(path = "/search/getProductIdByCode/{code}")
     @ApiOperation(value = "[根据code获取id] 不包含 下架商品")
     public Integer getProductIdByCode(@Valid @NotNull @PathVariable("code") String code){
-        Integer id = productService.getProductIdByCode(code);
+        Integer id = productService.getProductIdByCode(code, false);
+        return id == null ? -1 : id;
+    }
+
+    @GetMapping(path = "/asearch/getProductIdByCode/{code}")
+    @ApiOperation(value = "[ADMIN根据code获取商品id]")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public Integer getProductIdByCodeForAdmin(@Valid @NotNull @PathVariable("code") String code){
+        Integer id = productService.getProductIdByCode(code, true);
         return id == null ? -1 : id;
     }
 

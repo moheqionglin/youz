@@ -16,6 +16,7 @@ CREATE TABLE users (
     amount decimal(10,2)   default 0,
     yongjin decimal(10,2)  default 0,
     yongjin_code varchar(100) ,
+    bind_yongjin_code  varchar(100) ,
     created_time timestamp DEFAULT CURRENT_TIMESTAMP ,
 	modified_time timestamp  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -620,3 +621,4 @@ select * from product_category order by id desc
 select * from product_category order by id desc
 select * from shipping_address
 select * from products order by id desc
+

@@ -238,8 +238,8 @@ public class ProductService {
         return notadmin;
     }
 
-    public Integer getProductIdByCode(String code) {
-        return productDao.getProductIdByCode(code);
+    public Integer getProductIdByCode(String code, boolean isAdmin) {
+        return productDao.getProductIdByCode(code, isAdmin);
     }
 
     public void subStock(HashMap<Integer, Integer> pid2cnt) {

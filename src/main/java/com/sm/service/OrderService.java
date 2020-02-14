@@ -521,22 +521,6 @@ public class OrderService {
         return ResultJson.ok();
     }
 
-    public ResultJson finishJianhuoItem(int userId, String orderNum, Integer orderItemId) {
-        SimpleOrder simpleOrder = orderDao.getSimpleOrder(orderNum);
-        if(simpleOrder == null){
-            return ResultJson.failure(HttpYzCode.ORDER_NOT_EXISTS);
-        }
-        if( OrderAdminController.JianHYOrderStatus.NOT_JIANHUO.toString().equals(simpleOrder.getJianhuoStatus())
-                || simpleOrder.getJianhuoyuanId() == null ){
-            return ResultJson.failure(HttpYzCode.ORDER_NO_JIANHUO);
-        }
-        if(!simpleOrder.getJianhuoyuanId().equals(userId)){
-            return ResultJson.failure(HttpYzCode.ORDER_JIANHUO_NOT_CURRENT_ORDER);
-        }
-        orderDao.finishJianhuoItem(simpleOrder.getId(), orderItemId);
-        return ResultJson.ok();
-    }
-
     public List<OrderListItemInfo> getDrawbackApproveList(OrderController.DrawbackStatus orderType, int pageSize, int pageNum) {
         List<OrderListItemInfo> drawbackApproveList = orderDao.getDrawbackApproveList(orderType, pageSize, pageNum);
         fillOrderItemImg(drawbackApproveList);
@@ -666,4 +650,8 @@ public class OrderService {
         return ResultJson.ok();
     }
 
+    public ResultJson getJianhuoCnt(int userId, OrderAdminController.JianHYOrderStatus type) {
+        long cnt = orderDao.getJianhuoCnt(userId, type);
+        return ResultJson.ok(cnt);
+    }
 }

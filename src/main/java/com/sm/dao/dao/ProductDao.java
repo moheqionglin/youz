@@ -240,7 +240,17 @@ public class ProductDao {
         String sort = "ADMIN".equalsIgnoreCase(pageType) ? " t1.sort asc " : " t1.sales_cnt desc, t1.sort asc ";
         List<Object> params = new ArrayList<>();
         params.add(searchRequest.isShow());
-        params.add("%"+searchRequest.getSearchTerm()+"%");
+
+
+        String whereCon = "";
+        if(StringUtils.isNotBlank(searchRequest.getBarcode())){
+            whereCon = " t1.code = ? ";
+            params.add(searchRequest.getBarcode());
+        }else{
+            whereCon = " t1.name like ? ";
+            params.add("%"+searchRequest.getSearchTerm()+"%");
+        }
+
         String filterByCategory = "";
         if(SearchRequest.SearchType.FIRST.equals(searchRequest.getType())){
             filterByCategory = " and first_category_id = ?";
@@ -257,10 +267,12 @@ public class ProductDao {
 
         params.add(startIndex);
         params.add(pageSize);
+
+
         final String sql = String.format("select t1.id as id, t1.name as name ,t1.sort as sort, sanzhung,show_able,stock,origin_price,current_price,profile_img,sales_cnt, zhuanqu_id, t2.enable as zhuanquenable, zhuanqu_price , zhuanqu_endTime" +adminPageColumns +
                 " from %s as t1 left join %s as t2 on t1.zhuanqu_id = t2.id " +
-                " where t1.show_able = ? and t1.name like ? %s order by %s limit ?, ?", VarProperties.PRODUCTS, VarProperties.PRODUCT_ZHUANQU_CATEGORY,
-                filterByCategory, sort);
+                " where t1.show_able = ? and %s %s order by %s limit ?, ?", VarProperties.PRODUCTS, VarProperties.PRODUCT_ZHUANQU_CATEGORY,
+                whereCon, filterByCategory, sort);
 
         return jdbcTemplate.query(sql, params.toArray(), new ProductListItem.ProductListItemRowMapper());
     }
@@ -275,8 +287,12 @@ public class ProductDao {
         return namedParameterJdbcTemplate.query(sql, pams, new ProductListItem.ProductListItemRowMapper());
     }
 
-    public Integer getProductIdByCode(String code) {
-        final String sql = String.format("select id from %s where code = ? and show_able= true", VarProperties.PRODUCTS);
+    public Integer getProductIdByCode(String code, boolean isAdmin) {
+        String showCondi = " and show_able= true ";
+        if(isAdmin){
+            showCondi = "";
+        }
+        final String sql = String.format("select id from %s where code = ?  %s ", VarProperties.PRODUCTS, showCondi);
         try{
             return jdbcTemplate.queryForObject(sql, new Object[]{code}, Integer.class);
         }catch (Exception e){
