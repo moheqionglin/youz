@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.Random;
 
 /**
  * @author wanli.zhou
@@ -17,7 +18,7 @@ import java.util.Date;
 public class SmUtil {
     public static DateTimeFormatter ymr = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     public static DateTimeFormatter ymrhms = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
+    private final static Random random = new Random();
 
     public static String parseLongToYMD(long time){
         return ymr.format(LocalDateTime.ofInstant(Instant.ofEpochMilli(time),ZoneId.systemDefault()));
@@ -73,7 +74,19 @@ public class SmUtil {
 
 
     public static void main(String[] args) {
-        System.out.println(getTodayYMD());
-        System.out.println(getLastTodayYMD());
+//        System.out.println(getTodayYMD());
+//        System.out.println(getLastTodayYMD());
+        //1704945c386-153
+        System.out.println(generageYongjinCode());
+    }
+
+    /**
+     * 当前年月日时分秒 + 随机数 转成十六进制
+     * @return
+     */
+    public static String generageYongjinCode() {
+        String current = Long.toString(System.currentTimeMillis(), 32);
+        String ran = Integer.toHexString(random.nextInt(1000));
+        return StringUtils.upperCase(current+"-"+ran);
     }
 }

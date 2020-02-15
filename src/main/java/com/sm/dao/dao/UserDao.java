@@ -5,6 +5,7 @@ import com.sm.dao.domain.UserAmountLogType;
 import com.sm.dao.rowMapper.UserRowMapper;
 import com.sm.message.admin.TixianInfo;
 import com.sm.message.profile.*;
+import com.sm.utils.SmUtil;
 import org.apache.logging.log4j.message.StringFormattedMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -41,7 +42,7 @@ public class UserDao {
 
     public User create(String openid, String pwd) {
         String sql = "insert into users(open_code, password, nick_name, head_picture,yongjin_code) values (?, ?, ?, 'http://img.suimeikeji.com/touxiang.png',?) ";
-        jdbcTemplate.update(sql, new Object[]{openid, pwd, "新用户_"+random.nextInt(10000), UUID.randomUUID().toString()});
+        jdbcTemplate.update(sql, new Object[]{openid, pwd, "新用户_"+random.nextInt(10000), SmUtil.generageYongjinCode()});
         int userId = jdbcTemplate.queryForObject("select id from users where open_code = ?", new Object[]{openid}, Integer.class);
         User user = new User();
         user.setId(userId);
