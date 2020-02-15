@@ -2,6 +2,7 @@ package com.sm.controller;
 
 import com.sm.config.UserDetail;
 import com.sm.dao.domain.UserAmountLogType;
+import com.sm.message.ResultJson;
 import com.sm.message.profile.*;
 import com.sm.service.ProfileService;
 import com.sm.service.UserService;
@@ -53,10 +54,14 @@ public class ProfileYzController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "code", value = "code", required = true, paramType = "path", dataType = "String")
     })
-    public void updateBindyongjingcode(@Valid @NotEmpty @PathVariable("code") String code){
+    @ApiResponses(value={@ApiResponse(code=461, message="佣金码不能填写自己")})
+    public ResultJson updateBindyongjingcode(@Valid @NotEmpty @PathVariable("code") String code){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
-        profileService.updateBindyongjingcode(userDetail.getId(), code);
+        if(!profileService.updateBindyongjingcode(userDetail.getId(), code)){
+            return ResultJson.failure(HttpYzCode.YONGJIN_CODE_IS_SELF);
+        }
+        return ResultJson.ok();
     }
 
     @DeleteMapping(path = "/user/bindyongjingcode/{code}")
@@ -65,6 +70,7 @@ public class ProfileYzController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "code", value = "code", required = true, paramType = "path", dataType = "String")
     })
+
     public void deleteBindyongjingcode(@Valid @NotEmpty @PathVariable("code") String code){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();

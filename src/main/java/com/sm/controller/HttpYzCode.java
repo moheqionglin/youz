@@ -42,6 +42,8 @@ public enum  HttpYzCode {
     TIXIAN_AMOUNT_LESS(450, "提现金额小于1"),
     TIXIAN_AMOUNT_EXCEED(451, "提现金额超过实际余额"),
     YONGJIN_BILI_TOO_MAX(460, "佣金比例应该小于1"),
+    YONGJIN_CODE_IS_SELF(461, "佣金码不能填写自己的"),
+
     TIXIAN_ERROR(452, "提现错误"),
     KANJIA_HELP_OTHER_EXISTS(470, "已经帮助别人砍过价"),
     KANJIA_SELF_EXISTS(471, "已经发起过砍价"),

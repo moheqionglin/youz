@@ -135,8 +135,9 @@ public class UserDao {
         jdbcTemplate.update(sql, new Object[]{userId, code});
     }
 
-    public void updateBindyongjingcode(int userId, String code) {
-        final String sql = String.format("update %s set bind_yongjin_code = ? where id = ? ", VarProperties.USERS);
-        jdbcTemplate.update(sql, new Object[]{code, userId});
+    public boolean updateBindyongjingcode(int userId, String code) {
+        final String sql = String.format("update %s set bind_yongjin_code = ? where id = ? and yongjin_code != ? ", VarProperties.USERS);
+        int result =  jdbcTemplate.update(sql, new Object[]{code, userId, code});
+        return result > 0;
     }
 }

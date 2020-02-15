@@ -59,11 +59,12 @@ public class ProfileService {
         return userDao.getProfileBaseInfo(userId);
     }
 
-    public void updateBindyongjingcode(int userId, String code) {
-        userDao.updateBindyongjingcode(userId, code);
+    public boolean updateBindyongjingcode(int userId, String code) {
+        return userDao.updateBindyongjingcode(userId, code);
     }
 
     public void deleteBindyongjingcode(int userId, String code) {
         userDao.deleteBindyongjingcode(userId, code);
     }
+
 }
