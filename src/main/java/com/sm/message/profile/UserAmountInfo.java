@@ -16,6 +16,8 @@ public class UserAmountInfo {
     private BigDecimal yue;
     private BigDecimal yongjin;
     private String yongjincode;
+    private String bindyongjincode;
+
     public static class UserAmountInfoRowMapper  implements RowMapper<UserAmountInfo> {
 
         @Override
@@ -30,6 +32,9 @@ public class UserAmountInfo {
             if (existsColumn(resultSet, "yongjin_code")) {
                 userAmountInfo.setYongjincode(resultSet.getString("yongjin_code"));
             }
+            if (existsColumn(resultSet, "bind_yongjin_code")) {
+                userAmountInfo.setBindyongjincode(resultSet.getString("bind_yongjin_code"));
+            }
 
             return userAmountInfo;
         }
@@ -43,6 +48,14 @@ public class UserAmountInfo {
         }
     }
     public UserAmountInfo() {
+    }
+
+    public String getBindyongjincode() {
+        return bindyongjincode;
+    }
+
+    public void setBindyongjincode(String bindyongjincode) {
+        this.bindyongjincode = bindyongjincode;
     }
 
     public UserAmountInfo(BigDecimal yue, BigDecimal yongjin) {

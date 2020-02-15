@@ -13,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
@@ -45,6 +46,31 @@ public class ProfileYzController {
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
         profileService.update(userDetail.getId(), user);
     }
+
+    @PutMapping(path = "/user/bindyongjingcode/{code}")
+    @PreAuthorize("hasAuthority('BUYER')  ")
+    @ApiOperation(value = "绑定佣金吗")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "code", value = "code", required = true, paramType = "path", dataType = "String")
+    })
+    public void updateBindyongjingcode(@Valid @NotEmpty @PathVariable("code") String code){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
+        profileService.updateBindyongjingcode(userDetail.getId(), code);
+    }
+
+    @DeleteMapping(path = "/user/bindyongjingcode/{code}")
+    @PreAuthorize("hasAuthority('BUYER')  ")
+    @ApiOperation(value = "删除佣金吗")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "code", value = "code", required = true, paramType = "path", dataType = "String")
+    })
+    public void deleteBindyongjingcode(@Valid @NotEmpty @PathVariable("code") String code){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
+        profileService.deleteBindyongjingcode(userDetail.getId(), code);
+    }
+
 
     @GetMapping(path = "/user/detail")
     @PreAuthorize("hasAuthority('BUYER')  ")

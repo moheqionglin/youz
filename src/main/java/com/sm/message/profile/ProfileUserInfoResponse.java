@@ -20,6 +20,7 @@ public class ProfileUserInfoResponse {
     private BigDecimal yongjin;
     private String sex;
     private String birthday;
+    private String bindYongjinCode;
 
     public static class ProfileUserInfoResponseRowMapper implements RowMapper<ProfileUserInfoResponse> {
         @Override
@@ -47,6 +48,9 @@ public class ProfileUserInfoResponse {
             if(existsColumn(resultSet, "sex")){
                 user.setSex(resultSet.getString("sex"));
             }
+            if(existsColumn(resultSet, "bind_yongjin_code")){
+                user.setBindYongjinCode(resultSet.getString("bind_yongjin_code"));
+            }
             return user;
         }
         private boolean existsColumn(ResultSet rs, String column) {
@@ -57,6 +61,15 @@ public class ProfileUserInfoResponse {
             }
         }
     }
+
+    public String getBindYongjinCode() {
+        return bindYongjinCode;
+    }
+
+    public void setBindYongjinCode(String bindYongjinCode) {
+        this.bindYongjinCode = bindYongjinCode;
+    }
+
     public Integer getId() {
         return id;
     }

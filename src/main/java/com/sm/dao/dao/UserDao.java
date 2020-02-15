@@ -97,7 +97,7 @@ public class UserDao {
     }
 
     public ProfileUserInfoResponse getProfileBaseInfo(int userId) {
-        final String sql = String.format("select id, sex,birthday, nick_name,head_picture,amount, yongjin from %s where id = ?", VarProperties.USERS);
+        final String sql = String.format("select id, sex,birthday, nick_name,head_picture,amount, yongjin,bind_yongjin_code from %s where id = ?", VarProperties.USERS);
         try {
             return jdbcTemplate.queryForObject(sql, new Object[]{userId}, new ProfileUserInfoResponse.ProfileUserInfoResponseRowMapper());
         }catch (Exception e){
@@ -128,5 +128,15 @@ public class UserDao {
         final String sql = String.format("update %s set amount = amount - ? where id = ?", VarProperties.USERS);
         jdbcTemplate.update(sql, new Object[]{amount, userid});
 
+    }
+
+    public void deleteBindyongjingcode(int userId, String code) {
+        final String sql = String.format("update %s set bind_yongjin_code = null where id = ? and bind_yongjin_code = ?", VarProperties.USERS);
+        jdbcTemplate.update(sql, new Object[]{userId, code});
+    }
+
+    public void updateBindyongjingcode(int userId, String code) {
+        final String sql = String.format("update %s set bind_yongjin_code = ? where id = ? ", VarProperties.USERS);
+        jdbcTemplate.update(sql, new Object[]{code, userId});
     }
 }
