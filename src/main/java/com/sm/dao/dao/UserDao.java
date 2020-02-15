@@ -71,7 +71,7 @@ public class UserDao {
     }
 
     public UserAmountInfo getAmount(int userID) {
-        final String sql = String.format("select amount, yongjin,yongjin_code from %s where id = ? ", VarProperties.USERS);
+        final String sql = String.format("select amount, yongjin,yongjin_code,bind_yongjin_code from %s where id = ? ", VarProperties.USERS);
         return jdbcTemplate.query(sql, new Object[]{userID}, new UserAmountInfo.UserAmountInfoRowMapper()).stream().findFirst().orElse(null);
     }
 
