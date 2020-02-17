@@ -42,7 +42,7 @@ public class AuthServiceImpl {
     private CacheService cacheService;
     @Value("${sm.wx.appid}")
     private String appid;
-    @Value("${sm.wx.key}")
+    @Value("${sm.wx.appsec}")
     private String sec;
     @Value("${sm.wx.grant_type:authorization_code}")
     private String grant_type;
