@@ -42,7 +42,7 @@ public class AuthServiceImpl {
     private CacheService cacheService;
     @Value("${sm.wx.appid}")
     private String appid;
-    @Value("${sm.wx.appsec}")
+    @Value("${sm.wx.key}")
     private String sec;
     @Value("${sm.wx.grant_type:authorization_code}")
     private String grant_type;
@@ -93,7 +93,9 @@ public class AuthServiceImpl {
         JSONObject code2Session = JSONObject.parseObject(code2SessionStr);
         WxCode2SessionResponse response = new WxCode2SessionResponse();
         response.setOpenid(code2Session.getString("openid"));
-        response.setExpires_in(code2Session.getInteger("expires_in"));
+        if(code2Session.containsKey("expires_in")){
+            response.setExpires_in(code2Session.getInteger("expires_in"));
+        }
         response.setSession_key(code2Session.getString("session_key"));
         return response;
     }

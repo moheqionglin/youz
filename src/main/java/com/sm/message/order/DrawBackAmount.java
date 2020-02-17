@@ -97,6 +97,7 @@ public class DrawBackAmount {
                             this.displayTotalYue = BigDecimal.ZERO;
                             subVar = subVar.add(this.hadPayMoney);
                             if(subVar.compareTo(BigDecimal.ZERO) < 0){
+                                this.displayOrderAmount = BigDecimal.ZERO;
                                 log.error("Order id = "+this.orderId+", calc drawback amount error, because subVar（"+subVar.toPlainString()+"） < 0 ");
                             }else {//subVar>= 0
                                 this.displayOrderAmount = subVar.setScale(2, RoundingMode.UP);
