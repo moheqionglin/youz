@@ -13,7 +13,7 @@ import org.springframework.web.client.RestTemplate;
  * @description
  * @time 2020-01-08 13:33
  */
-@Ignore
+//@Ignore
 public class RestTemplateTest extends BaseTest{
 
 
@@ -23,11 +23,11 @@ public class RestTemplateTest extends BaseTest{
     @Autowired
     private AuthServiceImpl authService;
 
-    @Ignore
+//    @Ignore
     @Test
     public void codeTest(){
 
-        String code = "001rk9Nn0T3o1n1DpMOn0vS6Nn0rk9ND";
+        String code = "021FWsTx1rLhDb0PMfUx1n2vTx1FWsTi\n";
         WxCode2SessionResponse wxCode2SessionResponse = authService.getWxCode2SessionResponse(code);
         System.out.println(wxCode2SessionResponse);
     }

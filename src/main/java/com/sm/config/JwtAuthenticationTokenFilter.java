@@ -52,7 +52,7 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
         }
 
         int userId = jwtUtils.getUserIdFromToken(auth_token);
-        logger.info(String.format("Checking authentication for userDetail %s.", userId));
+        logger.info(String.format("Checking authentication for token=[%s] userDetail=[%s].", auth_token, userId));
 
         if (cacheService.containsToken(userId, auth_token)  && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetail userDetail = jwtUtils.getUserFromToken(auth_token);

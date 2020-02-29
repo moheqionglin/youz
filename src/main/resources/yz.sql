@@ -10,7 +10,7 @@ CREATE TABLE users (
     nick_name varchar(50) default '新用户',
     birthday datetime DEFAULT CURRENT_TIMESTAMP,
     reg_time timestamp DEFAULT CURRENT_TIMESTAMP,
-    head_picture varchar(255) default 'http://img.suimeikeji.com/touxiang.png',
+    head_picture varchar(255) default 'http://img.suimeikeji.com/touxiang.jpg',
     disable bit(1) default false,
     open_code varchar(100) NULL,
     amount decimal(10,2)   default 0,
@@ -118,7 +118,7 @@ create table products(
     sort int default 0 not null comment '排序',
 
     profile_img varchar(200) not null comment '封面图片',
-    lunbo_imgs varchar(600) not null comment '轮播图片',
+    lunbo_imgs varchar(2000) not null comment '轮播图片',
     detail_imgs varchar(2000) comment '商品详情页图片',
 
     sales_cnt int default 0,
@@ -622,3 +622,12 @@ select * from product_category order by id desc
 select * from shipping_address
 select * from products order by id desc
 
+select * from products_bk where name like '%青岛啤酒 296%'
+select * from products_bk_bk where id = 888
+select * from products_bk_bk  order by id desc
+create table products_bk_bk
+    select * from products_bk
+select id, image from lunbo
+select profile_img, count(1) from products group by profile_img having count(1) > 1
+
+select * from products_bk_bk where detail_imgs like '%http://121.40.186.118:10090/upload/201911/22/191122204259379415.jpeg%'
