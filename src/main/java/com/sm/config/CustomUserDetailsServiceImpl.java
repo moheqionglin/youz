@@ -3,6 +3,8 @@ package com.sm.config;
 import com.sm.dao.domain.Role;
 import com.sm.dao.domain.User;
 import com.sm.service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -18,6 +20,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @Component(value="customUserDetailsService")
 public class CustomUserDetailsServiceImpl implements UserDetailsService {
 
+    private Logger log = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
     private UserService userService;
@@ -41,10 +44,12 @@ public class CustomUserDetailsServiceImpl implements UserDetailsService {
             List<Role> roles = userService.getRolesByUserId(user.getId());
             UserDetail userDetail = new UserDetail(user.getId(), user.getNickName(), roles, user.getPassword(), openId);
             return userDetail;
+        }catch (Exception e){
+            log.error("loadUserByUsername error ", e);
+            throw new UsernameNotFoundException("loadUserByUsername error");
         }finally {
             lock.unlock();
         }
-
 
     }
 }

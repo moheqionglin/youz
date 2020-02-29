@@ -34,7 +34,7 @@ public class UserDao {
     public User getUserByOpenId(String openId){
         String sql = "select id, sex, password, nick_name, birthday, head_picture, open_code, amount, yongjin from users where open_code = ?";
         try{
-            return jdbcTemplate.queryForObject(sql, new Object[]{openId}, new UserRowMapper());
+            return jdbcTemplate.query(sql, new Object[]{openId}, new UserRowMapper()).stream().findFirst().orElse(null);
         }catch (Exception e){
             return null;
         }
@@ -43,7 +43,10 @@ public class UserDao {
     public User create(String openid, String pwd) {
         String sql = "insert into users(open_code, password, nick_name, head_picture,yongjin_code) values (?, ?, ?, 'http://img.suimeikeji.com/touxiang.jpg',?) ";
         jdbcTemplate.update(sql, new Object[]{openid, pwd, "新用户_"+random.nextInt(10000), SmUtil.generageYongjinCode()});
-        int userId = jdbcTemplate.queryForObject("select id from users where open_code = ?", new Object[]{openid}, Integer.class);
+        Integer userId = jdbcTemplate.queryForList("select id from users where open_code = ?", new Object[]{openid}, Integer.class).stream().findFirst().orElse(null);
+        if(userId == null){
+            throw new RuntimeException("user is null");
+        }
         User user = new User();
         user.setId(userId);
         user.setOpenCode(openid);

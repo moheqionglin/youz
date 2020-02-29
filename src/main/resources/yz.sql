@@ -621,7 +621,7 @@ select * from product_category order by id desc
 select * from product_category order by id desc
 select * from shipping_address
 select * from products order by id desc
-
+select * from users where open_code = 'oNnYf0cWKN5eZk5zhYQ8s0_byTeM'
 select * from products_bk where name like '%青岛啤酒 296%'
 select * from products_bk_bk where id = 888
 select * from products_bk_bk  order by id desc

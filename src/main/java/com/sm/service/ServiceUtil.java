@@ -33,7 +33,7 @@ public class ServiceUtil {
     public String getNewImgToken(){
         StringMap policy = new StringMap();
         policy.put("insertOnly", 1);
-        return auth.uploadToken(bucketName, null, 3600 * 6, policy, true);
+        return auth.uploadToken(bucketName, null, 3600 * 2, policy, true);
     }
 
     public static boolean zhuanquValid(int zhuanquId, boolean zhuanquEnable, Long zhuanquEndTime){

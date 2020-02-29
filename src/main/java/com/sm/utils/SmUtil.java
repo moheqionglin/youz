@@ -72,14 +72,6 @@ public class SmUtil {
         return Date.from(instant).getTime();
     }
 
-
-    public static void main(String[] args) {
-//        System.out.println(getTodayYMD());
-//        System.out.println(getLastTodayYMD());
-        //1704945c386-153
-        System.out.println(generageYongjinCode());
-    }
-
     /**
      * 当前年月日时分秒 + 随机数 转成十六进制
      * @return
