@@ -22,7 +22,7 @@ jwt:
   header: Authorization
   secret: mySecret
   #token有效期一天
-  expiration: 864000
+  expiration: 86400000
   tokenHead: "Bearer "
 sm:
   connection:
