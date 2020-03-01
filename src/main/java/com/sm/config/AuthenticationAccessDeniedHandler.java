@@ -24,7 +24,7 @@ public class AuthenticationAccessDeniedHandler implements AccessDeniedHandler {
     @Override
     public void handle(HttpServletRequest httpServletRequest, HttpServletResponse response, AccessDeniedException e) throws IOException, ServletException {
         //登陆状态下，权限不足执行该方法
-        logger.info("匿名用户 无权限资源时的异常 ：" + e.getMessage());
+        logger.info("用来解决认证过的用户 无权限资源时的异常 ：" + e.getMessage());
         response.setStatus(HttpYzCode.FORBIDDEN.getCode());
         response.setCharacterEncoding("UTF-8");
         response.setContentType("application/json; charset=utf-8");
