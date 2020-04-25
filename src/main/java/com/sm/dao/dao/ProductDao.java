@@ -50,7 +50,7 @@ public class ProductDao {
 
         String adminPageColumns = "ADMIN".equalsIgnoreCase(pageType) ? ", t1.size as size, t1.sort as sort, t1.cost_price as cost_price" : "";
         String sort = "ADMIN".equalsIgnoreCase(pageType) ? "order by t1.sort asc " : "order by t1.sales_cnt desc, t1.sort asc ";
-        final String sql = String.format("select t1.id as id, t1.name as name ,sanzhung,show_able,stock,origin_price,current_price,profile_img,sales_cnt, zhuanqu_id, t2.enable as zhuanquenable, zhuanqu_price,zhuanqu_endTime " + adminPageColumns +
+        final String sql = String.format("select t1.id as id, t1.name as name ,sanzhung,show_able,stock,origin_price,current_price,profile_img,sales_cnt, zhuanqu_id, t2.enable as zhuanquenable, zhuanqu_price,zhuanqu_endTime, max_kanjia_person " + adminPageColumns +
                 " from %s as t1 left join %s as t2 on t1.zhuanqu_id = t2.id " +
                 " where t1.show_able = ? %s %s limit ?, ?", VarProperties.PRODUCTS, VarProperties.PRODUCT_ZHUANQU_CATEGORY, filterByCategory, sort);
         Object[] pams = new Object[]{isShow, categoryId, startIndex, pageSize};
@@ -172,8 +172,16 @@ public class ProductDao {
     }
 
     public void addTejiaProudctFeature(int categoryid, TejiaProductItem tejiaProductItem) {
-        final String sql = String.format("update %s set zhuanqu_id = ? , zhuanqu_price = ?, zhuanqu_endTime = ?  where id = ?", VarProperties.PRODUCTS);
-        jdbcTemplate.update(sql, new Object[]{tejiaProductItem.getCategoryId(), tejiaProductItem.getTejiaPrice(), tejiaProductItem.getEndTime(), tejiaProductItem.getProductId()});
+
+        String maxKanjiaPerson = " ";
+        Object[] params = new Object[]{tejiaProductItem.getCategoryId(), tejiaProductItem.getTejiaPrice(), tejiaProductItem.getEndTime(), tejiaProductItem.getProductId()};
+        if(tejiaProductItem.getCategoryId() == 1){
+            maxKanjiaPerson = " , max_kanjia_person = ? ";
+            tejiaProductItem.setMaxKanjiaPerson(tejiaProductItem.getMaxKanjiaPerson() == null || tejiaProductItem.getMaxKanjiaPerson() <=0 ? 3 : tejiaProductItem.getMaxKanjiaPerson());
+            params = new Object[]{tejiaProductItem.getCategoryId(), tejiaProductItem.getTejiaPrice(), tejiaProductItem.getMaxKanjiaPerson(), tejiaProductItem.getEndTime(), tejiaProductItem.getProductId()};
+        }
+        final String sql = String.format("update %s set zhuanqu_id = ? , zhuanqu_price = ? %s ,  zhuanqu_endTime = ?  where id = ?", VarProperties.PRODUCTS, maxKanjiaPerson);
+        jdbcTemplate.update(sql, params);
     }
 
     public void addKanjiaProudctFeature(int categoryid, KanjiaProductItem kanjiaProductItem) {
