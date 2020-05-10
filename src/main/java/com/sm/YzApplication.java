@@ -9,11 +9,15 @@ import com.qiniu.storage.Region;
 import com.qiniu.storage.UploadManager;
 import com.qiniu.util.Auth;
 import com.sm.third.yilianyun.LYYService;
+import com.sm.utils.wx.AesException;
+import com.sm.utils.wx.WXBizMsgCrypt;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContextBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -49,6 +53,7 @@ import java.util.List;
 @Component("com.sm")
 @EnableScheduling
 public class YzApplication {
+	private final Logger log = LoggerFactory.getLogger(this.getClass());
 	@Value("${rest.connection.timeout:6000}")
 	private Integer connectionTimeout;
 	// 信息读取超时时间
@@ -66,7 +71,19 @@ public class YzApplication {
 	@Value("${sm.wx.key}")
 	public  String XCX_KEY;
 
-
+	@Value("${messageTk}")
+	private String messageTk;
+	@Value("${messageK}")
+	private String messageK;
+	@Bean
+	public WXBizMsgCrypt wXBizMsgCrypt(){
+		try {
+			return new WXBizMsgCrypt(messageTk, messageK, XCX_APP_ID);
+		} catch (AesException e) {
+			log.error("", e);
+		}
+		return null;
+	}
 	@Bean
 	public LYYService lyyService(){
 		LYYService lyyService = new LYYService();
