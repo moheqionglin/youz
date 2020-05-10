@@ -14,13 +14,13 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @Api(tags={"message"})
-@RequestMapping("/v1/message/")
+@RequestMapping("/api/v1/message")
 public class MessageController {
 
     private Logger log = LoggerFactory.getLogger(this.getClass());
     @Autowired
     private WXBizMsgCrypt wxBizMsgCrypt;
-    @GetMapping
+    @GetMapping(path = "/wx")
     @ApiOperation(value = "[验证消息] ")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "signature", value = "参数\t描述", required = true, paramType = "query", dataType = "String"),
@@ -40,7 +40,7 @@ public class MessageController {
         return "success";
     }
 
-    @PostMapping
+    @PostMapping(path = "/wx")
     @ApiOperation(value = "[接受消息] ")
     public String receiveWx(@RequestParam("signature") String signature, @RequestParam("timestamp") String timestamp,
                          @RequestParam("nonce") String nonce, @RequestParam("echostr") String echostr){
