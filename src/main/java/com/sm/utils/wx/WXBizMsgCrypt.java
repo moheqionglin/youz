@@ -270,7 +270,7 @@ public class WXBizMsgCrypt {
 	 * @param timeStamp 时间戳，对应URL参数的timestamp
 	 * @param nonce 随机串，对应URL参数的nonce
 	 * @param echoStr 随机串，对应URL参数的echostr
-	 * 
+	 * Lzmjjp8B3NduYzcxC9mySIKv0G5vGjti7kJcLmG1qif
 	 * @return 解密之后的echostr
 	 * @throws AesException 执行失败，请查看该异常的错误码和具体的错误信息
 	 */

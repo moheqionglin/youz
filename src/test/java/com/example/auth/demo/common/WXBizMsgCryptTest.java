@@ -4,6 +4,9 @@ import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -151,4 +154,18 @@ public class WXBizMsgCryptTest {
 		wxcpt.verifyUrl(verifyMsgSig, timeStamp, nonce, echoStr);
 		// 只要不抛出异常就好
 	}
+
+	@Test
+	public void testVerifyUrl1() throws AesException {
+		WXBizMsgCrypt wxcpt = new WXBizMsgCrypt("jj52kk",
+				"Lzmjjp8B3NduYzcxC9mySIKv0G5vGjti7kJcLmG1qif", "wx026913fbbbb4d621");
+		String verifyMsgSig = "5be1aa33a8f3f489ee05d9158a79fb57cd02fed3";
+		String timeStamp = "1589109158";
+		String nonce = "737633559";
+		String echoStr = "6916549042251491822";
+		wxcpt.verifyUrl(verifyMsgSig, timeStamp, nonce, echoStr);
+		// 只要不抛出异常就好
+	}
+
+
 }

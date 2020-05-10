@@ -9,7 +9,12 @@ import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
+
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 
 
 @RestController
@@ -20,6 +25,11 @@ public class MessageController {
     private Logger log = LoggerFactory.getLogger(this.getClass());
     @Autowired
     private WXBizMsgCrypt wxBizMsgCrypt;
+    @Value("${messageTk}")
+    private String messageTk;
+    @Value("${messageK}")
+    private String messageK;
+
     @GetMapping(path = "/wx")
     @ApiOperation(value = "[验证消息] ")
     @ApiImplicitParams({
@@ -32,19 +42,19 @@ public class MessageController {
     public String receive(@RequestParam("signature") String signature, @RequestParam("timestamp") String timestamp,
            @RequestParam("nonce") String nonce, @RequestParam("echostr") String echostr){
 
-        if(!checkFromWx(signature, echostr, timestamp, nonce)){
+        if(!checkSignature(signature, timestamp, nonce)){
             log.warn("signature = {}, timestamp = {}, nonce = {}, echostr = {}",signature , timestamp, nonce, echostr);
             return "ERROR";
         }
         log.info("[receive success from wx] {}", echostr);
-        return "success";
+        return echostr;
     }
 
     @PostMapping(path = "/wx")
     @ApiOperation(value = "[接受消息] ")
     public String receiveWx(@RequestParam("signature") String signature, @RequestParam("timestamp") String timestamp,
                          @RequestParam("nonce") String nonce, @RequestParam("echostr") String echostr){
-        if(!checkFromWx(signature, echostr, timestamp, nonce)){
+        if(!checkSignature(signature, timestamp, nonce)){
             log.warn("signature = {}, timestamp = {}, nonce = {}, echostr = {}",signature , timestamp, nonce, echostr);
             return "ERROR";
         }
@@ -52,15 +62,47 @@ public class MessageController {
         return "success";
     }
 
-    private boolean checkFromWx(String signature, String echostr, String timestamp, String nonce){
+    public boolean checkSignature(String signature, String timestamp,
+                                         String nonce) {
+
+        // 将token、timestamp、nonce三个参数进行字典排序  
+        String[] arr = new String[] { messageTk, timestamp, nonce };
+        Arrays.sort(arr);
+
+        // 将三个参数字符串拼接成一个字符串
+        StringBuilder content = new StringBuilder();
+        for (int i = 0; i < arr.length; i++) {
+            content.append(arr[i]);
+        }
         try {
-            String sing = wxBizMsgCrypt.encryptMsg(echostr, timestamp, nonce);
-            if(sing.equals(signature)){
-                return true;
-            }
-        } catch (AesException e) {
-            log.error("", e);
+            //获取加密工具
+            MessageDigest md = MessageDigest.getInstance("SHA-1");
+            // 对拼接好的字符串进行sha1加密
+            byte[] digest = md.digest(content.toString().getBytes());
+            String tmpStr = byteToStr(digest);
+            //获得加密后的字符串与signature对比
+            return tmpStr != null ? tmpStr.equals(signature.toUpperCase()): false;
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
         }
         return false;
+    }
+
+    private static String byteToStr(byte[] byteArray) {
+        String strDigest = "";
+        for (int i = 0; i < byteArray.length; i++) {
+            strDigest += byteToHexStr(byteArray[i]);
+        }
+        return strDigest;
+    }
+
+    private static String byteToHexStr(byte mByte) {
+        char[] Digit = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A',
+                'B', 'C', 'D', 'E', 'F' };
+        char[] tempArr = new char[2];
+        tempArr[0] = Digit[(mByte >>> 4) & 0X0F];
+        tempArr[1] = Digit[mByte & 0X0F];
+        String s = new String(tempArr);
+        return s;
     }
 }
