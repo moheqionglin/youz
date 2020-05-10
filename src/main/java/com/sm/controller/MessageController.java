@@ -1,5 +1,7 @@
 package com.sm.controller;
 
+import com.sm.message.address.AddressDetailInfo;
+import com.sm.message.wxmessage.WxMessage;
 import com.sm.utils.wx.AesException;
 import com.sm.utils.wx.WXBizMsgCrypt;
 import io.swagger.annotations.Api;
@@ -52,13 +54,8 @@ public class MessageController {
 
     @PostMapping(path = "/wx")
     @ApiOperation(value = "[接受消息] ")
-    public String receiveWx(@RequestParam("signature") String signature, @RequestParam("timestamp") String timestamp,
-                         @RequestParam("nonce") String nonce, @RequestParam("echostr") String echostr){
-        if(!checkSignature(signature, timestamp, nonce)){
-            log.warn("signature = {}, timestamp = {}, nonce = {}, echostr = {}",signature , timestamp, nonce, echostr);
-            return "ERROR";
-        }
-        log.info("[receive success from wx] {}", echostr);
+    public String receiveWx(@RequestBody Object addressDetailInfo){
+        log.info("[receive success from wx] {}", addressDetailInfo);
         return "success";
     }
 
