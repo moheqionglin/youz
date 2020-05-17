@@ -383,8 +383,17 @@ create table feeback(
 
 
 
-
-
+-- 收银缓存表
+create table shouyin_cart(
+    id int auto_increment primary key,
+    user_id int not null ,
+    product_id int not null ,
+    product_cnt int not null ,
+    cart_price decimal(10,2),
+    created_time timestamp DEFAULT CURRENT_TIMESTAMP ,
+	modified_time timestamp  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+CREATE UNIQUE INDEX sc_uid_pid_idx ON shopping_cart (user_id,product_id);
 
 
 

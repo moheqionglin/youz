@@ -244,4 +244,27 @@ public class PaymentService {
 		}
 		return JSON.toJSONString(resultReturn);
 	}
+
+    public void scanWxCode(String code, int totalFree) {
+		String url = "https://api.mch.weixin.qq.com/pay/micropay";
+
+		SortedMap<String, String> paramMap = new TreeMap<String, String>();
+		paramMap.put("appid", XCX_APP_ID);
+		paramMap.put("mch_id", XCX_MCH_ID);
+		paramMap.put("nonce_str", PayUtil.makeUUID(32));
+		paramMap.put("body", "付款码支付测试-wanli");
+		paramMap.put("out_trade_no", "wli-" + new Random().nextInt(1000000));
+		paramMap.put("total_fee", totalFree + "");
+		paramMap.put("spbill_create_ip", PayUtil.getLocalIp());
+		paramMap.put("auth_code", code);
+		paramMap.put("sign", PayUtil.createSign(paramMap, XCX_KEY));
+
+		Map<String, String> resp = null;
+		try {
+			resp = TransferRestTemplate(url, PayUtil.mapToXml(paramMap));
+		} catch (Exception e) {
+			LOGGER.error("", e);
+		}
+		LOGGER.info("{}", resp);
+    }
 }
