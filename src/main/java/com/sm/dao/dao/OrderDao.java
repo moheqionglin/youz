@@ -376,4 +376,36 @@ public class OrderDao {
         final String sql = String.format("select count(1) from %s where jianhuo_status = ? and drawback_status in ( 'NONE', 'APPROVE_REJECT') %s ", VarProperties.ORDER, userCon);
         return jdbcTemplate.queryForObject(sql, new Object[]{type.toString()}, Long.class);
     }
+
+    public OrderAllStatusCntInfo countOrderAllStatus(int userId) {
+        final String WAIT_PAY = " and drawback_status in ( 'NONE', 'APPROVE_REJECT') and  ((status = 'WAIT_PAY' and  now() < DATE_ADD(created_time, INTERVAL 15 MINUTE )) or (chajia_status='WAIT_PAY' and status != 'WAIT_SEND')) ";
+        final String WAIT_SEND = " and drawback_status in ( 'NONE' , 'APPROVE_REJECT') and  status = 'WAIT_SEND'";
+        final String WAIT_RECEIVE = " and drawback_status in ( 'NONE' , 'APPROVE_REJECT') and  status = 'WAIT_RECEIVE'";
+        final String WAIT_COMMENT = " and drawback_status in ( 'NONE' , 'APPROVE_REJECT') and  status = 'WAIT_COMMENT'";
+        final String DRAWBACK = " and   drawback_status = '" + OrderController.DrawbackStatus.WAIT_APPROVE.toString() + "'";
+
+        OrderAllStatusCntInfo info = new OrderAllStatusCntInfo();
+        final String WAIT_PAY_SQL = String.format("select count(1) from %s where user_id = ?  %s ", VarProperties.ORDER, WAIT_PAY);
+        final String WAIT_SEND_SQL = String.format("select count(1) from %s where user_id = ?  %s ", VarProperties.ORDER, WAIT_SEND);
+        final String WAIT_RECEIVE_SQL = String.format("select count(1) from %s where user_id = ?  %s ", VarProperties.ORDER, WAIT_RECEIVE);
+        final String WAIT_COMMENT_SQL = String.format("select count(1) from %s where user_id = ?  %s ", VarProperties.ORDER, WAIT_COMMENT);
+        final String DRAWBACK_SQL = String.format("select count(1) from %s where user_id = ?  %s ", VarProperties.ORDER, DRAWBACK);
+
+        info.setWaitPayCnt(jdbcTemplate.queryForObject(WAIT_PAY_SQL, new Object[]{userId}, Long.class).intValue());
+        info.setWaitSentCnt(jdbcTemplate.queryForObject(WAIT_SEND_SQL, new Object[]{userId}, Long.class).intValue());
+        info.setWaitReceiveCnt(jdbcTemplate.queryForObject(WAIT_RECEIVE_SQL, new Object[]{userId}, Long.class).intValue());
+        info.setWaitCommentCnt(jdbcTemplate.queryForObject(WAIT_COMMENT_SQL, new Object[]{userId}, Long.class).intValue());
+        info.setDrawbackCnt(jdbcTemplate.queryForObject(DRAWBACK_SQL, new Object[]{userId}, Long.class).intValue());
+        return info;
+    }
+
+    public int countOrderManagerCnt() {
+        final String sql = String.format("select count(1) from %s where drawback_status in ( 'NONE', 'APPROVE_REJECT') and status = 'WAIT_SEND' ", VarProperties.ORDER);
+        return jdbcTemplate.queryForObject(sql, Long.class).intValue();
+    }
+
+    public int countDrawbackManagerCnt() {
+        final String sql = String.format("select count(1) from %s where drawback_status = 'WAIT_APPROVE'", VarProperties.ORDER);
+        return jdbcTemplate.queryForObject(sql, Long.class).intValue();
+    }
 }

@@ -1,6 +1,8 @@
 package com.sm.message.profile;
 
 import com.sm.dao.domain.ProductZhuanQuCategory;
+import com.sm.message.admin.AdminCntInfo;
+import com.sm.message.order.OrderAllStatusCntInfo;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.math.BigDecimal;
@@ -17,6 +19,8 @@ public class UserAmountInfo {
     private BigDecimal yongjin;
     private String yongjincode;
     private String bindyongjincode;
+
+
 
     public static class UserAmountInfoRowMapper  implements RowMapper<UserAmountInfo> {
 
@@ -86,4 +90,5 @@ public class UserAmountInfo {
     public void setYongjin(BigDecimal yongjin) {
         this.yongjin = yongjin;
     }
+
 }

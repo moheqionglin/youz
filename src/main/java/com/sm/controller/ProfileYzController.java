@@ -3,7 +3,11 @@ package com.sm.controller;
 import com.sm.config.UserDetail;
 import com.sm.dao.domain.UserAmountLogType;
 import com.sm.message.ResultJson;
+import com.sm.message.admin.AdminCntInfo;
+import com.sm.message.order.OrderAllStatusCntInfo;
 import com.sm.message.profile.*;
+import com.sm.service.AdminOtherService;
+import com.sm.service.OrderService;
 import com.sm.service.ProfileService;
 import com.sm.service.UserService;
 import io.swagger.annotations.*;
@@ -35,6 +39,12 @@ public class ProfileYzController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private OrderService orderService;
+
+    @Autowired
+    private AdminOtherService adminOtherService;
 
     @PutMapping(path = "/user/detail")
     @PreAuthorize("hasAuthority('BUYER')  ")
@@ -84,7 +94,18 @@ public class ProfileYzController {
     public ProfileUserInfoResponse getProfileBaseInfo(){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
-        return profileService.getProfileBaseInfo(userDetail.getId());
+        ProfileUserInfoResponse profileBaseInfo = profileService.getProfileBaseInfo(userDetail.getId());
+
+        boolean admin = authentication.getAuthorities().stream().filter((a) -> a.getAuthority().equals("ADMIN")).count() > 0;
+        OrderAllStatusCntInfo orderAllStatusCntInfo = orderService.countOrderAllStatus(userDetail.getId());
+        profileBaseInfo.initOrderCnt(orderAllStatusCntInfo);
+
+        if(admin){
+            AdminCntInfo info = adminOtherService.countAdminCnt();
+            profileBaseInfo.initAdminInfo(info);
+        }
+
+        return profileBaseInfo;
     }
 
     @GetMapping(path = "/user/{type}")
@@ -122,7 +143,8 @@ public class ProfileYzController {
     public UserAmountInfo getMoney(){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
-        return userService.getAmount(userDetail.getId());
+        UserAmountInfo amount = userService.getAmount(userDetail.getId());
+        return amount;
 
     }
 

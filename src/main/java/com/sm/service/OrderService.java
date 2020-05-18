@@ -654,4 +654,8 @@ public class OrderService {
         long cnt = orderDao.getJianhuoCnt(userId, type);
         return ResultJson.ok(cnt);
     }
+
+    public OrderAllStatusCntInfo countOrderAllStatus(int userId) {
+        return orderDao.countOrderAllStatus(userId);
+    }
 }

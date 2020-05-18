@@ -2,6 +2,7 @@ package com.sm.dao.dao;
 
 import com.sm.dao.domain.UserAmountLog;
 import com.sm.dao.domain.UserAmountLogType;
+import com.sm.message.admin.AdminCntInfo;
 import com.sm.message.admin.JinXiaoCunInfo;
 import com.sm.message.admin.YzStatisticsInfo;
 import com.sm.message.order.SimpleOrder;
@@ -35,6 +36,9 @@ public class AdminDao {
 
     @Autowired
     private UserAmountLogDao userAmountLogDao;
+
+    @Autowired
+    private OrderDao orderDao;
 
     @Autowired
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
@@ -124,5 +128,12 @@ public class AdminDao {
     public BigDecimal getYongjinPercent() {
         String sql = String.format("select yongjin_percent from %s ", VarProperties.ORDER_YONGJIN_PERCENT);
         return jdbcTemplate.queryForObject(sql, BigDecimal.class);
+    }
+
+    public AdminCntInfo countAdminCnt() {
+        AdminCntInfo adminCntInfo = new AdminCntInfo();
+        adminCntInfo.setOrderManagerCnt(orderDao.countOrderManagerCnt());
+        adminCntInfo.setDrawbackManagerCnt(orderDao.countDrawbackManagerCnt());
+        return adminCntInfo;
     }
 }

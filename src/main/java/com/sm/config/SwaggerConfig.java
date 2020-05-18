@@ -42,6 +42,7 @@ public class SwaggerConfig {
             new Tag("supplier", "供应商"),
             new Tag("pay", "支付"),
             new Tag("message", "消息"),
+            new Tag("shouyin", "收银"),
         };
     }
 

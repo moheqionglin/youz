@@ -2,6 +2,7 @@ package com.sm.service;
 
 import com.sm.dao.dao.AdminDao;
 import com.sm.dao.dao.OrderDao;
+import com.sm.message.admin.AdminCntInfo;
 import com.sm.message.admin.JinXiaoCunInfo;
 import com.sm.message.admin.YzStatisticsInfo;
 import com.sm.message.order.OrderDetailInfo;
@@ -52,5 +53,9 @@ public class AdminOtherService {
         if(orderDetailInfo != null){
             orderService.printOrder(orderDetailInfo);
         }
+    }
+
+    public AdminCntInfo countAdminCnt() {
+        return adminDao.countAdminCnt();
     }
 }

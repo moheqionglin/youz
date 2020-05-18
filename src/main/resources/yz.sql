@@ -219,6 +219,9 @@ create table orders(
 	modified_time timestamp  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
+create index orders_uid_status_idx on orders(user_id, status)
+create index orders_drawback_status_idx on orders(drawback_status)
+create index orders_order_num_idx on orders(order_num)
 
 alter table orders
 	add yongjin_base_price decimal(10,2) not null default 0;
@@ -386,14 +389,52 @@ create table feeback(
 -- 收银缓存表
 create table shouyin_cart(
     id int auto_increment primary key,
-    user_id int not null ,
+    user_id int not null  comment '收银员ID',
     product_id int not null ,
+    product_profile_img varchar(200),
+    product_name varchar(200) not null comment '商品名称',
+    product_size varchar(200),
     product_cnt int not null ,
-    cart_price decimal(10,2),
+    unit_price decimal(10,2),
     created_time timestamp DEFAULT CURRENT_TIMESTAMP ,
 	modified_time timestamp  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
-CREATE UNIQUE INDEX sc_uid_pid_idx ON shopping_cart (user_id,product_id);
+CREATE UNIQUE INDEX shouyin_cart_user_id_idx ON shouyin_cart (user_id);
+
+-- 线下订单流水主表
+create table shouyin_order(
+    id int auto_increment primary key,
+    order_num varchar(64) not null comment '小票NO',
+    user_id int not null comment '小票NO',
+
+    total_cost_price decimal(10, 2) not null ,
+    total_price decimal(10, 2) not null ,
+    had_pay_money decimal(10, 2) default 0 not null ,
+
+    offline_pay_money decimal(10, 2) default 0 not null ,
+    online_pay_money  decimal(10, 2) default 0 not null ,
+
+    created_time timestamp DEFAULT CURRENT_TIMESTAMP ,
+	modified_time timestamp  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- 线下订单流水详情表
+create table shouyin_order_item(
+    id int auto_increment primary key,
+    order_id int,
+
+    user_id int not null  comment '收银员ID',
+    product_id int not null ,
+    product_profile_img varchar(200),
+    product_name varchar(200) not null comment '商品名称',
+    product_size varchar(200),
+    product_cnt int not null ,
+    unit_price decimal(10,2),
+
+    created_time timestamp DEFAULT CURRENT_TIMESTAMP ,
+	modified_time timestamp  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 
 
 

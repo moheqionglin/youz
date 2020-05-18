@@ -1,5 +1,7 @@
 package com.sm.message.profile;
 
+import com.sm.message.admin.AdminCntInfo;
+import com.sm.message.order.OrderAllStatusCntInfo;
 import com.sm.utils.SmUtil;
 import org.springframework.jdbc.core.RowMapper;
 
@@ -21,6 +23,29 @@ public class ProfileUserInfoResponse {
     private String sex;
     private String birthday;
     private String bindYongjinCode;
+
+    private int waitPayCnt;
+    private int waitSentCnt;
+    private int waitReceiveCnt;
+    private int waitCommentCnt;
+    private int drawbackCnt;
+
+    private int orderManagerCnt;
+    private int drawbackManagerCnt;
+
+
+    public void initOrderCnt(OrderAllStatusCntInfo info) {
+        this.setWaitPayCnt(info.getWaitPayCnt());
+        this.setWaitSentCnt(info.getWaitSentCnt());
+        this.setWaitReceiveCnt(info.getWaitReceiveCnt());
+        this.setWaitCommentCnt(info.getWaitCommentCnt());
+        this.setDrawbackCnt(info.getDrawbackCnt());
+    }
+
+    public void initAdminInfo(AdminCntInfo info) {
+        this.setDrawbackManagerCnt(info.getDrawbackManagerCnt());
+        this.setOrderManagerCnt(info.getOrderManagerCnt());
+    }
 
     public static class ProfileUserInfoResponseRowMapper implements RowMapper<ProfileUserInfoResponse> {
         @Override
@@ -124,5 +149,60 @@ public class ProfileUserInfoResponse {
 
     public void setYongjin(BigDecimal yongjin) {
         this.yongjin = yongjin;
+    }
+    public int getWaitPayCnt() {
+        return waitPayCnt;
+    }
+
+    public void setWaitPayCnt(int waitPayCnt) {
+        this.waitPayCnt = waitPayCnt;
+    }
+
+    public int getWaitSentCnt() {
+        return waitSentCnt;
+    }
+
+    public void setWaitSentCnt(int waitSentCnt) {
+        this.waitSentCnt = waitSentCnt;
+    }
+
+    public int getWaitReceiveCnt() {
+        return waitReceiveCnt;
+    }
+
+    public void setWaitReceiveCnt(int waitReceiveCnt) {
+        this.waitReceiveCnt = waitReceiveCnt;
+    }
+
+    public int getWaitCommentCnt() {
+        return waitCommentCnt;
+    }
+
+    public void setWaitCommentCnt(int waitCommentCnt) {
+        this.waitCommentCnt = waitCommentCnt;
+    }
+
+    public int getDrawbackCnt() {
+        return drawbackCnt;
+    }
+
+    public void setDrawbackCnt(int drawbackCnt) {
+        this.drawbackCnt = drawbackCnt;
+    }
+
+    public int getOrderManagerCnt() {
+        return orderManagerCnt;
+    }
+
+    public void setOrderManagerCnt(int orderManagerCnt) {
+        this.orderManagerCnt = orderManagerCnt;
+    }
+
+    public int getDrawbackManagerCnt() {
+        return drawbackManagerCnt;
+    }
+
+    public void setDrawbackManagerCnt(int drawbackManagerCnt) {
+        this.drawbackManagerCnt = drawbackManagerCnt;
     }
 }
