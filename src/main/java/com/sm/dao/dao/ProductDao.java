@@ -15,6 +15,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -302,7 +303,7 @@ public class ProductDao {
         }
         final String sql = String.format("select id from %s where code = ?  %s ", VarProperties.PRODUCTS, showCondi);
         try{
-            return jdbcTemplate.queryForObject(sql, new Object[]{code}, Integer.class);
+            return jdbcTemplate.queryForList(sql, new Object[]{code}, Integer.class).stream().findFirst().orElse(null);
         }catch (Exception e){
             return null;
         }
@@ -366,7 +367,7 @@ public class ProductDao {
     }
 
     public List<Integer> getAllKanjiaingPids(int uid) {
-        final String sql = String.format("select product_id from %s where terminal = 0 and user_id = ?", VarProperties.PRODUCT_KANJIA);
+       final String sql = String.format("select product_id from %s where terminal = 0 and user_id = ?", VarProperties.PRODUCT_KANJIA);
        try{
            return jdbcTemplate.queryForList(sql, new Object[]{uid}, Integer.class);
        }catch (Exception e){
@@ -384,5 +385,35 @@ public class ProductDao {
     public void deleteZhuanqu(int categoryid) {
         final String sql = String.format("update %s set zhuanqu_id = 0 where zhuanqu_id = ?", VarProperties.PRODUCTS);
         jdbcTemplate.update(sql, new Object[]{categoryid});
+    }
+
+    public ShouYinProductInfo getShouYinProductByCode(String code) {
+        final String sql = String.format("select id,profile_img,name,size,offline_price,cost_price,current_price from %s where code = ?", code);
+        return jdbcTemplate.query(sql, new Object[]{code}, new ShouYinProductInfo.ShouYinProductInfoRowMapper()).stream().findFirst().orElse(null);
+
+    }
+
+    public void creteOrUpdateCartItem(int userId, ShouYinProductInfo shouYinProductByCode) {
+        final String existsSql = String.format("select id from %s where product_id = ?", VarProperties.SHOU_YIN_CART);
+        Integer cartId = null;
+        try{
+            cartId = jdbcTemplate.queryForObject(existsSql, new Object[]{shouYinProductByCode.getProductId()}, Integer.class);
+        }catch (Exception e){
+
+        }
+
+        final String updateSql = String.format("update %s set product_cnt = product_cnt + 1 where cartId = ?",  VarProperties.SHOU_YIN_CART);
+        final String insertSql = String.format("insert into %s (user_id,product_id, product_profile_img,product_name,product_size,product_cnt, unit_price,cost_price) values (?,?,?,?,?,?,?,?) ", VarProperties.SHOU_YIN_CART);
+        if(cartId == null || cartId <= 0){
+            jdbcTemplate.update(updateSql, cartId);
+        }else{
+            jdbcTemplate.update(insertSql, new Object[]{userId, shouYinProductByCode.getProductId(), shouYinProductByCode.getProductProfileImg(), shouYinProductByCode.getProductName(), shouYinProductByCode.getProductSize(), 1, shouYinProductByCode.getUnitPrice(), shouYinProductByCode.getCostPrice()});
+        }
+    }
+
+    public void addCartWithNoCode(int userId, BigDecimal price) {
+        final String insertSql = String.format("insert into %s (user_id,product_id, product_profile_img,product_name,product_size,product_cnt, unit_price,cost_price) " +
+                "values (?,?,?,?,?,?,?,?) ", VarProperties.SHOU_YIN_CART);
+        jdbcTemplate.update(insertSql, new Object[]{userId, 0, null, "综合商品", "特殊尺寸", 1, price, price});
     }
 }

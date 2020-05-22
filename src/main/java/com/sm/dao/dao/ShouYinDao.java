@@ -16,7 +16,7 @@ public class ShouYinDao {
     private JdbcTemplate jdbcTemplate;
 
     public ShouYinCartInfo getAllCartItems(Integer userId) {
-        List<ShouYinCartItemInfo> rst = jdbcTemplate.query("select user_id, product_id, product_profile_img, product_name, product_size, product_cnt, unit_price from shouyin_cart where user_id = ?",
+        List<ShouYinCartItemInfo> rst = jdbcTemplate.query("select id, user_id, product_id, product_profile_img, product_name, product_size, product_cnt, unit_price from shouyin_cart where user_id = ?",
                 new Object[]{userId}, new ShouYinCartItemInfo.ShouYinCartItemInfoRowMapper());
         BigDecimal total = rst.stream().map(i -> i.getUnitPrice()
                 .multiply(BigDecimal.valueOf(i.getProductCnt())))

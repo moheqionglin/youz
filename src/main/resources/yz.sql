@@ -113,6 +113,7 @@ create table products(
     origin_price decimal(10,2) not null comment '原价',
     cost_price decimal(10,2) not null default 0 comment '成本价',
     current_price decimal(10, 2) not null comment '售价',
+    offline_price decimal (10, 2) comment '线下价格',
 
     supplier_id int comment '供应商',
     sort int default 0 not null comment '排序',

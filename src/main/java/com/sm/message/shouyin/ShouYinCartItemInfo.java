@@ -1,7 +1,5 @@
 package com.sm.message.shouyin;
 
-import com.sm.dao.domain.ProductSupplier;
-import com.sm.dao.rowMapper.ProductSupplierRowMapper;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.math.BigDecimal;
@@ -9,7 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class ShouYinCartItemInfo {
-
+    private Integer id;
     private Integer userId;
     private Integer productId;
     private String productProfileImg;
@@ -22,6 +20,9 @@ public class ShouYinCartItemInfo {
         @Override
         public ShouYinCartItemInfo mapRow(ResultSet resultSet, int i) throws SQLException {
             ShouYinCartItemInfo item = new ShouYinCartItemInfo();
+            if(existsColumn(resultSet, "id")){
+                item.setId(resultSet.getInt("id"));
+            }
             if(existsColumn(resultSet, "user_id")){
                 item.setUserId(resultSet.getInt("user_id"));
             }
@@ -104,6 +105,14 @@ public class ShouYinCartItemInfo {
 
     public BigDecimal getUnitPrice() {
         return unitPrice;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public void setUnitPrice(BigDecimal unitPrice) {

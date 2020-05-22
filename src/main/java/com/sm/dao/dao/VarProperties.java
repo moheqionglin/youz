@@ -27,5 +27,8 @@ public class VarProperties {
     public static final String MY_SEARCH="my_search";
     public static final String HOT_SEARCH = "hot_search";
     public static final String FEEBACK = "feeback";
+    public static final String SHOU_YIN_CART = "shouyin_cart";
+    public static final String SHOUYIN_ORDER = "shouyin_order";
+    public static final String SHOUYIN_ORDER_ITEM = "shouyin_order_item";
 
 }

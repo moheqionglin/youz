@@ -195,15 +195,6 @@ public class PaymentController {
 		return null;
 	}
 
-	@PostMapping(path = "payment/scan/wx/{code}/{total}")
-	@PreAuthorize("hasAuthority('BUYER') ")
-	public ResultJson scanWeiXinPayCode(@Valid @NotNull @PathVariable("code") String code,
-															 @Valid @NotNull @PathVariable("total") int total) throws Exception {
-		//获取订单 如果订单号一样会
-		paymentService.scanWxCode(code, total);
-		return ResultJson.ok();
-	}
-
 
 	public static enum PayType{
 		ORDER,
