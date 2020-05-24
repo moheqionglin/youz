@@ -113,7 +113,7 @@ create table products(
     origin_price decimal(10,2) not null comment '原价',
     cost_price decimal(10,2) not null default 0 comment '成本价',
     current_price decimal(10, 2) not null comment '售价',
-    offline_price decimal (10, 2) comment '线下价格',
+    offline_price decimal (10, 2) not null default 0 comment '线下价格',
 
     supplier_id int comment '供应商',
     sort int default 0 not null comment '排序',
@@ -133,6 +133,7 @@ create table products(
 	modified_time timestamp  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
+create index products_code_idx on products(code);
 
 create table product_suppliers(
     id int auto_increment primary key,
@@ -418,7 +419,7 @@ create table shouyin_order(
     created_time timestamp DEFAULT CURRENT_TIMESTAMP ,
 	modified_time timestamp  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
+create index shouyin_order_uid_ctime_idx on shouyin_order(user_id, created_time)
 -- 线下订单流水详情表
 create table shouyin_order_item(
     id int auto_increment primary key,
@@ -435,6 +436,18 @@ create table shouyin_order_item(
     created_time timestamp DEFAULT CURRENT_TIMESTAMP ,
 	modified_time timestamp  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- 收银员开工记录表
+
+create table shouyin_work_record(
+    id int auto_increment primary key,
+    user_id int,
+    start_time bigint not null default 0 comment '开始时间',
+    end_time bigint not null default 0 comment '开始时间',
+    status varchar(15) not null default  'WORKING',
+    created_time timestamp DEFAULT CURRENT_TIMESTAMP ,
+	modified_time timestamp  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+)
 
 
 

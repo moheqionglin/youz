@@ -9,7 +9,6 @@ import java.sql.SQLException;
 public class ShouYinOrderItemInfo {
 
     private Integer orderId;
-    private Integer userId;
     private Integer productId;
     private String productProfileImg;
     private String productName;
@@ -17,16 +16,12 @@ public class ShouYinOrderItemInfo {
     private int productCnt;
     private BigDecimal unitPrice;
 
-
     public static class ShouYinOrderItemInfoRowMapper implements RowMapper<ShouYinOrderItemInfo> {
         @Override
         public ShouYinOrderItemInfo mapRow(ResultSet resultSet, int i) throws SQLException {
             ShouYinOrderItemInfo item = new ShouYinOrderItemInfo();
             if(existsColumn(resultSet, "order_id")){
                 item.setOrderId(resultSet.getInt("order_id"));
-            }
-            if(existsColumn(resultSet, "user_id")){
-                item.setUserId(resultSet.getInt("user_id"));
             }
             if(existsColumn(resultSet, "product_id")){
                 item.setProductId(resultSet.getInt("product_id"));
@@ -64,14 +59,6 @@ public class ShouYinOrderItemInfo {
 
     public void setOrderId(Integer orderId) {
         this.orderId = orderId;
-    }
-
-    public Integer getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Integer userId) {
-        this.userId = userId;
     }
 
     public Integer getProductId() {

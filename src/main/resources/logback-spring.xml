@@ -63,7 +63,7 @@
     <logger name="org.springframework" level="INFO" />
     <logger name="springfox.documentation" level="INFO" />
 
-
+    <logger name="org.apache.http.impl.conn.Wire" level="INFO" />
     <!-- 日志输出级别 -->
     <root leve="${LOG_ROOT_LEVEL}">
         <appender-ref ref="STDOUT" />

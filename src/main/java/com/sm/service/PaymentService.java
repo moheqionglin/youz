@@ -245,15 +245,16 @@ public class PaymentService {
 		return JSON.toJSONString(resultReturn);
 	}
 
-    public void scanWxCode(String code, int totalFree) {
+    public boolean scanWxCode(int userID, String orderNum, String code, int totalFree) {
 		String url = "https://api.mch.weixin.qq.com/pay/micropay";
+
 
 		SortedMap<String, String> paramMap = new TreeMap<String, String>();
 		paramMap.put("appid", XCX_APP_ID);
 		paramMap.put("mch_id", XCX_MCH_ID);
 		paramMap.put("nonce_str", PayUtil.makeUUID(32));
-		paramMap.put("body", "付款码支付测试-wanli");
-		paramMap.put("out_trade_no", "wli-" + new Random().nextInt(1000000));
+		paramMap.put("body", "收银员 userID 收款 " + orderNum + ", 金额 " + totalFree);
+		paramMap.put("out_trade_no", orderNum);
 		paramMap.put("total_fee", totalFree + "");
 		paramMap.put("spbill_create_ip", PayUtil.getLocalIp());
 		paramMap.put("auth_code", code);
@@ -263,8 +264,90 @@ public class PaymentService {
 		try {
 			resp = TransferRestTemplate(url, PayUtil.mapToXml(paramMap));
 		} catch (Exception e) {
-			LOGGER.error("", e);
+			LOGGER.error("扫码支付 收银员:" + userID + ", orderNum = "+orderNum, e);
 		}
-		LOGGER.info("{}", resp);
+		String return_code = resp.get("return_code");   //返回状态码
+
+		if ("SUCCESS".equals(return_code)) {
+			String result_code = resp.get("result_code");       //业务结果
+			if ("SUCCESS".equals(result_code)) {
+				//表示退款申请接受成功，结果通过退款查询接口查询
+				//修改用户订单状态为退款申请中（暂时未写）
+				return true;
+			} else {
+				LOGGER.error("扫码支付 收银员:" + userID + ", orderNum = "+orderNum +", 错误原因 " +resp);
+				try {
+					Thread.sleep(10000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				String payStatus = getPayStatus(orderNum);
+				if("USERPAYING".equals(payStatus)){
+					try {
+						Thread.sleep(10000);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					payStatus = getPayStatus(orderNum);
+				}
+				if("USERPAYING".equals(payStatus)){
+					try {
+						Thread.sleep(10000);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					payStatus = getPayStatus(orderNum);
+				}
+				return "SUCCESS".equals(payStatus);
+			}
+		} else {
+			LOGGER.error("扫码支付 收银员:" + userID + ", orderNum = "+orderNum +", 错误原因 " +resp);
+		}
+		return false;
     }
+
+	/**
+	 * 自己重试 1分钟
+	 * @param orderNum
+	 * @return
+	 */
+	private String getPayStatus(String orderNum) {
+		String orderStatusUrl = "https://api.mch.weixin.qq.com/pay/orderquery";
+		SortedMap<String, String> paramMap = new TreeMap<String, String>();
+		paramMap.put("appid", XCX_APP_ID);
+		paramMap.put("mch_id", XCX_MCH_ID);
+		paramMap.put("nonce_str", PayUtil.makeUUID(32));
+		paramMap.put("out_trade_no", orderNum);
+		paramMap.put("sign", PayUtil.createSign(paramMap, XCX_KEY));
+
+		Map<String, String> resp = null;
+		try {
+			resp = TransferRestTemplate(orderStatusUrl, PayUtil.mapToXml(paramMap));
+		} catch (Exception e) {
+			LOGGER.error("获取订单状态失败, orderNum = "+orderNum, e);
+		}
+
+		String return_code = resp.get("return_code");   //返回状态码
+		if ("SUCCESS".equals(return_code)) {
+			String result_code = resp.get("result_code");
+			if ("SUCCESS".equals(result_code)) {
+				String trade_state = resp.get("trade_state");
+				//SUCCESS—支付成功 REFUND—转入退款 NOTPAY—未支付 CLOSED—已关闭 REVOKED—已撤销（付款码支付）
+				//USERPAYING--用户支付中（付款码支付）PAYERROR--支付失败(其他原因，如银行返回失败)
+				if("SUCCESS".equalsIgnoreCase(trade_state)){
+					return "SUCCESS";
+				}else if("USERPAYING".equals(trade_state)){
+					return "USERPAYING";
+				}else{
+					return "FAILD";
+				}
+			} else {
+				LOGGER.error("扫码支付  orderNum = "+orderNum +", 错误原因 " +resp);
+			}
+		} else {
+			LOGGER.error("扫码支付 orderNum = "+orderNum +", 错误原因 " +resp);
+		}
+		return "ERROR";
+	}
+
 }

@@ -1,7 +1,11 @@
 package com.sm.third.yilianyun;
 
+import com.sm.message.shouyin.ShouYinOrderInfo;
+import com.sm.message.shouyin.ShouYinOrderItemInfo;
+import com.sm.message.shouyin.ShouYinWorkRecordStatisticsInfo;
 import com.sm.third.message.OrderItem;
 import com.sm.third.message.OrderPrintBean;
+import com.sm.utils.SmUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.util.test.Test;
 import org.slf4j.Logger;
@@ -29,12 +33,15 @@ public class Prienter{
 	Random random = new Random();
 	@Autowired
 	private LYYService lyyService;
+	@Autowired
+	private LYYOfflineService lyyOfflineService;
 	private ExecutorService executorService = Executors.newFixedThreadPool(1);;
 	// 菜品集合--传入一个商品集合
 	public static List<Test> testList = new ArrayList<Test>();
 	public static double ZMoney=0;
 	public static double YMoney=20;
 	public static double SMoney=500;
+
 	// 设置小票打印
 	public void print(OrderPrintBean orderPrintBean){
 		//字符串拼接
@@ -98,6 +105,77 @@ public class Prienter{
 					log.error("Print error", e);
 				}
 
+			}
+		});
+	}
+
+	// 设置小票打印
+	public void printShouyinOrder(ShouYinOrderInfo orderInfo){
+		//字符串拼接
+		StringBuilder sb=new StringBuilder();
+		sb.append("<center>悠哉商城\r\n</center>");
+
+		sb.append("<center>订单内容\r\n</center>");
+		sb.append("------------------------------------\r\n");
+		sb.append("订单号："+orderInfo.getOrderNum()+"\r\n");
+		sb.append("下单时间："+ SmUtil.parseLongToTMDHMS(System.currentTimeMillis()) +"\r\n");
+		sb.append("收银员："+orderInfo.getUserId()+"\r\n");
+		sb.append("------------------------------------\r\n");
+		sb.append("<table>");
+		sb.append("<tr>");
+		sb.append("<td>");
+		sb.append("商品");
+		sb.append("</td>");
+		sb.append("<td>");
+		sb.append("规格");
+		sb.append("</td>");
+		sb.append("<td>");
+		sb.append("价格");
+		sb.append("</td>");
+		sb.append("</tr>");
+		for (ShouYinOrderItemInfo item : orderInfo.getShouYinOrderItemInfoList()) {
+			sb.append("<tr>");
+			sb.append("<td>"+item.getProductName()+"</td>");
+			sb.append("<td>"+item.getProductSize() +"x" + item.getProductCnt()+"</td>");
+			sb.append("<td>"+item.getUnitPrice().setScale(2, RoundingMode.UP).toPlainString()+"</td>");
+			sb.append("</tr>");
+		}
+		sb.append("</table>");
+		sb.append("------------------------------------\r\n");
+		sb.append("<center>谢谢惠顾，欢迎下次光临！</center>");
+		executorService.execute(()-> {
+			try{
+				lyyService.print(lyyOfflineService.mochineCode, sb.toString(), System.currentTimeMillis() + " " +random.nextInt(1000));
+			}catch (Exception e){
+				log.error("Print error", e);
+			}
+		});
+	}
+	// 设置小票打印
+	public void printShouyinPerson(ShouYinWorkRecordStatisticsInfo info){
+		//字符串拼接
+		StringBuilder sb=new StringBuilder();
+		sb.append("<center>悠哉到家\r\n</center>");
+
+		sb.append("<center>收银员统计信息\r\n</center>");
+		sb.append("------------------------------------\r\n");
+		sb.append("姓名："+info.getName()+"\r\n");
+		sb.append("工号："+info.getUserId()+"\r\n");
+		sb.append("开始收银时间："+info.getStartTimeStr()+"\r\n");
+		sb.append("结束收银时间："+info.getEndTimeStr()+"\r\n");
+		sb.append("备用金："+info.getBackupAmount()+"\r\n");
+		sb.append("总单数："+info.getOrderCnt()+"\r\n");
+		sb.append("总收款："+info.getTotalOrderAmount()+"\r\n");
+		sb.append("线下收款："+info.getTotalOfflineAmount()+"\r\n");
+		sb.append("线上收款："+info.getTotalOnlineAmount()+"\r\n");
+		sb.append("------------------------------------\r\n");
+
+		sb.append("<center>祝您工作愉快！</center>");
+		executorService.execute(()->{
+			try{
+				lyyService.print(lyyOfflineService.mochineCode, sb.toString(), System.currentTimeMillis() + " " +random.nextInt(1000));
+			}catch (Exception e){
+				log.error("Print error", e);
 			}
 		});
 	}

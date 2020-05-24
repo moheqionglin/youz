@@ -5,8 +5,11 @@ import org.springframework.jdbc.core.RowMapper;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ShouYinOrderInfo {
+    private int id;
     private String orderNum;
     private Integer UserId;
     private BigDecimal totalCostPrice;
@@ -15,10 +18,15 @@ public class ShouYinOrderInfo {
     private BigDecimal offlinePayMoney;
     private BigDecimal onlinePayMoney;
 
+    private List<ShouYinOrderItemInfo> shouYinOrderItemInfoList = new ArrayList<>();
+
     public static class ShouYinOrderInfoRowMapper implements RowMapper<ShouYinOrderInfo> {
         @Override
         public ShouYinOrderInfo mapRow(ResultSet resultSet, int i) throws SQLException {
             ShouYinOrderInfo item = new ShouYinOrderInfo();
+            if(existsColumn(resultSet, "id")){
+                item.setId(resultSet.getInt("id"));
+            }
             if(existsColumn(resultSet, "order_num")){
                 item.setOrderNum(resultSet.getString("order_num"));
             }
@@ -64,6 +72,14 @@ public class ShouYinOrderInfo {
         return UserId;
     }
 
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
     public void setUserId(Integer userId) {
         UserId = userId;
     }
@@ -91,6 +107,14 @@ public class ShouYinOrderInfo {
 
     public void setHadPayMoney(BigDecimal hadPayMoney) {
         this.hadPayMoney = hadPayMoney;
+    }
+
+    public List<ShouYinOrderItemInfo> getShouYinOrderItemInfoList() {
+        return shouYinOrderItemInfoList;
+    }
+
+    public void setShouYinOrderItemInfoList(List<ShouYinOrderItemInfo> shouYinOrderItemInfoList) {
+        this.shouYinOrderItemInfoList = shouYinOrderItemInfoList;
     }
 
     public BigDecimal getOfflinePayMoney() {

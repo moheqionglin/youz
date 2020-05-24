@@ -10,6 +10,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -83,6 +84,9 @@ public class SearchController {
     @GetMapping(path = "/search/getProductIdByCode/{code}")
     @ApiOperation(value = "[根据code获取id] 不包含 下架商品")
     public Integer getProductIdByCode(@Valid @NotNull @PathVariable("code") String code){
+        if(code.startsWith("200")){
+            code = StringUtils.substring(code, 0, 8);
+        }
         Integer id = productService.getProductIdByCode(code, false);
         return id == null ? -1 : id;
     }
@@ -91,6 +95,9 @@ public class SearchController {
     @ApiOperation(value = "[ADMIN根据code获取商品id]")
     @PreAuthorize("hasAuthority('ADMIN')")
     public Integer getProductIdByCodeForAdmin(@Valid @NotNull @PathVariable("code") String code){
+        if(code.startsWith("200")){
+            code = StringUtils.substring(code, 0, 8);
+        }
         Integer id = productService.getProductIdByCode(code, true);
         return id == null ? -1 : id;
     }

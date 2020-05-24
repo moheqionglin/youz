@@ -50,7 +50,12 @@ public enum  HttpYzCode {
     PRODUCT_NOT_EXISTS(472, "产品不存在"),
     PRODUCT_NOT_KANJIA(473, "产品不是砍价商品"),
     PRODUCT_PRICE_ERROR(474, "砍价商品价格错误"),
-    PRODUCT_CART_EXISTS_KANJIA(475, "购物车中已经有了砍价商品")
+    PRODUCT_CART_EXISTS_KANJIA(475, "购物车中已经有了砍价商品"),
+
+    SHOUYIN_PAY_ERROR(485, "支付失败"),
+    SHOUYIN_ORDER_STATUS_ERROR(486, "收银订单状态不是待支付"),
+    SHOUYIN_HAD_KAIGONG(487, "已经开工，请勿重复开工"),
+    SHOUYIN_NO_KAIGONG(488, "还没有开工，不能点击手工。"),
     ;
     private int code;
     private String messsage;

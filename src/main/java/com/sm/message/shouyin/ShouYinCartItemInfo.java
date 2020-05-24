@@ -15,6 +15,7 @@ public class ShouYinCartItemInfo {
     private String productSize;
     private int productCnt;
     private BigDecimal unitPrice;
+    private BigDecimal costPrice;
 
     public static class ShouYinCartItemInfoRowMapper implements RowMapper<ShouYinCartItemInfo>{
         @Override
@@ -43,6 +44,9 @@ public class ShouYinCartItemInfo {
             }
             if(existsColumn(resultSet, "unit_price")){
                 item.setUnitPrice(resultSet.getBigDecimal("unit_price"));
+            }
+            if(existsColumn(resultSet, "cost_price")){
+                item.setCostPrice(resultSet.getBigDecimal("cost_price"));
             }
             return item;
         }
@@ -113,6 +117,14 @@ public class ShouYinCartItemInfo {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public BigDecimal getCostPrice() {
+        return costPrice;
+    }
+
+    public void setCostPrice(BigDecimal costPrice) {
+        this.costPrice = costPrice;
     }
 
     public void setUnitPrice(BigDecimal unitPrice) {

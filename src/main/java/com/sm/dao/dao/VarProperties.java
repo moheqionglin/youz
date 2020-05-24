@@ -31,4 +31,5 @@ public class VarProperties {
     public static final String SHOUYIN_ORDER = "shouyin_order";
     public static final String SHOUYIN_ORDER_ITEM = "shouyin_order_item";
 
+    public static final Object SHOUYIN_WORK_RECORD = "shouyin_work_record";
 }

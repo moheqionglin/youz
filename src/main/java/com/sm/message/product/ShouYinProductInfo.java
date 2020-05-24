@@ -15,8 +15,10 @@ public class ShouYinProductInfo {
     private BigDecimal costPrice;
     private BigDecimal currentPrice;
 
+    private boolean isSanZhuang = false;
+
     public Object getUnitPrice() {
-        return offlinePrice == null || BigDecimal.ZERO.compareTo(offlinePrice) > 0 ? currentPrice : offlinePrice;
+        return offlinePrice == null || BigDecimal.ZERO.compareTo(offlinePrice) >= 0 ? currentPrice : offlinePrice;
     }
 
 
@@ -108,6 +110,14 @@ public class ShouYinProductInfo {
 
     public BigDecimal getCurrentPrice() {
         return currentPrice;
+    }
+
+    public boolean isSanZhuang() {
+        return isSanZhuang;
+    }
+
+    public void setSanZhuang(boolean sanZhuang) {
+        isSanZhuang = sanZhuang;
     }
 
     public void setCurrentPrice(BigDecimal currentPrice) {
