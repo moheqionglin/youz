@@ -73,7 +73,7 @@ public class ShouYinController {
         return ResultJson.ok(shouYinService.getAllCartItems(userDetail.getId()));
     }
 
-    @PutMapping(path = "/shouyin/cart/{id}/{action}")
+    @PostMapping(path = "/shouyin/cart/{id}/{action}")
     @PreAuthorize("hasAuthority('SHOUYIN')")
     @ApiOperation(value = "[根据cart id更新个数]")
     public ResultJson<ShouYinCartInfo> updateCount(@Valid @NotNull @PathVariable("id") int cartItemId,
@@ -84,6 +84,16 @@ public class ShouYinController {
         return ResultJson.ok(shouYinService.getAllCartItems(userDetail.getId()));
     }
 
+    @PutMapping(path = "/shouyin/cart/{id}/{action}")
+    @PreAuthorize("hasAuthority('SHOUYIN')")
+    @ApiOperation(value = "[根据cart id更新个数]")
+    public ResultJson<ShouYinCartInfo> updateCount1(@Valid @NotNull @PathVariable("id") int cartItemId,
+                                                   @Valid @NotNull @PathVariable("action") ShoppingCartController.CountAction action){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
+        shouYinService.updateCount(userDetail.getId(), cartItemId, action);
+        return ResultJson.ok(shouYinService.getAllCartItems(userDetail.getId()));
+    }
     @DeleteMapping(path = "/shouyin/cart")
     @PreAuthorize("hasAuthority('SHOUYIN') ")
     @ApiOperation(value = "[删除购物车] ")
@@ -122,12 +132,19 @@ public class ShouYinController {
     @PutMapping(path = "/shouyin/order/cancel/{orderNum}")
     @PreAuthorize("hasAuthority('SHOUYIN') ")
     @ApiOperation(value = "[取消订单] 返回退款金额")
+    public ResultJson<BigDecimal> cancelOrder1(@Valid @NotEmpty @PathVariable("orderNum") String orderNum){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
+        return shouYinService.cancelOrder(orderNum);
+    }
+    @PostMapping(path = "/shouyin/order/cancel/{orderNum}")
+    @PreAuthorize("hasAuthority('SHOUYIN') ")
+    @ApiOperation(value = "[取消订单] 返回退款金额")
     public ResultJson<BigDecimal> cancelOrder(@Valid @NotEmpty @PathVariable("orderNum") String orderNum){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
         return shouYinService.cancelOrder(orderNum);
     }
-
     @PostMapping(path = "/shouyin/pay/{payType}/{total}")
     @PreAuthorize("hasAuthority('SHOUYIN') ")
     @ApiOperation(value = "微信支付 返回需要支付金额")
