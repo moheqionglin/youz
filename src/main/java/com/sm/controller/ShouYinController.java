@@ -90,7 +90,20 @@ public class ShouYinController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "cartItemIds", value = "cartItemIds", required = true, paramType = "body", allowMultiple=true, dataType = "Integer")
     })
-    public ResultJson deleteCartItem(@Valid @NotEmpty @RequestBody List<Integer> cartItemIds){
+    public ResultJson deleteCartItem1(@Valid @NotEmpty @RequestBody List<Integer> cartItemIds){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
+        shouYinService.deleteCartItem(cartItemIds);
+        return ResultJson.ok(shouYinService.getAllCartItems(userDetail.getId()));
+    }
+
+    @PostMapping(path = "/shouyin/cart/delete")
+    @PreAuthorize("hasAuthority('SHOUYIN') ")
+    @ApiOperation(value = "[删除购物车] ")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "cartItemIds", value = "cartItemIds", required = true, paramType = "body", allowMultiple=true, dataType = "Integer")
+    })
+    public ResultJson deleteCartItem2(@Valid @NotEmpty @RequestBody List<Integer> cartItemIds){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
         shouYinService.deleteCartItem(cartItemIds);
