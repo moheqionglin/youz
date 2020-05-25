@@ -192,7 +192,7 @@ public class ShouYinController {
         if(lps == null || lps.getStatus().equalsIgnoreCase(ShouYinController.SHOUYIN_PERSON_STATUS.FINISH.toString())){
             return ResultJson.failure(HttpYzCode.SHOUYIN_NO_KAIGONG);
         }
-        ShouYinWorkRecordStatisticsInfo syf = shouYinService.shouGong(userDetail.getId(), lps);
+        ShouYinWorkRecordStatisticsInfo syf = shouYinService.shouGong(userDetail, lps);
         syf.setName(userDetail.getUsername());
         return ResultJson.ok(syf);
     }
@@ -207,6 +207,9 @@ public class ShouYinController {
     @PreAuthorize("hasAuthority('SHOUYIN')")
     @ApiOperation(value = "[打印收工统计]")
     public ResultJson printShouGong(@Valid  @RequestBody ShouYinWorkRecordStatisticsInfo si){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
+        si.setName(userDetail.getUsername());
         shouYinService.printShouGongStatistics(si);
         return ResultJson.ok();
     }

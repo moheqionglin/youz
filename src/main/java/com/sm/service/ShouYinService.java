@@ -1,5 +1,6 @@
 package com.sm.service;
 
+import com.sm.config.UserDetail;
 import com.sm.controller.HttpYzCode;
 import com.sm.controller.ShoppingCartController;
 import com.sm.controller.ShouYinController;
@@ -168,11 +169,12 @@ public class ShouYinService {
     }
 
     @Transactional
-    public ShouYinWorkRecordStatisticsInfo shouGong(int userId, PersonWorkStatusInfo psi) {
+    public ShouYinWorkRecordStatisticsInfo shouGong(UserDetail user, PersonWorkStatusInfo psi) {
         long endTime = System.currentTimeMillis() / 1000;
-        shouYinDao.shouGong(userId, psi.getId(), endTime);
-        ShouYinWorkRecordStatisticsInfo si = shouYinDao.getShouYinWorkRecordStatisticsInfo(userId, psi.getStartTime(), endTime);
-        si.setUserId(userId);
+        shouYinDao.shouGong(user.getId(), psi.getId(), endTime);
+        ShouYinWorkRecordStatisticsInfo si = shouYinDao.getShouYinWorkRecordStatisticsInfo(user.getId(), psi.getStartTime(), endTime);
+        si.setUserId(user.getId());
+        si.setName(user.getUsername());
         si.setStartTimeStr(SmUtil.parseLongToTMDHMS(psi.getStartTime() * 1000));
         si.setEndTimeStr(SmUtil.parseLongToTMDHMS(endTime * 1000));
         si.setBackupAmount(psi.getBackupAmount());
