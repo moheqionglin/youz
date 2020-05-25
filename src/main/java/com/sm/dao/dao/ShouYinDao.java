@@ -51,7 +51,7 @@ public class ShouYinDao {
     }
 
     public void creteOrUpdateCartItem(int userId, ShouYinProductInfo shouYinProductByCode) {
-        final String existsSql = String.format("select id from %s where product_id = ?", VarProperties.SHOU_YIN_CART);
+        final String existsSql = String.format("select id from %s where product_id = ? and user_id = ?", VarProperties.SHOU_YIN_CART);
         final String updateSql = String.format("update %s set product_cnt = product_cnt + 1 where id = ?",  VarProperties.SHOU_YIN_CART);
         final String insertSql = String.format("insert into %s (user_id,product_id, product_profile_img,product_name,product_size,product_cnt, unit_price,cost_price) values (?,?,?,?,?,?,?,?) ", VarProperties.SHOU_YIN_CART);
 
@@ -62,7 +62,7 @@ public class ShouYinDao {
 
         Integer cartId = null;
         try{
-            cartId = jdbcTemplate.queryForObject(existsSql, new Object[]{shouYinProductByCode.getProductId()}, Integer.class);
+            cartId = jdbcTemplate.queryForObject(existsSql, new Object[]{shouYinProductByCode.getProductId(), userId}, Integer.class);
         }catch (Exception e){
 
         }
