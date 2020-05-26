@@ -251,7 +251,32 @@ public class LAVApi {
         hashMap.put("timestamp", timestamp);
         return HttpUtil.sendPost(ApiConst.MAIN_HOST_URL + ApiConst.API_SET_SOUND, hashMap, false);
     }
-
+    /**
+     * 声音调节接口
+     *
+     * @param client_id     易联云颁发给开发者的应用ID 非空值
+     * @param access_token  授权的token 必要参数
+     * @param machine_code  易联云打印机终端号
+     * @param response_type 蜂鸣器:buzzer,喇叭:horn
+     * @param voice         [1,2,3] 3种音量设置
+     * @param sign          签名 详见API文档列表-接口签名
+     * @param id            UUID4 详见API文档列表-uuid4
+     * @param timestamp     当前服务器时间戳(10位)
+     * @return
+     */
+    public static String setVoice(String client_id, String access_token, String machine_code, String content, String aid, String sign, String id, String timestamp) {
+        HashMap hashMap = new HashMap();
+        hashMap.put("client_id", client_id);
+        hashMap.put("access_token", access_token);
+        hashMap.put("machine_code", machine_code);
+        hashMap.put("content", content);
+        hashMap.put("is_file", "false");
+        hashMap.put("aid", aid);
+        hashMap.put("sign", sign);
+        hashMap.put("id", id);
+        hashMap.put("timestamp", timestamp);
+        return HttpUtil.sendPost(ApiConst.MAIN_HOST_URL + ApiConst.API_SET_VOICE, hashMap, false);
+    }
     /**
      * 获取机型打印宽度接口
      *

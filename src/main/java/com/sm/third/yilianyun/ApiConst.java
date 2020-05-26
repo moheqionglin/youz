@@ -52,7 +52,10 @@ public class ApiConst {
      * api 声音调节接口
      */
     public static final String API_SET_SOUND = "/printer/setsound";
-
+    /**
+     * api 声音调节接口
+     */
+    public static final String API_SET_VOICE = "/printer/setvoice";
     /**
      * api 获取机型打印宽度接口
      */
