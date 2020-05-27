@@ -23,8 +23,8 @@ import java.beans.Transient;
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class ShouYinDao {
@@ -166,7 +166,7 @@ public class ShouYinDao {
     }
 
     public ShouYinFinishOrderInfo getUnfinishOrder(int userId) {
-        final String sql = "select order_num, user_id, total_cost_price,total_price,had_pay_money,offline_pay_money, online_pay_money,status from shouyin_order where status = 'WAIT_PAY' and user_id = ? ";
+        final String sql = "select id, order_num, user_id, total_cost_price,total_price,had_pay_money,offline_pay_money, online_pay_money,status from shouyin_order where status = 'WAIT_PAY' and user_id = ? ";
 
         ShouYinFinishOrderInfo syfi = jdbcTemplate.query(sql, new Object[]{userId}, new ShouYinFinishOrderInfo.ShouYinFinishOrderInfoRowMapper()).stream().findFirst().orElse(null);
         if(syfi != null && syfi.getNeedPay().compareTo(BigDecimal.ZERO) <= 0){
@@ -183,7 +183,7 @@ public class ShouYinDao {
     }
 
     public ShouYinFinishOrderInfo getShouYinFinishOrderInfo(String orderNum) {
-        final String sql = "select order_num, user_id, total_cost_price,total_price,had_pay_money,offline_pay_money, online_pay_money,status from shouyin_order where order_num = ? ";
+        final String sql = "select id,order_num, user_id, total_cost_price,total_price,had_pay_money,offline_pay_money, online_pay_money,status from shouyin_order where order_num = ? ";
         return jdbcTemplate.query(sql, new Object[]{orderNum}, new ShouYinFinishOrderInfo.ShouYinFinishOrderInfoRowMapper()).stream().findFirst().orElse(null);
     }
 
@@ -233,5 +233,30 @@ public class ShouYinDao {
         List<ShouYinOrderItemInfo> items = jdbcTemplate.query(orderItemsql, new Object[]{orderInfo.getId()}, new ShouYinOrderItemInfo.ShouYinOrderItemInfoRowMapper());
         orderInfo.getShouYinOrderItemInfoList().addAll(items);
         return orderInfo;
+    }
+
+    public void reduceStock(Integer id) {
+        final String sql = String.format("select product_id, product_cnt from %s where order_id = ? and product_id > 0", VarProperties.SHOUYIN_ORDER_ITEM);
+        List<Map<String, Object>> rsts = jdbcTemplate.queryForList(sql, new Object[]{id});
+        HashMap<Integer, Integer> pid2Stock = new HashMap<>();
+        rsts.stream().forEach(kv -> {
+            pid2Stock.put(Integer.valueOf(kv.get("product_id").toString()), Integer.valueOf(kv.get("product_cnt").toString()));
+        });
+
+        String stockSql = String.format("select id,stock from %s where id in (:ids)", VarProperties.PRODUCTS);
+        MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
+        mapSqlParameterSource.addValue("ids", pid2Stock.keySet());
+
+        List<Map<String, Object>> oldStocks = namedParameterJdbcTemplate.queryForList(stockSql, mapSqlParameterSource);
+        List<Object[]> collect = oldStocks.stream().map(m -> {
+            int pid = Integer.valueOf(m.get("id").toString());
+            int stock = Integer.valueOf(m.get("stock").toString());
+            return new Object[]{stock - (pid2Stock.get(pid) == null ? 0 : pid2Stock.get(pid)), pid};
+        }).collect(Collectors.toList());
+        final String reductStockSql = String.format("update %s set stock =  ? where id = ?", VarProperties.PRODUCTS);
+
+        jdbcTemplate.batchUpdate(reductStockSql, collect);
+
+
     }
 }

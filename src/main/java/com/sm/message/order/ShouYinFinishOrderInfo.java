@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class ShouYinFinishOrderInfo {
+    private int id;
     private String orderNum;
     private BigDecimal total;
     private BigDecimal hadPayMoney;
@@ -31,6 +32,9 @@ public class ShouYinFinishOrderInfo {
         @Override
         public ShouYinFinishOrderInfo mapRow(ResultSet resultSet, int i) throws SQLException {
             ShouYinFinishOrderInfo syfoi = new ShouYinFinishOrderInfo();
+            if(existsColumn(resultSet, "id")){
+                syfoi.setId(resultSet.getInt("id"));
+            }
             if(existsColumn(resultSet, "order_num")){
                 syfoi.setOrderNum(resultSet.getString("order_num"));
             }
@@ -86,6 +90,14 @@ public class ShouYinFinishOrderInfo {
 
     public BigDecimal getOfflinePayMoney() {
         return offlinePayMoney;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public void setOfflinePayMoney(BigDecimal offlinePayMoney) {

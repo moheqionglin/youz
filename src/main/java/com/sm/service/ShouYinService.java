@@ -44,21 +44,26 @@ public class ShouYinService {
     }
 
     public ResultJson<ShouYinCartInfo> addCart(int userId, String code) {
-        String codeLast5 = StringUtils.substring(code, 8);
-        codeLast5 = StringUtils.isBlank(codeLast5) ? "0": codeLast5;
-        if(code.startsWith("200")){
-            code = StringUtils.substring(code, 0, 8);
-        }
-        ShouYinProductInfo shouYinProductByCode = productDao.getShouYinProductByCode(code);
-        if(shouYinProductByCode == null){
-            return ResultJson.failure(HttpYzCode.PRODUCT_NOT_EXISTS, "商品不存在");
+        ShouYinProductInfo shouYinProductByCode = null;
+        if(StringUtils.length(code) == 5){//后五位查找
+            shouYinProductByCode = productDao.getShouYinProductByLast5Code(code);
+        }else{//13位
+            String codeLast5 = StringUtils.substring(code, 8);
+            codeLast5 = StringUtils.isBlank(codeLast5) ? "0": codeLast5;
+            if(code.startsWith("200")){
+                code = StringUtils.substring(code, 0, 8);
+            }
+            shouYinProductByCode = productDao.getShouYinProductByCode(code);
+            if(shouYinProductByCode == null){
+                return ResultJson.failure(HttpYzCode.PRODUCT_NOT_EXISTS, "商品不存在");
+            }
+            if(code.startsWith("200")){
+                BigDecimal divide = BigDecimal.valueOf(Integer.valueOf(codeLast5)).divide(BigDecimal.valueOf(100)).setScale(2, RoundingMode.UP);
+                shouYinProductByCode.setCurrentPrice(divide);
+                shouYinProductByCode.setSanZhuang(true);
+            }
         }
 
-        if(code.startsWith("200")){
-            BigDecimal divide = BigDecimal.valueOf(Integer.valueOf(codeLast5)).divide(BigDecimal.valueOf(100)).setScale(2, RoundingMode.UP);
-            shouYinProductByCode.setCurrentPrice(divide);
-            shouYinProductByCode.setSanZhuang(true);
-        }
 
         shouYinDao.creteOrUpdateCartItem(userId, shouYinProductByCode);
         return ResultJson.ok(shouYinDao.getAllCartItems(userId));
@@ -132,9 +137,26 @@ public class ShouYinService {
         }catch (Exception e){
             log.error("print error order num = " + sfoi.getOrderNum(), e);
         }
+        try{
+            shouYinDao.reduceStock(sfoi.getId());
+        }catch (Exception e){
+            log.error("reduct stock error for order num = " + sfoi.getOrderNum(), e);
+        }
 
         return ResultJson.ok(new ShouYinFinishOrderInfo(sfoi.getOrderNum(), sfoi.getTotal(), hadPayMoney, offlinePayMoney, sfoi.getOnlinePayMoney(), sfoi.getCnt(), needPay, status.toString()));
     }
+
+    public ResultJson<ShouYinFinishOrderInfo> payOnLine(int userID, ShouYinFinishOrderInfo sfoi, ShouYinController.PAYTYPE paytype) {
+        shouYinDao.payOnLine(sfoi.getOrderNum(), sfoi.getTotal(), sfoi.getNeedPay());
+        printShouYinOrder(sfoi.getOrderNum());
+        try{
+            shouYinDao.reduceStock(sfoi.getId());
+        }catch (Exception e){
+            log.error("reduct stock error for order num = " + sfoi.getOrderNum(), e);
+        }
+        return ResultJson.ok(new ShouYinFinishOrderInfo(sfoi.getOrderNum(), sfoi.getTotal(), sfoi.getTotal(), sfoi.getOfflinePayMoney(), sfoi.getNeedPay(), sfoi.getCnt(), BigDecimal.ZERO, ShouYinController.SHOUYIN_ORDER_STATUS.FINISH.toString()));
+    }
+
 
     public ResultJson<ShouYinFinishOrderInfo> payOnLine(int userID, ShouYinFinishOrderInfo sfoi, String code) {
          boolean result = paymentService.scanWxCode(userID, sfoi.getOrderNum(), code, sfoi.getNeedPay().multiply(BigDecimal.valueOf(100)).intValue());

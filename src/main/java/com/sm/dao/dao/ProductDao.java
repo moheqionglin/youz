@@ -392,4 +392,8 @@ public class ProductDao {
         return jdbcTemplate.query(sql, new Object[]{code}, new ShouYinProductInfo.ShouYinProductInfoRowMapper()).stream().findFirst().orElse(null);
     }
 
+    public ShouYinProductInfo getShouYinProductByLast5Code(String code) {
+        final String sql = "select id,profile_img,name,size,offline_price,cost_price,current_price from products where code like '%"+code+"' and length(code) > 10";
+        return jdbcTemplate.query(sql, new ShouYinProductInfo.ShouYinProductInfoRowMapper()).stream().findFirst().orElse(null);
+    }
 }

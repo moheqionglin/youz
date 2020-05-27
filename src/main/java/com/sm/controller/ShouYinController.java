@@ -172,7 +172,8 @@ public class ShouYinController {
             // 当 payTotal < needPay 的时候， 返回需要支付的。 当 payTotal >= needPay, 返回不需要支付
             return shouYinService.payWithCash(shouYinFinishOrderInfo, payTotal);
         }
-        return shouYinService.payOnLine(userDetail.getId(), shouYinFinishOrderInfo, code);
+//        return shouYinService.payOnLine(userDetail.getId(), shouYinFinishOrderInfo, code);
+        return shouYinService.payOnLine(userDetail.getId(), shouYinFinishOrderInfo, paytype);
     }
 
 
@@ -245,6 +246,7 @@ public class ShouYinController {
     }
     public static enum PAYTYPE{
         ONLINE_WX,
+        ONLINE_LEHUI,
         ONLIE_ALIPAY,
         CASH
     }
