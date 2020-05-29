@@ -18,15 +18,14 @@ public class OrderPrintBean {
     private String address;
     private String link;
 
-//    private BigDecimal totalPrice;
-//    private BigDecimal useYongjin;
-//    private BigDecimal useYue;
+    private BigDecimal totalPrice;
+    private BigDecimal useYongjin;
+    private BigDecimal useYue;
 //    private BigDecimal needPayMoney;
-//    private BigDecimal hadPayMoney;
-//    private boolean chajia;
-//    private BigDecimal chajiaPrice;
+    private BigDecimal hadPayMoney;
+    private BigDecimal chajiaPrice;
 //    private BigDecimal chajiaNeedPayMoney;
-//    private BigDecimal chajiaHadPayMoney;
+    private BigDecimal chajiaHadPayMoney;
     private String message;
 
     public List<OrderItem> getItems() {
@@ -71,6 +70,54 @@ public class OrderPrintBean {
 
     public String getMessage() {
         return message;
+    }
+
+    public BigDecimal getTotalPrice() {
+        return totalPrice;
+    }
+
+    public void setTotalPrice(BigDecimal totalPrice) {
+        this.totalPrice = totalPrice;
+    }
+
+    public BigDecimal getUseYongjin() {
+        return useYongjin;
+    }
+
+    public void setUseYongjin(BigDecimal useYongjin) {
+        this.useYongjin = useYongjin;
+    }
+
+    public BigDecimal getUseYue() {
+        return useYue;
+    }
+
+    public void setUseYue(BigDecimal useYue) {
+        this.useYue = useYue;
+    }
+
+    public BigDecimal getHadPayMoney() {
+        return hadPayMoney;
+    }
+
+    public void setHadPayMoney(BigDecimal hadPayMoney) {
+        this.hadPayMoney = hadPayMoney;
+    }
+
+    public BigDecimal getChajiaPrice() {
+        return chajiaPrice;
+    }
+
+    public void setChajiaPrice(BigDecimal chajiaPrice) {
+        this.chajiaPrice = chajiaPrice;
+    }
+
+    public BigDecimal getChajiaHadPayMoney() {
+        return chajiaHadPayMoney;
+    }
+
+    public void setChajiaHadPayMoney(BigDecimal chajiaHadPayMoney) {
+        this.chajiaHadPayMoney = chajiaHadPayMoney;
     }
 
     public void setMessage(String message) {

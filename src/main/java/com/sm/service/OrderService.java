@@ -602,6 +602,12 @@ public class OrderService {
             orderPrintBean.setAddress(orderDetailInfo.getAddressDetail());
             orderPrintBean.setLink(orderDetailInfo.getAddressContract());
             orderPrintBean.setMessage(orderDetailInfo.getMessage());
+            orderPrintBean.setTotalPrice(orderDetailInfo.getTotalPrice());
+            orderPrintBean.setUseYongjin(orderDetailInfo.getUseYongjin());
+            orderPrintBean.setUseYue(orderDetailInfo.getUseYue());
+            orderPrintBean.setHadPayMoney(orderDetailInfo.getHadPayMoney());
+            orderPrintBean.setChajiaPrice(orderDetailInfo.getChajiaPrice());
+            orderPrintBean.setChajiaHadPayMoney(orderDetailInfo.getChajiaHadPayMoney());
             prienter.print(orderPrintBean);
         }catch (Exception e){
             logger.error("打印错误", e);

@@ -86,6 +86,58 @@ public class Prienter{
 		sb.append("</table>");
 		sb.append("------------------------------------\r\n");
 
+		sb.append("<table>");
+		sb.append("<tr>");
+		sb.append("<td>");
+		sb.append("商品总数");
+		sb.append("</td>");
+		sb.append("<td>");
+		sb.append("" + orderPrintBean.getItems().stream().map(item -> item.getCount()).reduce(0, (a,b)-> a + b));
+		sb.append("</td>");
+		sb.append("</tr>");
+
+		sb.append("<tr>");
+		sb.append("<td>");
+		sb.append("总金额");
+		sb.append("</td>");
+		sb.append("<td>");
+		sb.append("" + orderPrintBean.getTotalPrice());
+		sb.append("</td>");
+		sb.append("</tr>");
+		sb.append("<tr>");
+		sb.append("<td>");
+		sb.append("主订单支付金额");
+		sb.append("</td>");
+		sb.append("<td>");
+		sb.append("" + orderPrintBean.getHadPayMoney());
+		sb.append("</td>");
+		sb.append("</tr>");
+
+		if(orderPrintBean.getChajiaHadPayMoney() != null && orderPrintBean.getChajiaHadPayMoney().compareTo(BigDecimal.ZERO) != 0){
+			sb.append("<tr>");
+			sb.append("<td>");
+			sb.append("差价总金额");
+			sb.append("</td>");
+			sb.append("<td>");
+			sb.append("" + orderPrintBean.getChajiaHadPayMoney());
+			sb.append("</td>");
+			sb.append("</tr>");
+
+			sb.append("<tr>");
+			sb.append("<td>");
+			sb.append("差价支付金额");
+			sb.append("</td>");
+			sb.append("<td>");
+			sb.append("" + orderPrintBean.getChajiaHadPayMoney());
+			sb.append("</td>");
+			sb.append("</tr>");
+		}
+
+		sb.append("</table>");
+		sb.append("------------------------------------\r\n");
+
+		sb.append("<center>地址: 浦东区新行路395号</center>");
+		sb.append("<center>电话: 021-68776696</center>");
 //		sb.append("订单总价：￥"+orderPrintBean.getTotalPrice() != null ? orderPrintBean.getTotalPrice().setScale(2, RoundingMode.UP).toPlainString() : "" +"\r\n");
 //		if(orderPrintBean.isChajia()){
 //			sb.append("差价金额：￥"+orderPrintBean.getChajiaNeedPayMoney() != null ? orderPrintBean.getChajiaNeedPayMoney().setScale(2, RoundingMode.UP).toPlainString():""+"\r\n");
@@ -95,6 +147,8 @@ public class Prienter{
 //		if(orderPrintBean.isChajia()) {
 //			sb.append("客户支付差价：￥" + orderPrintBean.getChajiaHadPayMoney()!= null ?orderPrintBean.getChajiaHadPayMoney().setScale(2, RoundingMode.UP).toPlainString():""  + "\r\n");
 //		}
+		sb.append("<center>地址: 浦东区新行路395号</center>");
+		sb.append("<center>电话: 021-68776696</center>");
 		sb.append("<center>谢谢惠顾，欢迎下次光临！</center>");
 		executorService.execute(new Runnable() {
 			@Override
@@ -109,11 +163,12 @@ public class Prienter{
 		});
 	}
 
+
 	// 设置小票打印
 	public void printShouyinOrder(ShouYinOrderInfo orderInfo){
 		//字符串拼接
 		StringBuilder sb=new StringBuilder();
-		sb.append("<center>悠哉商城\r\n</center>");
+		sb.append("<center>悠哉到家\r\n</center>");
 
 		sb.append("<center>订单内容\r\n</center>");
 		sb.append("------------------------------------\r\n");
@@ -135,13 +190,55 @@ public class Prienter{
 		sb.append("</tr>");
 		for (ShouYinOrderItemInfo item : orderInfo.getShouYinOrderItemInfoList()) {
 			sb.append("<tr>");
-			sb.append("<td>"+item.getProductName()+"</td>");
-			sb.append("<td>"+item.getProductSize() +"x" + item.getProductCnt()+"</td>");
+			sb.append("<td>"+StringUtils.substring(item.getProductName(), 0, 5)+"</td>");
+			sb.append("<td>"+StringUtils.substring(item.getProductSize(), 0 , 4) +"x" + item.getProductCnt()+"</td>");
 			sb.append("<td>"+item.getUnitPrice().setScale(2, RoundingMode.UP).toPlainString()+"</td>");
 			sb.append("</tr>");
 		}
 		sb.append("</table>");
 		sb.append("------------------------------------\r\n");
+		sb.append("<table>");
+		sb.append("<tr>");
+		sb.append("<td>");
+		sb.append("商品总数");
+		sb.append("</td>");
+		sb.append("<td>");
+		sb.append("" + orderInfo.getShouYinOrderItemInfoList().stream().map(item -> item.getProductCnt()).reduce(0, (a,b)-> a + b));
+		sb.append("</td>");
+		sb.append("</tr>");
+
+		sb.append("<tr>");
+		sb.append("<td>");
+		sb.append("总金额");
+		sb.append("</td>");
+		sb.append("<td>");
+		sb.append("" + orderInfo.getTotalPrice());
+		sb.append("</td>");
+		sb.append("</tr>");
+
+		sb.append("<tr>");
+		sb.append("<td>");
+		sb.append("线上支付");
+		sb.append("</td>");
+		sb.append("<td>");
+		sb.append("" + orderInfo.getOnlinePayMoney());
+		sb.append("</td>");
+		sb.append("</tr>");
+
+		sb.append("<tr>");
+		sb.append("<td>");
+		sb.append("现金支付");
+		sb.append("</td>");
+		sb.append("<td>");
+		sb.append("" + orderInfo.getOfflinePayMoney());
+		sb.append("</td>");
+		sb.append("</tr>");
+
+		sb.append("</table>");
+		sb.append("------------------------------------\r\n");
+
+		sb.append("<center>地址: 浦东区新行路395号</center>");
+		sb.append("<center>电话: 021-68776696</center>");
 		sb.append("<center>谢谢惠顾，欢迎下次光临！</center>");
 		executorService.execute(()-> {
 			try{
