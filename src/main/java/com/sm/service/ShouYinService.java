@@ -121,7 +121,7 @@ public class ShouYinService {
         BigDecimal needPay = sfoi.getNeedPay().subtract(realPay);
         BigDecimal hadPayMoney = sfoi.getHadPayMoney().add(realPay);
 
-        if(needPay.compareTo(BigDecimal.ZERO) < 0){
+        if(needPay.compareTo(BigDecimal.ZERO) <= 0){
             realPay = sfoi.getNeedPay();
             status = ShouYinController.SHOUYIN_ORDER_STATUS.FINISH;
             needPay = BigDecimal.ZERO;
