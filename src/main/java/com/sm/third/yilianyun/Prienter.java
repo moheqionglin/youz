@@ -46,7 +46,7 @@ public class Prienter{
 	public void print(OrderPrintBean orderPrintBean){
 		//字符串拼接
 		StringBuilder sb=new StringBuilder();
-		sb.append("<center>悠哉商城\r\n</center>");
+		sb.append("<center>悠哉到家\r\n</center>");
 
 		sb.append("<center>订单内容\r\n</center>");
 		sb.append("------------------------------------\r\n");
@@ -73,8 +73,8 @@ public class Prienter{
 			sb.append("</tr>");
 			for (OrderItem item : orderPrintBean.getItems()) {
 			sb.append("<tr>");
-				sb.append("<td>"+item.getName()+"</td>");
-				sb.append("<td>"+item.getSize() +"x" + item.getCount()+"</td>");
+				sb.append("<td>"+StringUtils.substring(item.getName(), 0, 5)+"</td>");
+				sb.append("<td>"+StringUtils.substring(item.getSize(), 0 , 4) +"x" + item.getCount()+"</td>");
 				sb.append("<td>"+item.getAmount().setScale(2, RoundingMode.UP).toPlainString()+"</td>");
 //				String chajia = "无";
 //				if(item.isChajia() && StringUtils.isNoneBlank(item.getChajiaWeight()) && item.getChajiaAmount() != null && item.getChajiaAmount().compareTo(BigDecimal.ZERO) > 0){
@@ -86,58 +86,18 @@ public class Prienter{
 		sb.append("</table>");
 		sb.append("------------------------------------\r\n");
 
-		sb.append("<table>");
-		sb.append("<tr>");
-		sb.append("<td>");
-		sb.append("商品总数");
-		sb.append("</td>");
-		sb.append("<td>");
-		sb.append("" + orderPrintBean.getItems().stream().map(item -> item.getCount()).reduce(0, (a,b)-> a + b));
-		sb.append("</td>");
-		sb.append("</tr>");
-
-		sb.append("<tr>");
-		sb.append("<td>");
-		sb.append("总金额");
-		sb.append("</td>");
-		sb.append("<td>");
-		sb.append("" + orderPrintBean.getTotalPrice());
-		sb.append("</td>");
-		sb.append("</tr>");
-		sb.append("<tr>");
-		sb.append("<td>");
-		sb.append("主订单支付金额");
-		sb.append("</td>");
-		sb.append("<td>");
-		sb.append("" + orderPrintBean.getHadPayMoney());
-		sb.append("</td>");
-		sb.append("</tr>");
+		StringBuffer sbb = new StringBuffer();
+		sbb.append(" 商品总数: " + orderPrintBean.getItems().stream().map(item -> item.getCount()).reduce(0, (a,b)-> a + b));
+		sbb.append(" 总金额:" +  orderPrintBean.getTotalPrice());
+		sbb.append("  主订单支付金额 " + orderPrintBean.getHadPayMoney());
 
 		if(orderPrintBean.getChajiaHadPayMoney() != null && orderPrintBean.getChajiaHadPayMoney().compareTo(BigDecimal.ZERO) != 0){
-			sb.append("<tr>");
-			sb.append("<td>");
-			sb.append("差价总金额");
-			sb.append("</td>");
-			sb.append("<td>");
-			sb.append("" + orderPrintBean.getChajiaHadPayMoney());
-			sb.append("</td>");
-			sb.append("</tr>");
-
-			sb.append("<tr>");
-			sb.append("<td>");
-			sb.append("差价支付金额");
-			sb.append("</td>");
-			sb.append("<td>");
-			sb.append("" + orderPrintBean.getChajiaHadPayMoney());
-			sb.append("</td>");
-			sb.append("</tr>");
+			sbb.append("  差价总金额:" +  orderPrintBean.getChajiaHadPayMoney());
+			sbb.append("  差价支付金额: " + orderPrintBean.getChajiaHadPayMoney());
 		}
-
-		sb.append("</table>");
+		sb.append(sbb.toString());
 		sb.append("------------------------------------\r\n");
 
-		sb.append("<center>地址: 浦东区新行路395号</center>");
-		sb.append("<center>电话: 021-68776696</center>");
 //		sb.append("订单总价：￥"+orderPrintBean.getTotalPrice() != null ? orderPrintBean.getTotalPrice().setScale(2, RoundingMode.UP).toPlainString() : "" +"\r\n");
 //		if(orderPrintBean.isChajia()){
 //			sb.append("差价金额：￥"+orderPrintBean.getChajiaNeedPayMoney() != null ? orderPrintBean.getChajiaNeedPayMoney().setScale(2, RoundingMode.UP).toPlainString():""+"\r\n");
@@ -149,7 +109,7 @@ public class Prienter{
 //		}
 		sb.append("<center>地址: 浦东区新行路395号</center>");
 		sb.append("<center>电话: 021-68776696</center>");
-		sb.append("<center>谢谢惠顾，欢迎下次光临！</center>");
+
 		executorService.execute(new Runnable() {
 			@Override
 			public void run() {
@@ -170,7 +130,6 @@ public class Prienter{
 		StringBuilder sb=new StringBuilder();
 		sb.append("<center>悠哉到家\r\n</center>");
 
-		sb.append("<center>订单内容\r\n</center>");
 		sb.append("------------------------------------\r\n");
 		sb.append("订单号："+orderInfo.getOrderNum()+"\r\n");
 		sb.append("下单时间："+ SmUtil.parseLongToTMDHMS(System.currentTimeMillis()) +"\r\n");
@@ -197,49 +156,23 @@ public class Prienter{
 		}
 		sb.append("</table>");
 		sb.append("------------------------------------\r\n");
-		sb.append("<table>");
-		sb.append("<tr>");
-		sb.append("<td>");
-		sb.append("商品总数");
-		sb.append("</td>");
-		sb.append("<td>");
-		sb.append("" + orderInfo.getShouYinOrderItemInfoList().stream().map(item -> item.getProductCnt()).reduce(0, (a,b)-> a + b));
-		sb.append("</td>");
-		sb.append("</tr>");
 
-		sb.append("<tr>");
-		sb.append("<td>");
-		sb.append("总金额");
-		sb.append("</td>");
-		sb.append("<td>");
-		sb.append("" + orderInfo.getTotalPrice());
-		sb.append("</td>");
-		sb.append("</tr>");
+		StringBuffer sbb = new StringBuffer();
+		sbb.append("商品总数 :" + orderInfo.getShouYinOrderItemInfoList().stream().map(item -> item.getProductCnt()).reduce(0, (a,b)-> a + b));
+		sbb.append("  总金额 :" + orderInfo.getTotalPrice());
 
-		sb.append("<tr>");
-		sb.append("<td>");
-		sb.append("线上支付");
-		sb.append("</td>");
-		sb.append("<td>");
-		sb.append("" + orderInfo.getOnlinePayMoney());
-		sb.append("</td>");
-		sb.append("</tr>");
+		if( orderInfo.getOnlinePayMoney() != null &&  orderInfo.getOnlinePayMoney().compareTo(BigDecimal.ZERO) > 0){
+			sbb.append("  线上支付 :" + orderInfo.getOnlinePayMoney());
+		}
 
-		sb.append("<tr>");
-		sb.append("<td>");
-		sb.append("现金支付");
-		sb.append("</td>");
-		sb.append("<td>");
-		sb.append("" + orderInfo.getOfflinePayMoney());
-		sb.append("</td>");
-		sb.append("</tr>");
-
-		sb.append("</table>");
+		if(orderInfo.getOfflinePayMoney() != null &&  orderInfo.getOfflinePayMoney().compareTo(BigDecimal.ZERO) > 0){
+			sbb.append("  现金支付 :" + orderInfo.getOfflinePayMoney());
+		}
+		sb.append(sbb.toString());
 		sb.append("------------------------------------\r\n");
-
 		sb.append("<center>地址: 浦东区新行路395号</center>");
 		sb.append("<center>电话: 021-68776696</center>");
-		sb.append("<center>谢谢惠顾，欢迎下次光临！</center>");
+
 		executorService.execute(()-> {
 			try{
 				lyyService.print(lyyOfflineService.mochineCode, sb.toString(), System.currentTimeMillis() + " " +random.nextInt(1000));

@@ -236,6 +236,7 @@ public class ShouYinDao {
     }
 
     public void reduceStock(Integer id) {
+
         final String sql = String.format("select product_id, product_cnt from %s where order_id = ? and product_id > 0", VarProperties.SHOUYIN_ORDER_ITEM);
         List<Map<String, Object>> rsts = jdbcTemplate.queryForList(sql, new Object[]{id});
         HashMap<Integer, Integer> pid2Stock = new HashMap<>();
@@ -251,7 +252,8 @@ public class ShouYinDao {
         List<Object[]> collect = oldStocks.stream().map(m -> {
             int pid = Integer.valueOf(m.get("id").toString());
             int stock = Integer.valueOf(m.get("stock").toString());
-            return new Object[]{stock - (pid2Stock.get(pid) == null ? 0 : pid2Stock.get(pid)), pid};
+            int newStock = stock - (pid2Stock.get(pid) == null ? 0 : pid2Stock.get(pid));
+            return new Object[]{newStock < 0 ? 0 : newStock, pid};
         }).collect(Collectors.toList());
         final String reductStockSql = String.format("update %s set stock =  ? where id = ?", VarProperties.PRODUCTS);
 
