@@ -96,7 +96,7 @@ public class Prienter{
 			sbb.append("  差价支付金额: " + orderPrintBean.getChajiaHadPayMoney());
 		}
 		sb.append(sbb.toString());
-		sb.append("------------------------------------\r\n");
+		sb.append("\n------------------------------------\r\n");
 
 //		sb.append("订单总价：￥"+orderPrintBean.getTotalPrice() != null ? orderPrintBean.getTotalPrice().setScale(2, RoundingMode.UP).toPlainString() : "" +"\r\n");
 //		if(orderPrintBean.isChajia()){
@@ -169,7 +169,7 @@ public class Prienter{
 			sbb.append("  现金支付 :" + orderInfo.getOfflinePayMoney());
 		}
 		sb.append(sbb.toString());
-		sb.append("------------------------------------\r\n");
+		sb.append("\n------------------------------------\r\n");
 		sb.append("<center>地址: 浦东区新行路395号</center>");
 		sb.append("<center>电话: 021-68776696</center>");
 

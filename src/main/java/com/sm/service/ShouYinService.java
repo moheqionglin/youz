@@ -47,24 +47,21 @@ public class ShouYinService {
         ShouYinProductInfo shouYinProductByCode = null;
         if(StringUtils.length(code) == 5){//后五位查找
             shouYinProductByCode = productDao.getShouYinProductByLast5Code(code);
-        }else{//13位
-            String codeLast5 = StringUtils.substring(code, 8);
-            codeLast5 = StringUtils.isBlank(codeLast5) ? "0": codeLast5;
-            if(code.startsWith("200")){
-                code = StringUtils.substring(code, 0, 8);
-            }
+        }else if(code.startsWith("200") && StringUtils.length(code) > 8){//200开头 13位
+            //获取价格
+            String codeLast6 = StringUtils.substring(code, 7);
+            codeLast6 = StringUtils.isBlank(codeLast6) ? "0": codeLast6;
+            code = StringUtils.substring(code, 0, 7);
             shouYinProductByCode = productDao.getShouYinProductByCode(code);
-            if(shouYinProductByCode == null){
-                return ResultJson.failure(HttpYzCode.PRODUCT_NOT_EXISTS, "商品不存在");
-            }
-            if(code.startsWith("200")){
-                BigDecimal divide = BigDecimal.valueOf(Integer.valueOf(codeLast5)).divide(BigDecimal.valueOf(100)).setScale(2, RoundingMode.UP);
-                shouYinProductByCode.setCurrentPrice(divide);
-                shouYinProductByCode.setSanZhuang(true);
-            }
+            BigDecimal divide = BigDecimal.valueOf(Integer.valueOf(codeLast6)).divide(BigDecimal.valueOf(1000)).setScale(2, RoundingMode.UP);
+            shouYinProductByCode.setCurrentPrice(divide);
+            shouYinProductByCode.setSanZhuang(true);
+        }else{//正常13位 8位
+            shouYinProductByCode = productDao.getShouYinProductByCode(code);
         }
-
-
+        if(shouYinProductByCode == null){
+            return ResultJson.failure(HttpYzCode.PRODUCT_NOT_EXISTS, "商品不存在");
+        }
         shouYinDao.creteOrUpdateCartItem(userId, shouYinProductByCode);
         return ResultJson.ok(shouYinDao.getAllCartItems(userId));
     }
