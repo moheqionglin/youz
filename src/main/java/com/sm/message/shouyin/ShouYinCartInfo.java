@@ -8,6 +8,8 @@ public class ShouYinCartInfo {
     private BigDecimal total;
     private List<ShouYinCartItemInfo> items = new ArrayList<>();
     private String startTime;
+    private int guadanCnt;
+
     public ShouYinCartInfo(BigDecimal total, List<ShouYinCartItemInfo> items) {
         this.total = total;
         this.items = items;
@@ -15,6 +17,14 @@ public class ShouYinCartInfo {
 
     public String getStartTime() {
         return startTime;
+    }
+
+    public int getGuadanCnt() {
+        return guadanCnt;
+    }
+
+    public void setGuadanCnt(int guadanCnt) {
+        this.guadanCnt = guadanCnt;
     }
 
     public void setStartTime(String startTime) {

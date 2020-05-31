@@ -18,7 +18,7 @@ public class ShouYinProductInfo {
     private boolean isSanZhuang = false;
 
     public Object getUnitPrice() {
-        return offlinePrice == null || BigDecimal.ZERO.compareTo(offlinePrice) >= 0 ? currentPrice : offlinePrice;
+        return offlinePrice == null || BigDecimal.ZERO.compareTo(offlinePrice) == 0 ? currentPrice : offlinePrice;
     }
 
 

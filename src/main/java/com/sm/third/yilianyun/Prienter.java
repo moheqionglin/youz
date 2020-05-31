@@ -161,12 +161,15 @@ public class Prienter{
 		sbb.append("商品总数 :" + orderInfo.getShouYinOrderItemInfoList().stream().map(item -> item.getProductCnt()).reduce(0, (a,b)-> a + b));
 		sbb.append("  总金额 :" + orderInfo.getTotalPrice());
 
-		if( orderInfo.getOnlinePayMoney() != null &&  orderInfo.getOnlinePayMoney().compareTo(BigDecimal.ZERO) > 0){
+		if( orderInfo.getOnlinePayMoney() != null &&  orderInfo.getOnlinePayMoney().compareTo(BigDecimal.ZERO) != 0){
 			sbb.append("  线上支付 :" + orderInfo.getOnlinePayMoney());
 		}
 
-		if(orderInfo.getOfflinePayMoney() != null &&  orderInfo.getOfflinePayMoney().compareTo(BigDecimal.ZERO) > 0){
+		if(orderInfo.getOfflinePayMoney() != null &&  orderInfo.getOfflinePayMoney().compareTo(BigDecimal.ZERO) != 0){
 			sbb.append("  现金支付 :" + orderInfo.getOfflinePayMoney());
+		}
+		if(orderInfo.getZhaoling() != null &&  orderInfo.getZhaoling().compareTo(BigDecimal.ZERO) != 0){
+			sbb.append("  找零 :" + orderInfo.getZhaoling());
 		}
 		sb.append(sbb.toString());
 		sb.append("\n------------------------------------\r\n");

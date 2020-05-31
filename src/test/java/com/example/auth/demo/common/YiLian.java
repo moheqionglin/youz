@@ -6,6 +6,7 @@ import com.example.auth.demo.BaseTest;
 import com.sm.third.message.OrderItem;
 import com.sm.third.message.OrderPrintBean;
 import com.sm.third.yilianyun.LAVApi;
+import com.sm.third.yilianyun.LYYOfflineService;
 import com.sm.third.yilianyun.LYYService;
 import com.sm.third.yilianyun.Prienter;
 import org.junit.Test;
@@ -26,7 +27,13 @@ public class YiLian extends BaseTest {
 
     @Autowired
     private LYYService lyyService;
+    @Autowired
+    private LYYOfflineService offlineService;
 
+    @Test
+    public void voice(){
+        offlineService.setVoice("4004640352", "horn", "0");
+    }
     @Test
     public void print(){
         OrderPrintBean orderPrintBean = new OrderPrintBean();

@@ -5,6 +5,7 @@ import com.sm.message.ResultJson;
 import com.sm.message.order.ShouYinFinishOrderInfo;
 import com.sm.message.shouyin.PersonWorkStatusInfo;
 import com.sm.message.shouyin.ShouYinCartInfo;
+import com.sm.message.shouyin.ShouYinOrderInfo;
 import com.sm.message.shouyin.ShouYinWorkRecordStatisticsInfo;
 import com.sm.service.PaymentService;
 import com.sm.service.ShouYinService;
@@ -20,6 +21,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
 /**
@@ -46,42 +48,45 @@ public class ShouYinController {
     @GetMapping(path = "/shouyin/list")
     @PreAuthorize("hasAuthority('SHOUYIN')")
     @ApiOperation(value = "[获取收银员列表] 部分页")
-    public ResultJson<ShouYinCartInfo> getAllCartItems(){
+    public ResultJson<ShouYinCartInfo> getAllCartItems(@NotNull @RequestParam("isDrawback") Boolean isDrawback){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
-        return ResultJson.ok(shouYinService.getAllCartItems(userDetail.getId()));
+        return ResultJson.ok(shouYinService.getAllCartItems(userDetail.getId(), isDrawback));
     }
 
     @PostMapping(path = "/shouyin/cart/{code}")
     @PreAuthorize("hasAuthority('SHOUYIN')")
     @ApiOperation(value = "[根据code查询商品] 只要code能够查询得到商品就返回，不管商品状态，库存等, 扫码成功 加入临时购物车。")
     @ApiResponses(value={@ApiResponse(code=472, message="商品不存在") })
-    public ResultJson<ShouYinCartInfo> addCart(@NotNull @PathVariable("code") String code){
+    public ResultJson<ShouYinCartInfo> addCart(@NotNull @PathVariable("code") String code,
+                                               @NotNull @RequestParam("isDrawback") Boolean isDrawback){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
-
-        return shouYinService.addCart(userDetail.getId(), code);
+        return shouYinService.addCart(userDetail.getId(), code, isDrawback);
     }
 
     @PostMapping(path = "/shouyin/cart/nocode/{price}")
     @PreAuthorize("hasAuthority('SHOUYIN')")
     @ApiOperation(value = "[综合商品加入购物车] 传入价格。")
-    public ResultJson<ShouYinCartInfo> addCartWithNoCode(@NotNull @PathVariable("price") BigDecimal price){
+    public ResultJson<ShouYinCartInfo> addCartWithNoCode(@NotNull @PathVariable("price") BigDecimal price,
+                                                         @NotNull @RequestParam("isDrawback") Boolean isDrawback){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
+        price = isDrawback ? price.negate().setScale(2, RoundingMode.UP) : price;
         shouYinService.addCartWithNoCode(userDetail.getId(), price);
-        return ResultJson.ok(shouYinService.getAllCartItems(userDetail.getId()));
+        return ResultJson.ok(shouYinService.getAllCartItems(userDetail.getId(), isDrawback));
     }
 
     @PostMapping(path = "/shouyin/cart/{id}/{action}")
     @PreAuthorize("hasAuthority('SHOUYIN')")
     @ApiOperation(value = "[根据cart id更新个数]")
     public ResultJson<ShouYinCartInfo> updateCount(@Valid @NotNull @PathVariable("id") int cartItemId,
-                                  @Valid @NotNull @PathVariable("action") ShoppingCartController.CountAction action){
+                                  @Valid @NotNull @PathVariable("action") ShoppingCartController.CountAction action,
+                                                   @NotNull @RequestParam("isDrawback") Boolean isDrawback){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
         shouYinService.updateCount(userDetail.getId(), cartItemId, action);
-        return ResultJson.ok(shouYinService.getAllCartItems(userDetail.getId()));
+        return ResultJson.ok(shouYinService.getAllCartItems(userDetail.getId(), isDrawback));
     }
 
     @PostMapping(path = "/shouyin/cart/delete")
@@ -90,23 +95,66 @@ public class ShouYinController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "cartItemIds", value = "cartItemIds", required = true, paramType = "body", allowMultiple=true, dataType = "Integer")
     })
-    public ResultJson deleteCartItem2(@Valid @NotEmpty @RequestBody List<Integer> cartItemIds){
+    public ResultJson<ShouYinCartInfo> deleteCartItem2(@Valid @NotEmpty @RequestBody List<Integer> cartItemIds, @NotNull @RequestParam("isDrawback") Boolean isDrawback){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
         shouYinService.deleteCartItem(cartItemIds);
-        return ResultJson.ok(shouYinService.getAllCartItems(userDetail.getId()));
+        return ResultJson.ok(shouYinService.getAllCartItems(userDetail.getId(), isDrawback));
     }
 
     @PostMapping(path = "/shouyin/order")
     @PreAuthorize("hasAuthority('SHOUYIN') ")
     @ApiOperation(value = "[完结订单] 返回订单号")
-    public ResultJson<ShouYinFinishOrderInfo> finishOrder(){
+    public ResultJson<ShouYinFinishOrderInfo> finishOrder(@NotNull @RequestParam("isDrawback") Boolean isDrawback){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
-        return shouYinService.finishOrder(userDetail.getId());
+        return shouYinService.finishOrder(userDetail.getId(), isDrawback);
     }
 
+    @PostMapping(path = "/shouyin/order/guadan")
+    @PreAuthorize("hasAuthority('SHOUYIN') ")
+    @ApiOperation(value = "[挂单] 返回个数")
+    public ResultJson<Integer> guadan(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
+        return shouYinService.guadan(userDetail.getId());
+    }
 
+    @GetMapping(path = "/shouyin/order/guadan/ids")
+    @PreAuthorize("hasAuthority('SHOUYIN') ")
+    @ApiOperation(value = "[挂单] 返回个数")
+    public ResultJson<List<String>> getGuadanOrderNums(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
+        return shouYinService.getGuadanOrderNums(userDetail.getId());
+    }
+
+    @GetMapping(path = "/shouyin/order/{orderNum}")
+    @PreAuthorize("hasAuthority('SHOUYIN') ")
+    @ApiOperation(value = "[挂单]详情")
+    public ResultJson<ShouYinOrderInfo> getGuadanOrder(@NotEmpty @PathVariable("orderNum") String orderNum){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
+        ShouYinOrderInfo guadanOrder = shouYinService.getGuadanOrder(orderNum);
+        if(guadanOrder == null || guadanOrder.getUserId() != userDetail.getId()){
+            ResultJson.failure(HttpYzCode.ORDER_NOT_EXISTS);
+        }
+        return ResultJson.ok(guadanOrder);
+    }
+    @PostMapping(path = "/shouyin/order/{orderNum}/tidan")
+    @PreAuthorize("hasAuthority('SHOUYIN') ")
+    @ApiOperation(value = "[挂单]详情")
+    public ResultJson<ShouYinCartInfo> tidan(@NotEmpty @PathVariable("orderNum") String orderNum){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
+        ShouYinOrderInfo guadanOrder = shouYinService.getGuadanOrder(orderNum);
+        if(guadanOrder == null ||guadanOrder.getUserId() != userDetail.getId()){
+            ResultJson.failure(HttpYzCode.ORDER_NOT_EXISTS);
+        }
+        shouYinService.batchAddCart(userDetail.getId(), guadanOrder.getShouYinOrderItemInfoList());
+        shouYinService.cancelOrder(orderNum);
+        return getAllCartItems(false);
+    }
     @PostMapping(path = "/shouyin/order/cancel/{orderNum}")
     @PreAuthorize("hasAuthority('SHOUYIN') ")
     @ApiOperation(value = "[取消订单] 返回退款金额")
@@ -135,6 +183,7 @@ public class ShouYinController {
 
         if(shouYinFinishOrderInfo.getNeedPay().compareTo(BigDecimal.ZERO) <= 0){
             shouYinService.setFinishStatus(orderNum);
+            shouYinFinishOrderInfo.setStatus(SHOUYIN_ORDER_STATUS.FINISH.toString());
             return ResultJson.ok(shouYinFinishOrderInfo);
         }
 
@@ -228,7 +277,8 @@ public class ShouYinController {
     public static enum SHOUYIN_ORDER_STATUS{
         WAIT_PAY,
         FINISH,
-        CANCEL
+        CANCEL,
+        GUADAN
     }
 
 }

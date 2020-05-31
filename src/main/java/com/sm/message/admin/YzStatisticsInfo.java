@@ -15,91 +15,45 @@ import java.time.format.DateTimeFormatter;
  * @time 2020-01-16 20:37
  */
 public class YzStatisticsInfo {
-    private String date;
-    private long datelong;
-    private BigDecimal totalPrice;
-    private BigDecimal totalCnt;
-    private BigDecimal totalCost;
-    private BigDecimal totalProfit;
+    YzStatisticsInfoItem total  = new YzStatisticsInfoItem();
+    YzStatisticsInfoItem online = new YzStatisticsInfoItem();
+    YzStatisticsInfoItem offline = new YzStatisticsInfoItem();
 
-    public static class YzStatisticsInfoRowMapper implements RowMapper<YzStatisticsInfo> {
-        @Override
-        public YzStatisticsInfo mapRow(ResultSet resultSet, int i) throws SQLException {
-            YzStatisticsInfo statistics = new YzStatisticsInfo();
-
-            if(existsColumn(resultSet, "day")){
-                statistics.setDate(SmUtil.parseLongToYMD(resultSet.getLong("day")));
-            }
-            if(existsColumn(resultSet, "total_price")){
-                BigDecimal totalPrice = resultSet.getBigDecimal("total_price");
-                statistics.setTotalPrice(totalPrice == null ? BigDecimal.ZERO: totalPrice);
-            }
-            if(existsColumn(resultSet, "total_cnt")){
-                statistics.setTotalCnt(resultSet.getBigDecimal("total_cnt"));
-            }
-            if(existsColumn(resultSet, "total_cost")){
-                BigDecimal totalCost = resultSet.getBigDecimal("total_cost");
-                statistics.setTotalCost(totalCost == null ? BigDecimal.ZERO:totalCost);
-            }
-            if(existsColumn(resultSet, "total_profit")){
-                BigDecimal totalProfit = resultSet.getBigDecimal("total_profit");
-                statistics.setTotalProfit(totalProfit == null ? BigDecimal.ZERO : totalProfit);
-            }
-            return statistics;
-        }
-        private boolean existsColumn(ResultSet rs, String column) {
-            try {
-                return rs.findColumn(column) > 0;
-            } catch (SQLException sqlex) {
-                return false;
-            }
+    public void initTotal(){
+        if(online != null && offline != null){
+            total.setDate(online.getDate());
+            total.setDatelong(online.getDatelong());
+            total.setTotalCnt(online.getTotalCnt().add(offline.getTotalCnt()));
+            total.setTotalPrice(online.getTotalPrice().add(offline.getTotalPrice()));
+            total.setTotalCost(online.getTotalCost().add(offline.getTotalCost()));
+            total.setTotalProfit(online.getTotalProfit().add(offline.getTotalProfit()));
+        }else if(online != null){
+            total = online;
+        }else if(offline != null){
+            total = offline;
         }
     }
-    public String getDate() {
-        return date;
+    public YzStatisticsInfoItem getTotal() {
+        return total;
     }
 
-    public long getDatelong() {
-        return datelong;
+    public void setTotal(YzStatisticsInfoItem total) {
+        this.total = total;
     }
 
-    public void setDatelong(long datelong) {
-        this.datelong = datelong;
+    public YzStatisticsInfoItem getOnline() {
+        return online;
     }
 
-    public void setDate(String date) {
-        this.date = date;
+    public void setOnline(YzStatisticsInfoItem online) {
+        this.online = online;
     }
 
-    public BigDecimal getTotalPrice() {
-        return totalPrice;
+    public YzStatisticsInfoItem getOffline() {
+        return offline;
     }
 
-    public void setTotalPrice(BigDecimal totalPrice) {
-        this.totalPrice = totalPrice;
-    }
-
-    public BigDecimal getTotalCnt() {
-        return totalCnt;
-    }
-
-    public void setTotalCnt(BigDecimal totalCnt) {
-        this.totalCnt = totalCnt;
-    }
-
-    public BigDecimal getTotalCost() {
-        return totalCost;
-    }
-
-    public void setTotalCost(BigDecimal totalCost) {
-        this.totalCost = totalCost;
-    }
-
-    public BigDecimal getTotalProfit() {
-        return totalProfit;
-    }
-
-    public void setTotalProfit(BigDecimal totalProfit) {
-        this.totalProfit = totalProfit;
+    public void setOffline(YzStatisticsInfoItem offline) {
+        this.offline = offline;
     }
 }

@@ -17,6 +17,7 @@ public class ShouYinOrderInfo {
     private BigDecimal hadPayMoney;
     private BigDecimal offlinePayMoney;
     private BigDecimal onlinePayMoney;
+    private BigDecimal zhaoling;
 
     private List<ShouYinOrderItemInfo> shouYinOrderItemInfoList = new ArrayList<>();
 
@@ -39,14 +40,18 @@ public class ShouYinOrderInfo {
             if(existsColumn(resultSet, "total_price")){
                 item.setTotalPrice(resultSet.getBigDecimal("total_price"));
             }
-            if(existsColumn(resultSet, "total_price")){
-                item.setTotalPrice(resultSet.getBigDecimal("total_price"));
+            if(existsColumn(resultSet, "had_pay_money")){
+                item.setHadPayMoney(resultSet.getBigDecimal("had_pay_money"));
             }
             if(existsColumn(resultSet, "offline_pay_money")){
                 item.setOfflinePayMoney(resultSet.getBigDecimal("offline_pay_money"));
             }
             if(existsColumn(resultSet, "online_pay_money")){
                 item.setOnlinePayMoney(resultSet.getBigDecimal("online_pay_money"));
+            }
+            if(existsColumn(resultSet, "zhao_ling")){
+                BigDecimal zhao_ling = resultSet.getBigDecimal("zhao_ling");
+                item.setZhaoling(zhao_ling == null ? BigDecimal.ZERO: zhao_ling);
             }
             return item;
         }
@@ -107,6 +112,14 @@ public class ShouYinOrderInfo {
 
     public void setHadPayMoney(BigDecimal hadPayMoney) {
         this.hadPayMoney = hadPayMoney;
+    }
+
+    public BigDecimal getZhaoling() {
+        return zhaoling;
+    }
+
+    public void setZhaoling(BigDecimal zhaoling) {
+        this.zhaoling = zhaoling;
     }
 
     public List<ShouYinOrderItemInfo> getShouYinOrderItemInfoList() {

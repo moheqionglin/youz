@@ -101,4 +101,9 @@ public class AdminController {
         adminService.printOrder(orderNum);
     }
 
+    public static enum StatisticsType{
+        ONLINE,
+        OFFLINE
+    }
+
 }

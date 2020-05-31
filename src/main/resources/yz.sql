@@ -338,7 +338,8 @@ create table statistics(
     total_price decimal(10, 2),
     total_cnt decimal(10, 2),
 	total_cost decimal(10, 2),
-	total_profit decimal(10, 2)
+	total_profit decimal(10, 2),
+	type varchar (16) not null default 'ONLINE'
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 create table lunbo(
@@ -415,7 +416,8 @@ create table shouyin_order(
 
     offline_pay_money decimal(10, 2) default 0 not null ,
     online_pay_money  decimal(10, 2) default 0 not null ,
-
+    zhao_ling decimal(10, 2) default 0 not null ,
+    order_type varchar (16) default 'ORDER' not null,
     created_time timestamp DEFAULT CURRENT_TIMESTAMP ,
 	modified_time timestamp  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -438,7 +440,6 @@ create table shouyin_order_item(
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- 收银员开工记录表
-
 create table shouyin_work_record(
     id int auto_increment primary key,
     user_id int,
@@ -448,7 +449,6 @@ create table shouyin_work_record(
     created_time timestamp DEFAULT CURRENT_TIMESTAMP ,
 	modified_time timestamp  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 )
-
 
 
 

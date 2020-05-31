@@ -255,7 +255,20 @@ public class LYYOfflineService {
                 LAVApi.getuuid(),
                 timestamp);
     }
-
+    /**
+     * 声音调节
+     */
+    public String setVoice(String machine_code, String content, String aid){
+        String timestamp = String.valueOf(System.currentTimeMillis() / 1000);
+        return LAVApi.setVoice(CLIENT_ID,
+                token,
+                machine_code,
+                content,
+                aid,
+                LAVApi.getSin(timestamp, CLIENT_ID, CLIENT_SECRET),
+                LAVApi.getuuid(),
+                timestamp);
+    }
     /**
      * 获取机型打印宽度接口
      */

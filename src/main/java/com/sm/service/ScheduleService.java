@@ -2,10 +2,12 @@ package com.sm.service;
 
 import com.sm.dao.dao.*;
 import com.sm.message.admin.YzStatisticsInfo;
+import com.sm.message.admin.YzStatisticsInfoItem;
 import com.sm.utils.SmUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -32,9 +34,18 @@ public class ScheduleService {
     private ProductDao productDao;
     @Autowired
     private SearchDao searchDao;
+
+    @Value("${enable.schedule:false}")
+    private boolean enableSchedule;
     @Scheduled(cron = "0 30 0 * * *")
     public void work() {
+
         logger.info("start schedule...");
+        if(!enableSchedule){
+            logger.info("disable schedule, exit!");
+            return;
+        }
+
         try{
             statisticsOrder();
         }catch (Exception e){
@@ -100,7 +111,6 @@ public class ScheduleService {
     private void statisticsOrder() {
         logger.info("start order statistics");
         YzStatisticsInfo lastdayStatistics = adminDao.getLastdayStatistics();
-        lastdayStatistics.setDatelong(SmUtil.getLongTimeFromYMDHMS(SmUtil.getLastTodayYMD() + " 00:00:00"));
         adminDao.createStatistics(lastdayStatistics);
         logger.info("finish order statistics");
     }

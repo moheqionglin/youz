@@ -9,10 +9,7 @@ import com.sm.dao.dao.ShouYinDao;
 import com.sm.message.ResultJson;
 import com.sm.message.order.ShouYinFinishOrderInfo;
 import com.sm.message.product.ShouYinProductInfo;
-import com.sm.message.shouyin.PersonWorkStatusInfo;
-import com.sm.message.shouyin.ShouYinCartInfo;
-import com.sm.message.shouyin.ShouYinOrderInfo;
-import com.sm.message.shouyin.ShouYinWorkRecordStatisticsInfo;
+import com.sm.message.shouyin.*;
 import com.sm.third.yilianyun.Prienter;
 import com.sm.utils.SmUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -39,21 +36,21 @@ public class ShouYinService {
     @Autowired
     private PaymentService paymentService;
 
-    public ShouYinCartInfo getAllCartItems(Integer userId) {
-        return shouYinDao.getAllCartItems(userId);
+    public ShouYinCartInfo getAllCartItems(Integer userId, boolean isDrawback) {
+        return shouYinDao.getAllCartItems(userId, isDrawback);
     }
 
-    public ResultJson<ShouYinCartInfo> addCart(int userId, String code) {
+    public ResultJson<ShouYinCartInfo> addCart(int userId, String code, boolean isDrawback) {
         ShouYinProductInfo shouYinProductByCode = null;
         if(StringUtils.length(code) == 5){//后五位查找
             shouYinProductByCode = productDao.getShouYinProductByLast5Code(code);
-        }else if(code.startsWith("200") && StringUtils.length(code) > 8){//200开头 13位
+        }else if(code.startsWith("200") && StringUtils.length(code) == 13){//200开头 13位
             //获取价格
             String codeLast6 = StringUtils.substring(code, 7);
             codeLast6 = StringUtils.isBlank(codeLast6) ? "0": codeLast6;
             code = StringUtils.substring(code, 0, 7);
             shouYinProductByCode = productDao.getShouYinProductByCode(code);
-            BigDecimal divide = BigDecimal.valueOf(Integer.valueOf(codeLast6)).divide(BigDecimal.valueOf(1000)).setScale(2, RoundingMode.UP);
+            BigDecimal divide = BigDecimal.valueOf(Integer.valueOf(codeLast6)).divide(BigDecimal.valueOf(1000)).setScale(2, RoundingMode.DOWN);
             shouYinProductByCode.setCurrentPrice(divide);
             shouYinProductByCode.setSanZhuang(true);
         }else{//正常13位 8位
@@ -62,8 +59,13 @@ public class ShouYinService {
         if(shouYinProductByCode == null){
             return ResultJson.failure(HttpYzCode.PRODUCT_NOT_EXISTS, "商品不存在");
         }
+        if(isDrawback){
+            shouYinProductByCode.setCurrentPrice(shouYinProductByCode.getCurrentPrice().negate().setScale(2, RoundingMode.UP));
+            shouYinProductByCode.setOfflinePrice(shouYinProductByCode.getOfflinePrice().negate().setScale(2, RoundingMode.UP));
+            shouYinProductByCode.setCostPrice(shouYinProductByCode.getCostPrice().negate().setScale(2, RoundingMode.UP));
+        }
         shouYinDao.creteOrUpdateCartItem(userId, shouYinProductByCode);
-        return ResultJson.ok(shouYinDao.getAllCartItems(userId));
+        return ResultJson.ok(shouYinDao.getAllCartItems(userId, isDrawback));
     }
 
     public void addCartWithNoCode(int userId, BigDecimal price) {
@@ -80,16 +82,27 @@ public class ShouYinService {
 
     }
 
-    public ResultJson<ShouYinFinishOrderInfo> finishOrder(int userId) {
-        ShouYinCartInfo allCartItems = shouYinDao.getAllCartItems(userId);
+    public ResultJson<ShouYinFinishOrderInfo> finishOrder(int userId, boolean isDrawback ) {
+        ShouYinCartInfo allCartItems = shouYinDao.getAllCartItems(userId,  isDrawback);
         if(allCartItems == null ||  allCartItems.getItems() == null || allCartItems.getItems().isEmpty()){
             return ResultJson.failure(HttpYzCode.SERVER_ERROR);
         }
-        String orderNum = SmUtil.getShouYinCode();
-        shouYinDao.createOrder(userId, orderNum, allCartItems);
+        String orderNum = SmUtil.getShouYinCode(isDrawback);
+        shouYinDao.createOrder(userId, orderNum, allCartItems, isDrawback ? ShouYinController.SHOUYIN_ORDER_STATUS.FINISH:ShouYinController.SHOUYIN_ORDER_STATUS.WAIT_PAY );
+        if(isDrawback){
+            printShouYinOrder(orderNum);
+        }
         return ResultJson.ok(new ShouYinFinishOrderInfo(orderNum, allCartItems.getTotal(), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, allCartItems.getItems().size(), allCartItems.getTotal(), ShouYinController.SHOUYIN_ORDER_STATUS.WAIT_PAY.toString()));
     }
-
+    public ResultJson<Integer> guadan(int userId) {
+        ShouYinCartInfo allCartItems = shouYinDao.getAllCartItems(userId,  false);
+        if(allCartItems == null ||  allCartItems.getItems() == null || allCartItems.getItems().isEmpty()){
+            return ResultJson.failure(HttpYzCode.SERVER_ERROR);
+        }
+        String orderNum = SmUtil.getShouYinCode(false);
+        shouYinDao.createOrder(userId, orderNum, allCartItems, ShouYinController.SHOUYIN_ORDER_STATUS.GUADAN);
+        return ResultJson.ok( shouYinDao.getGuadanCnt(userId));
+    }
     public ResultJson<BigDecimal> cancelOrder(String orderNum) {
         BigDecimal drawback = shouYinDao.cancelOrder(orderNum);
         return ResultJson.ok(drawback);
@@ -109,24 +122,38 @@ public class ShouYinService {
         shouYinDao.setFinishStatus(orderNum);
     }
 
+    /**
+     *
+     * @param sfoi
+     * @param total
+     * 计算出 ：
+     *    total_price          订单总价
+     *
+     *    had_pay_money        online_pay_money + offline_pay_money - zhaoling
+     *    offline_pay_money
+     *
+     *    zhaoling
+     * @return
+     */
     public ResultJson<ShouYinFinishOrderInfo> payWithCash(ShouYinFinishOrderInfo sfoi, BigDecimal total) {
         if(total.compareTo(BigDecimal.ZERO) <= 0){
             return ResultJson.ok(sfoi);
         }
+
         BigDecimal realPay = total;
         ShouYinController.SHOUYIN_ORDER_STATUS status = ShouYinController.SHOUYIN_ORDER_STATUS.WAIT_PAY;
+        BigDecimal offlinePayMoney = total.add(sfoi.getOfflinePayMoney());
+
         BigDecimal needPay = sfoi.getNeedPay().subtract(realPay);
+        BigDecimal zhaoling = BigDecimal.ZERO;
         BigDecimal hadPayMoney = sfoi.getHadPayMoney().add(realPay);
 
         if(needPay.compareTo(BigDecimal.ZERO) <= 0){
-            realPay = sfoi.getNeedPay();
+            zhaoling = needPay.abs();
             status = ShouYinController.SHOUYIN_ORDER_STATUS.FINISH;
-            needPay = BigDecimal.ZERO;
             hadPayMoney = sfoi.getTotal();
         }
-        BigDecimal offlinePayMoney = sfoi.getOfflinePayMoney().add(realPay);
-
-        shouYinDao.payWithCash(sfoi.getOrderNum(), hadPayMoney, offlinePayMoney, status);
+        shouYinDao.payWithCash(sfoi.getOrderNum(), hadPayMoney, offlinePayMoney, status, zhaoling);
         try{
             if(status.equals(ShouYinController.SHOUYIN_ORDER_STATUS.FINISH)){
                 printShouYinOrder(sfoi.getOrderNum());
@@ -190,6 +217,8 @@ public class ShouYinService {
     @Transactional
     public ShouYinWorkRecordStatisticsInfo shouGong(UserDetail user, PersonWorkStatusInfo psi) {
         long endTime = System.currentTimeMillis() / 1000;
+        shouYinDao.removeAllCart(user.getId());
+        shouYinDao.removeAllGuaDan(user.getId());
         shouYinDao.shouGong(user.getId(), psi.getId(), endTime);
         ShouYinWorkRecordStatisticsInfo si = shouYinDao.getShouYinWorkRecordStatisticsInfo(user.getId(), psi.getStartTime(), endTime);
         si.setUserId(user.getId());
@@ -208,5 +237,18 @@ public class ShouYinService {
             log.error("print 手工 信息错误, " + psi, e);
         }
 
+    }
+
+    public ResultJson<List<String>> getGuadanOrderNums(int userId) {
+        List<String> orderNums = shouYinDao.getGuadanOrderNums(userId);
+        return ResultJson.ok(orderNums);
+    }
+
+    public ShouYinOrderInfo getGuadanOrder(String orderNum) {
+        return shouYinDao.queryOrder(orderNum);
+    }
+
+    public void batchAddCart(Integer uid, List<ShouYinOrderItemInfo> shouYinOrderItemInfoList) {
+        shouYinDao.batchAddCart(uid, shouYinOrderItemInfoList);
     }
 }

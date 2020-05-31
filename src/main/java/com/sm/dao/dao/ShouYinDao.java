@@ -1,5 +1,6 @@
 package com.sm.dao.dao;
 
+import com.google.errorprone.annotations.Var;
 import com.sm.controller.ShoppingCartController;
 import com.sm.controller.ShouYinController;
 import com.sm.message.order.ShouYinFinishOrderInfo;
@@ -36,9 +37,10 @@ public class ShouYinDao {
     @Autowired
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
-    public ShouYinCartInfo getAllCartItems(Integer userId) {
+    public ShouYinCartInfo getAllCartItems(Integer userId, boolean isDrawback) {
         List<ShouYinCartItemInfo> rst = jdbcTemplate.query("select id, user_id, product_id, product_profile_img, product_name, product_size, product_cnt, unit_price, cost_price from shouyin_cart where user_id = ? order by id desc",
                 new Object[]{userId}, new ShouYinCartItemInfo.ShouYinCartItemInfoRowMapper());
+        rst.stream().filter(i -> isDrawback ? i.getUnitPrice().compareTo(BigDecimal.ZERO) < 0 : i.getUnitPrice().compareTo(BigDecimal.ZERO) > 0).collect(Collectors.toList());
         BigDecimal total = rst.stream().map(i -> i.getUnitPrice()
                 .multiply(BigDecimal.valueOf(i.getProductCnt())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -47,7 +49,15 @@ public class ShouYinDao {
         if(latestPersonWorkStatus != null && latestPersonWorkStatus.getStatus().equalsIgnoreCase(ShouYinController.SHOUYIN_PERSON_STATUS.WORKING.toString())){
             shouYinCartInfo.setStartTime(SmUtil.parseLongToTMDHMS(latestPersonWorkStatus.getStartTime() * 1000));
         }
+        if(!isDrawback){
+            shouYinCartInfo.setGuadanCnt(getGuadanCnt(userId));
+        }
         return shouYinCartInfo;
+    }
+
+    public int getGuadanCnt(Integer userId) {
+        final String sql = String.format("select count(1) from %s where user_id = ? and status = ?", VarProperties.SHOUYIN_ORDER);
+        return jdbcTemplate.queryForObject(sql, new Object[]{userId, ShouYinController.SHOUYIN_ORDER_STATUS.GUADAN.toString()}, Long.class).intValue();
     }
 
     public void creteOrUpdateCartItem(int userId, ShouYinProductInfo shouYinProductByCode) {
@@ -88,15 +98,20 @@ public class ShouYinDao {
     }
 
     @Transactional
-    public void createOrder(int userId, String orderNum, ShouYinCartInfo allCartItems) {
+    public void createOrder(int userId, String orderNum, ShouYinCartInfo allCartItems, ShouYinController.SHOUYIN_ORDER_STATUS oStatus) {
         BigDecimal totalPrice = allCartItems.getTotal();
         final List<ShouYinCartItemInfo> items = allCartItems.getItems();
 
-        BigDecimal totalCostPrice = items.stream().map(item -> item.getCostPrice()).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalCostPrice = items.stream().filter(item -> item.getCostPrice() != null).map(item -> item.getCostPrice()).reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        final String orderSql = String.format("insert into %s (order_num, user_id, total_cost_price,  total_price,had_pay_money,offline_pay_money, online_pay_money) values" +
-                "(:order_num, :user_id, :total_cost_price,  :total_price,:had_pay_money,:offline_pay_money, :online_pay_money)", VarProperties.SHOUYIN_ORDER);
+        final String orderSql = String.format("insert into %s (order_num, user_id, total_cost_price,  total_price,had_pay_money,offline_pay_money, online_pay_money, status) values" +
+                "(:order_num, :user_id, :total_cost_price,  :total_price,:had_pay_money,:offline_pay_money, :online_pay_money, :status)", VarProperties.SHOUYIN_ORDER);
         final String orderItemSql = String.format("insert into %s (order_id,product_id,product_profile_img,product_name,product_size,product_cnt,unit_price,cost_price) values (?,?,?,?,?,?,?,?)", VarProperties.SHOUYIN_ORDER_ITEM);
+
+        BigDecimal hadPay = BigDecimal.ZERO;
+        BigDecimal offlinePay = BigDecimal.ZERO;
+        BigDecimal onlinePay = BigDecimal.ZERO;
+        String status = oStatus.toString();
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
         MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
@@ -104,9 +119,10 @@ public class ShouYinDao {
         mapSqlParameterSource.addValue("user_id", userId);
         mapSqlParameterSource.addValue("total_cost_price", totalCostPrice);
         mapSqlParameterSource.addValue("total_price", totalPrice);
-        mapSqlParameterSource.addValue("had_pay_money", BigDecimal.ZERO);
-        mapSqlParameterSource.addValue("offline_pay_money", BigDecimal.ZERO);
-        mapSqlParameterSource.addValue("online_pay_money", BigDecimal.ZERO);
+        mapSqlParameterSource.addValue("had_pay_money", hadPay);
+        mapSqlParameterSource.addValue("offline_pay_money", offlinePay);
+        mapSqlParameterSource.addValue("online_pay_money", onlinePay);
+        mapSqlParameterSource.addValue("status", status);
         namedParameterJdbcTemplate.update(orderSql, mapSqlParameterSource, keyHolder);
         int orderaId = keyHolder.getKey().intValue();
         jdbcTemplate.batchUpdate(orderItemSql, new BatchPreparedStatementSetter() {
@@ -187,9 +203,9 @@ public class ShouYinDao {
         return jdbcTemplate.query(sql, new Object[]{orderNum}, new ShouYinFinishOrderInfo.ShouYinFinishOrderInfoRowMapper()).stream().findFirst().orElse(null);
     }
 
-    public void payWithCash(String orderNum, BigDecimal hadPayMoney, BigDecimal offlinePayMoney, ShouYinController.SHOUYIN_ORDER_STATUS status) {
-        final String sql = String.format("update %s set had_pay_money = ?, offline_pay_money = ?, status = ? where order_num = ?", VarProperties.SHOUYIN_ORDER);
-        jdbcTemplate.update(sql, new Object[]{hadPayMoney, offlinePayMoney, status.toString(), orderNum});
+    public void payWithCash(String orderNum, BigDecimal hadPayMoney, BigDecimal offlinePayMoney, ShouYinController.SHOUYIN_ORDER_STATUS status, BigDecimal zhaoling) {
+        final String sql = String.format("update %s set had_pay_money = ?, offline_pay_money = ?, status = ?, zhao_ling=? where order_num = ?", VarProperties.SHOUYIN_ORDER);
+        jdbcTemplate.update(sql, new Object[]{hadPayMoney, offlinePayMoney, status.toString(), zhaoling, orderNum});
     }
 
     public void payOnLine(String orderNum, BigDecimal total, BigDecimal needPay) {
@@ -219,8 +235,8 @@ public class ShouYinDao {
     }
 
     public ShouYinOrderInfo queryOrder(String orderNum) {
-        String orderSql = "select id, order_num, user_id, total_cost_price,total_price,had_pay_money,offline_pay_money, online_pay_money,status from shouyin_order where order_num = ? ";
-        String orderItemsql = "select order_id,product_id,product_profile_img,product_name,product_size,product_cnt,unit_price from shouyin_order_item where order_id = ?";
+        String orderSql = "select id, order_num, user_id, total_cost_price,total_price,had_pay_money,offline_pay_money, online_pay_money,status,zhao_ling from shouyin_order where order_num = ? ";
+        String orderItemsql = "select order_id,product_id,product_profile_img,product_name,product_size,product_cnt,unit_price, cost_price from shouyin_order_item where order_id = ?";
         ShouYinOrderInfo orderInfo = null;
         try{
             orderInfo = jdbcTemplate.queryForObject(orderSql, new Object[]{orderNum}, new ShouYinOrderInfo.ShouYinOrderInfoRowMapper());
@@ -260,5 +276,52 @@ public class ShouYinDao {
         jdbcTemplate.batchUpdate(reductStockSql, collect);
 
 
+    }
+
+    public void removeAllCart(int userId) {
+        final String sql = String.format("delete from %s where user_id = ?", VarProperties.SHOU_YIN_CART);
+        jdbcTemplate.update(sql, new Object[]{userId});
+    }
+
+    public List<String> getGuadanOrderNums(int userId) {
+        final String sql = String.format("select order_num from %s where user_id = ? and status = ?", VarProperties.SHOUYIN_ORDER);
+        List<String> strings = new ArrayList<>();
+        try{
+            strings = jdbcTemplate.queryForList(sql, new Object[]{userId, ShouYinController.SHOUYIN_ORDER_STATUS.GUADAN.toString()}, String.class);
+        }catch (Exception e){
+
+        }
+        return strings;
+    }
+
+    public void batchAddCart(Integer uid, List<ShouYinOrderItemInfo> sifo) {
+        final String insertSql = String.format("insert into %s (user_id,product_id, product_profile_img," +
+                "product_name,product_size,product_cnt, unit_price,cost_price) values (?,?,?,?,?,?,?,?) ", VarProperties.SHOU_YIN_CART);
+        jdbcTemplate.batchUpdate(insertSql, new BatchPreparedStatementSetter(){
+
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                ShouYinOrderItemInfo info = sifo.get(i);
+                ps.setInt(1, uid);
+                ps.setInt(2, info.getProductId());
+                ps.setString(3, info.getProductProfileImg());
+                ps.setString(4, info.getProductName());
+                ps.setString(5, info.getProductSize());
+                ps.setInt(6, info.getProductCnt());
+                ps.setBigDecimal(7, info.getUnitPrice());
+                ps.setBigDecimal(8, info.getCostPrice());
+            }
+
+            @Override
+            public int getBatchSize() {
+                return sifo.size();
+            }
+        });
+
+    }
+
+    public void removeAllGuaDan(int uid) {
+        final String sql = String.format("delete from %s where user_id = ? and status = ?", VarProperties.SHOUYIN_ORDER);
+        jdbcTemplate.update(sql, new Object[]{uid, ShouYinController.SHOUYIN_ORDER_STATUS.GUADAN.toString()});
     }
 }

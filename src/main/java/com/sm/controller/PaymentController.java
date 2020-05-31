@@ -82,7 +82,6 @@ public class PaymentController {
 			logger.info("【小程序支付服务】获取统一下单请求失败！原因:"+resMap.get("returnMsg"));
 			return ResultJson.failure(HttpYzCode.SERVER_ERROR, resMap.get("returnMsg"));
 		}
- 
 	}
 
 	String payReturn = "<xml>\n" +
