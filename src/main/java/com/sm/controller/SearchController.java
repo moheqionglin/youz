@@ -85,7 +85,7 @@ public class SearchController {
     @ApiOperation(value = "[根据code获取id] 不包含 下架商品")
     public Integer getProductIdByCode(@Valid @NotNull @PathVariable("code") String code){
         if(code.startsWith("200")){
-            code = StringUtils.substring(code, 0, 8);
+            code = StringUtils.substring(code, 0, 7);
         }
         Integer id = productService.getProductIdByCode(code, false);
         return id == null ? -1 : id;
@@ -96,7 +96,7 @@ public class SearchController {
     @PreAuthorize("hasAuthority('ADMIN')")
     public Integer getProductIdByCodeForAdmin(@Valid @NotNull @PathVariable("code") String code){
         if(code.startsWith("200")){
-            code = StringUtils.substring(code, 0, 8);
+            code = StringUtils.substring(code, 0, 7);
         }
         Integer id = productService.getProductIdByCode(code, true);
         return id == null ? -1 : id;

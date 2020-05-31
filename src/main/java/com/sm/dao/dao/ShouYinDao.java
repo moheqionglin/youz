@@ -251,7 +251,7 @@ public class ShouYinDao {
         return orderInfo;
     }
 
-    public void reduceStock(Integer id) {
+    public void reduceStockAndAddSaleCnt(Integer id) {
 
         final String sql = String.format("select product_id, product_cnt from %s where order_id = ? and product_id > 0", VarProperties.SHOUYIN_ORDER_ITEM);
         List<Map<String, Object>> rsts = jdbcTemplate.queryForList(sql, new Object[]{id});
@@ -265,13 +265,14 @@ public class ShouYinDao {
         mapSqlParameterSource.addValue("ids", pid2Stock.keySet());
 
         List<Map<String, Object>> oldStocks = namedParameterJdbcTemplate.queryForList(stockSql, mapSqlParameterSource);
-        List<Object[]> collect = oldStocks.stream().map(m -> {
+        List<Object[]> collect = oldStocks.stream().filter(m -> pid2Stock.containsKey(Integer.valueOf(m.get("id").toString()))).map(m -> {
             int pid = Integer.valueOf(m.get("id").toString());
             int stock = Integer.valueOf(m.get("stock").toString());
-            int newStock = stock - (pid2Stock.get(pid) == null ? 0 : pid2Stock.get(pid));
-            return new Object[]{newStock < 0 ? 0 : newStock, pid};
+            int saleCnt = pid2Stock.get(pid);
+            int newStock = stock - saleCnt;
+            return new Object[]{newStock < 0 ? 0 : newStock, saleCnt, pid};
         }).collect(Collectors.toList());
-        final String reductStockSql = String.format("update %s set stock =  ? where id = ?", VarProperties.PRODUCTS);
+        final String reductStockSql = String.format("update %s set stock = ?, sales_cnt = sales_cnt + ? where id = ?", VarProperties.PRODUCTS);
 
         jdbcTemplate.batchUpdate(reductStockSql, collect);
 
@@ -282,8 +283,7 @@ public class ShouYinDao {
         final String sql = String.format("delete from %s where user_id = ?", VarProperties.SHOU_YIN_CART);
         jdbcTemplate.update(sql, new Object[]{userId});
     }
-
-    public List<String> getGuadanOrderNums(int userId) {
+    public List<String> getGuadanOrderNums_delete(int userId) {
         final String sql = String.format("select order_num from %s where user_id = ? and status = ?", VarProperties.SHOUYIN_ORDER);
         List<String> strings = new ArrayList<>();
         try{
@@ -292,6 +292,11 @@ public class ShouYinDao {
 
         }
         return strings;
+
+    }
+    public List<GuadanInfo> getGuadanOrderNums(int userId) {
+        final String sql = String.format("select order_num,created_time from %s where user_id = ? and status = ?", VarProperties.SHOUYIN_ORDER);
+        return jdbcTemplate.query(sql, new Object[]{userId, ShouYinController.SHOUYIN_ORDER_STATUS.GUADAN.toString()}, new GuadanInfo.GuadanInfoRowMapper());
     }
 
     public void batchAddCart(Integer uid, List<ShouYinOrderItemInfo> sifo) {
@@ -323,5 +328,22 @@ public class ShouYinDao {
     public void removeAllGuaDan(int uid) {
         final String sql = String.format("delete from %s where user_id = ? and status = ?", VarProperties.SHOUYIN_ORDER);
         jdbcTemplate.update(sql, new Object[]{uid, ShouYinController.SHOUYIN_ORDER_STATUS.GUADAN.toString()});
+    }
+
+    public void addStock(ShouYinCartInfo allCartItems) {
+        final String sql = String.format("update %s set stock = stock + ? where id = ?", VarProperties.PRODUCTS);
+        jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                ShouYinCartItemInfo info = allCartItems.getItems().get(i);
+                ps.setInt(1, info.getProductCnt());
+                ps.setInt(2, info.getProductId());
+            }
+
+            @Override
+            public int getBatchSize() {
+                return allCartItems.getItems().size();
+            }
+        });
     }
 }

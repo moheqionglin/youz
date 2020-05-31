@@ -18,6 +18,7 @@ import java.util.Random;
 public class SmUtil {
     public static DateTimeFormatter ymr = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     public static DateTimeFormatter ymrhms = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    public static DateTimeFormatter mrhms = DateTimeFormatter.ofPattern("MM-dd HH:mm:ss");
     private final static Random random = new Random();
 
     public static String parseLongToYMD(long time){
@@ -28,6 +29,9 @@ public class SmUtil {
         return ymrhms.format(LocalDateTime.ofInstant(Instant.ofEpochMilli(time),ZoneId.systemDefault()));
     }
 
+    public static String parseLongToMDHMS(long time){
+        return mrhms.format(LocalDateTime.ofInstant(Instant.ofEpochMilli(time),ZoneId.systemDefault()));
+    }
     public static String getTodayYMD(){
         return ymr.format(LocalDateTime.ofInstant(Instant.ofEpochMilli(new Date().getTime()), ZoneId.systemDefault()));
     }

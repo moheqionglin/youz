@@ -82,7 +82,7 @@ public class ShouYinService {
 
     }
 
-    public ResultJson<ShouYinFinishOrderInfo> finishOrder(int userId, boolean isDrawback ) {
+    public ResultJson<ShouYinFinishOrderInfo> createOrder(int userId, boolean isDrawback ) {
         ShouYinCartInfo allCartItems = shouYinDao.getAllCartItems(userId,  isDrawback);
         if(allCartItems == null ||  allCartItems.getItems() == null || allCartItems.getItems().isEmpty()){
             return ResultJson.failure(HttpYzCode.SERVER_ERROR);
@@ -90,6 +90,7 @@ public class ShouYinService {
         String orderNum = SmUtil.getShouYinCode(isDrawback);
         shouYinDao.createOrder(userId, orderNum, allCartItems, isDrawback ? ShouYinController.SHOUYIN_ORDER_STATUS.FINISH:ShouYinController.SHOUYIN_ORDER_STATUS.WAIT_PAY );
         if(isDrawback){
+            shouYinDao.addStock(allCartItems);
             printShouYinOrder(orderNum);
         }
         return ResultJson.ok(new ShouYinFinishOrderInfo(orderNum, allCartItems.getTotal(), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO, allCartItems.getItems().size(), allCartItems.getTotal(), ShouYinController.SHOUYIN_ORDER_STATUS.WAIT_PAY.toString()));
@@ -162,7 +163,7 @@ public class ShouYinService {
             log.error("print error order num = " + sfoi.getOrderNum(), e);
         }
         try{
-            shouYinDao.reduceStock(sfoi.getId());
+            shouYinDao.reduceStockAndAddSaleCnt(sfoi.getId());
         }catch (Exception e){
             log.error("reduct stock error for order num = " + sfoi.getOrderNum(), e);
         }
@@ -174,7 +175,7 @@ public class ShouYinService {
         shouYinDao.payOnLine(sfoi.getOrderNum(), sfoi.getTotal(), sfoi.getNeedPay());
         printShouYinOrder(sfoi.getOrderNum());
         try{
-            shouYinDao.reduceStock(sfoi.getId());
+            shouYinDao.reduceStockAndAddSaleCnt(sfoi.getId());
         }catch (Exception e){
             log.error("reduct stock error for order num = " + sfoi.getOrderNum(), e);
         }
@@ -182,16 +183,16 @@ public class ShouYinService {
     }
 
 
-    public ResultJson<ShouYinFinishOrderInfo> payOnLine(int userID, ShouYinFinishOrderInfo sfoi, String code) {
-         boolean result = paymentService.scanWxCode(userID, sfoi.getOrderNum(), code, sfoi.getNeedPay().multiply(BigDecimal.valueOf(100)).intValue());
-         if(result){
-             log.info("订单号 " + sfoi.getOrderNum() + ", 扫码号 " + code + " 支付成功");
-             shouYinDao.payOnLine(sfoi.getOrderNum(), sfoi.getTotal(), sfoi.getNeedPay());
-             printShouYinOrder(sfoi.getOrderNum());
-             return ResultJson.ok(new ShouYinFinishOrderInfo(sfoi.getOrderNum(), sfoi.getTotal(), sfoi.getTotal(), sfoi.getOfflinePayMoney(), sfoi.getNeedPay(), sfoi.getCnt(), BigDecimal.ZERO, ShouYinController.SHOUYIN_ORDER_STATUS.FINISH.toString()));
-         }
-         return ResultJson.failure(HttpYzCode.SHOUYIN_PAY_ERROR);
-    }
+//    public ResultJson<ShouYinFinishOrderInfo> payOnLine(int userID, ShouYinFinishOrderInfo sfoi, String code) {
+//         boolean result = paymentService.scanWxCode(userID, sfoi.getOrderNum(), code, sfoi.getNeedPay().multiply(BigDecimal.valueOf(100)).intValue());
+//         if(result){
+//             log.info("订单号 " + sfoi.getOrderNum() + ", 扫码号 " + code + " 支付成功");
+//             shouYinDao.payOnLine(sfoi.getOrderNum(), sfoi.getTotal(), sfoi.getNeedPay());
+//             printShouYinOrder(sfoi.getOrderNum());
+//             return ResultJson.ok(new ShouYinFinishOrderInfo(sfoi.getOrderNum(), sfoi.getTotal(), sfoi.getTotal(), sfoi.getOfflinePayMoney(), sfoi.getNeedPay(), sfoi.getCnt(), BigDecimal.ZERO, ShouYinController.SHOUYIN_ORDER_STATUS.FINISH.toString()));
+//         }
+//         return ResultJson.failure(HttpYzCode.SHOUYIN_PAY_ERROR);
+//    }
 
     public void printShouYinOrder(String orderNum) {
         try{
@@ -239,8 +240,12 @@ public class ShouYinService {
 
     }
 
-    public ResultJson<List<String>> getGuadanOrderNums(int userId) {
-        List<String> orderNums = shouYinDao.getGuadanOrderNums(userId);
+    public ResultJson<List<String>> getGuadanOrderNums_delete(int userId) {
+        List<String> orderNums = shouYinDao.getGuadanOrderNums_delete(userId);
+        return ResultJson.ok(orderNums);
+    }
+    public ResultJson<List<GuadanInfo>> getGuadanOrderNums(int userId) {
+        List<GuadanInfo> orderNums = shouYinDao.getGuadanOrderNums(userId);
         return ResultJson.ok(orderNums);
     }
 
