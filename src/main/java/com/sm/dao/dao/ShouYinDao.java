@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.beans.Transient;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.*;
@@ -102,7 +103,7 @@ public class ShouYinDao {
         BigDecimal totalPrice = allCartItems.getTotal();
         final List<ShouYinCartItemInfo> items = allCartItems.getItems();
 
-        BigDecimal totalCostPrice = items.stream().filter(item -> item.getCostPrice() != null).map(item -> item.getCostPrice()).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalCostPrice = items.stream().filter(item -> item.getCostPrice() != null).map(item -> item.getCostPrice().multiply(BigDecimal.valueOf(item.getProductCnt())).setScale(2, RoundingMode.UP)).reduce(BigDecimal.ZERO, BigDecimal::add);
 
         final String orderSql = String.format("insert into %s (order_num, user_id, total_cost_price,  total_price,had_pay_money,offline_pay_money, online_pay_money, status) values" +
                 "(:order_num, :user_id, :total_cost_price,  :total_price,:had_pay_money,:offline_pay_money, :online_pay_money, :status)", VarProperties.SHOUYIN_ORDER);

@@ -500,18 +500,41 @@ public class OrderService {
         }
         List<OrderDetailItemInfo> items = orderDao.getOrderDetailItem(simpleOrder.getId());
         List<OrderDetailItemInfo> sanzhuangitems = items.stream().filter(odi -> odi.isProductSanzhuang()).collect(Collectors.toList());
+        /**
+         * 总成本 = 总价格 * 单位成本 / 线上单位价格
+         * 单位成本 / 线上单位价格  = 总成本  / 总价格
+         * 差价成本 =  差价金额 * (单位成本  /  线上单位价格)  =  差价金额 * (总成本  / 总价格)
+         */
         if(!sanzhuangitems.isEmpty()){
             //chajia_status,chajia_price,chajia_need_pay_money
+
             BigDecimal chajiaprice = sanzhuangitems.stream().map(oi -> {
                 BigDecimal chajiatotal = oi.getChajiaTotalPrice();
                 BigDecimal total = oi.getProductTotalPrice();
                 if(chajiatotal != null && total != null){
-                    return chajiatotal.subtract(total).setScale(2, RoundingMode.UP);
+                    BigDecimal chajia = chajiatotal.subtract(total).setScale(2, RoundingMode.UP);
+                    return chajia;
                 }
                 return BigDecimal.ZERO;
             }).reduce(BigDecimal.ZERO, BigDecimal::add);
 
-            orderDao.finishJianhuoWithChajia(userId, simpleOrder.getId(), chajiaprice);
+            BigDecimal mulpT = BigDecimal.ZERO;
+            if(simpleOrder.getTotalPrice() != null && simpleOrder.getTotalPrice().compareTo(BigDecimal.ZERO) > 0){
+                mulpT = simpleOrder.getTotalCostPrice().divide(simpleOrder.getTotalPrice(), 2, RoundingMode.UP);
+            }
+            final BigDecimal mulp = mulpT;
+            BigDecimal chajiaCost = sanzhuangitems.stream().map(oi -> {
+                BigDecimal chajiatotal = oi.getChajiaTotalPrice();
+                BigDecimal total = oi.getProductTotalPrice();
+                if(chajiatotal != null && total != null){
+                    BigDecimal chajia = chajiatotal.subtract(total).setScale(2, RoundingMode.UP);
+                    return chajia.multiply(mulp).setScale(2, RoundingMode.UP);
+                }
+                return BigDecimal.ZERO;
+            }).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+
+            orderDao.finishJianhuoWithChajia(userId, simpleOrder.getId(), chajiaprice, chajiaCost);
         }else{
             orderDao.finishJianhuo(userId, simpleOrder.getId());
         }

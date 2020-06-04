@@ -37,6 +37,8 @@ public class CreateProductRequest {
     private String secondCategoryName;
     @NonNull
     private boolean sanzhung;
+    @NotNull
+    private boolean yongjinAble;
     private int salesCnt;
     @NonNull
     private boolean showable;
@@ -51,6 +53,10 @@ public class CreateProductRequest {
     private BigDecimal costPrice;
     @NonNull
     private BigDecimal currentPrice;
+    private BigDecimal offlinePrice;
+    private BigDecimal sanzhuangUnitOfflinePrice;
+    private BigDecimal sanzhuangUnitOnlinePrice;
+
     private Integer supplierId;
     private String supplierName;
     @NonNull
@@ -86,6 +92,9 @@ public class CreateProductRequest {
             if(existsColumn(resultSet, "show_able")){
                 product.setShowable(resultSet.getBoolean("show_able"));
             }
+            if(existsColumn(resultSet, "yongjin_able")){
+                product.setYongjinAble(resultSet.getBoolean("yongjin_able"));
+            }
             if(existsColumn(resultSet, "second_category_id")){
                 product.setSecondCategoryId(resultSet.getInt("second_category_id"));
             }
@@ -103,6 +112,15 @@ public class CreateProductRequest {
             }
             if(existsColumn(resultSet, "cost_price")){
                 product.setCostPrice(resultSet.getBigDecimal("cost_price"));
+            }
+            if(existsColumn(resultSet, "offline_price")){
+                product.setOfflinePrice(resultSet.getBigDecimal("offline_price"));
+            }
+            if(existsColumn(resultSet, "sanzhuang_unit_offline_price")){
+                product.setSanzhuangUnitOfflinePrice(resultSet.getBigDecimal("sanzhuang_unit_offline_price"));
+            }
+            if(existsColumn(resultSet, "sanzhuang_unit_online_price")){
+                product.setSanzhuangUnitOnlinePrice(resultSet.getBigDecimal("sanzhuang_unit_online_price"));
             }
             if(existsColumn(resultSet, "profile_img")){
                 product.setProfileImg(resultSet.getString("profile_img"));
@@ -143,6 +161,38 @@ public class CreateProductRequest {
     }
     public Integer getId() {
         return id;
+    }
+
+    public boolean isYongjinAble() {
+        return yongjinAble;
+    }
+
+    public void setYongjinAble(boolean yongjinAble) {
+        this.yongjinAble = yongjinAble;
+    }
+
+    public BigDecimal getOfflinePrice() {
+        return offlinePrice;
+    }
+
+    public void setOfflinePrice(BigDecimal offlinePrice) {
+        this.offlinePrice = offlinePrice;
+    }
+
+    public BigDecimal getSanzhuangUnitOfflinePrice() {
+        return sanzhuangUnitOfflinePrice;
+    }
+
+    public void setSanzhuangUnitOfflinePrice(BigDecimal sanzhuangUnitOfflinePrice) {
+        this.sanzhuangUnitOfflinePrice = sanzhuangUnitOfflinePrice;
+    }
+
+    public BigDecimal getSanzhuangUnitOnlinePrice() {
+        return sanzhuangUnitOnlinePrice;
+    }
+
+    public void setSanzhuangUnitOnlinePrice(BigDecimal sanzhuangUnitOnlinePrice) {
+        this.sanzhuangUnitOnlinePrice = sanzhuangUnitOnlinePrice;
     }
 
     public void setId(Integer id) {

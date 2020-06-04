@@ -17,8 +17,12 @@ public class ShouYinProductInfo {
 
     private boolean isSanZhuang = false;
 
+    private BigDecimal sanzhuangUnitOfflinePrice;
+    private BigDecimal sanzhuangUnitOnlinePrice;
+
     public Object getUnitPrice() {
-        return offlinePrice == null || BigDecimal.ZERO.compareTo(offlinePrice) == 0 ? currentPrice : offlinePrice;
+
+        return isSanZhuang ? currentPrice : offlinePrice == null || BigDecimal.ZERO.compareTo(offlinePrice) == 0 ? currentPrice : offlinePrice;
     }
 
 
@@ -47,6 +51,15 @@ public class ShouYinProductInfo {
             }
             if(existsColumn(resultSet, "current_price")){
                 product.setCurrentPrice(resultSet.getBigDecimal("current_price"));
+            }
+            if(existsColumn(resultSet, "sanzhung")){
+                product.setSanZhuang(resultSet.getBoolean("sanzhung"));
+            }
+            if(existsColumn(resultSet, "sanzhuang_unit_offline_price")){
+                product.setSanzhuangUnitOfflinePrice(resultSet.getBigDecimal("sanzhuang_unit_offline_price"));
+            }
+            if(existsColumn(resultSet, "sanzhuang_unit_online_price")){
+                product.setSanzhuangUnitOnlinePrice(resultSet.getBigDecimal("sanzhuang_unit_online_price"));
             }
             return product;
         }
@@ -98,6 +111,22 @@ public class ShouYinProductInfo {
 
     public void setProductSize(String productSize) {
         this.productSize = productSize;
+    }
+
+    public BigDecimal getSanzhuangUnitOfflinePrice() {
+        return sanzhuangUnitOfflinePrice;
+    }
+
+    public void setSanzhuangUnitOfflinePrice(BigDecimal sanzhuangUnitOfflinePrice) {
+        this.sanzhuangUnitOfflinePrice = sanzhuangUnitOfflinePrice;
+    }
+
+    public BigDecimal getSanzhuangUnitOnlinePrice() {
+        return sanzhuangUnitOnlinePrice;
+    }
+
+    public void setSanzhuangUnitOnlinePrice(BigDecimal sanzhuangUnitOnlinePrice) {
+        this.sanzhuangUnitOnlinePrice = sanzhuangUnitOnlinePrice;
     }
 
     public BigDecimal getCostPrice() {

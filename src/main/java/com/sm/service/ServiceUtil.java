@@ -72,8 +72,28 @@ public class ServiceUtil {
         return cartItems.stream().filter(c -> c.isSelected()).filter(c -> c.getProduct() != null).map(c -> calcCartItemPrice(c)).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
+    /**
+     *  利润计算：
+     *    2.1 散装
+     *       2.1.1 线上：  (多退少补实际价格 / 线上单位售价) * （线上单位售价 - 单位成本）
+     *       2.1.2 线下：  (线下扫码价格 / 线上单位售价) * （线上单位售价 - 单位成本）
+     *    2.2 费散装
+     *       2.2.1 线上：  线上价格-成本
+     *       2.2.2 线下：  线下价格-成本
+     */
     public static BigDecimal calcCartTotalCost(List<CartItemInfo> cartItems) {
-        return cartItems.stream().map(c -> c.getProduct().getCostPrice().multiply(BigDecimal.valueOf(c.getProductCnt()).setScale(2, RoundingMode.UP))).reduce(BigDecimal.ZERO, BigDecimal::add);
+        return cartItems.stream().map(c -> {
+            ProductListItem p = c.getProduct();
+            BigDecimal cost = BigDecimal.ZERO;
+            if(!p.isSanzhung()){
+                cost = p.getCostPrice().multiply(BigDecimal.valueOf(c.getProductCnt()).setScale(2, RoundingMode.UP));
+            }else if(p.getSanzhuangUnitOnlinePrice() != null && p.getSanzhuangUnitOnlinePrice().compareTo(BigDecimal.ZERO) > 0){
+                BigDecimal total = p.getCurrentPrice().multiply(BigDecimal.valueOf(c.getProductCnt()));
+                cost = p.getCostPrice().multiply(total.divide(p.getSanzhuangUnitOnlinePrice(), 2, RoundingMode.UP)).setScale(2, RoundingMode.UP);
+            }
+            return cost;
+
+        }).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     public static BigDecimal calcCartItemPrice(CartItemInfo c) {
@@ -108,6 +128,7 @@ public class ServiceUtil {
 
     public static BigDecimal calcCartTotalPriceWithoutZhuanqu(List<CartItemInfo> cartItems) {
         return cartItems.stream().filter(c -> c.isSelected())
+                .filter(c -> c.getProduct().isYongjinAble())
                 .filter(c -> !c.getProduct().isZhuanquEnable() || c.getProduct().getZhuanquId() == 0 || c.getProduct().getZhuanquEndTime() < new Date().getTime())
                 .map(c -> c.getProduct().getCurrentPrice().multiply(BigDecimal.valueOf(c.getProductCnt())).setScale(2, RoundingMode.UP)).reduce(BigDecimal.ZERO, BigDecimal::add);
     }

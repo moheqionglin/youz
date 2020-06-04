@@ -107,13 +107,17 @@ create table products(
     second_category_id int not null comment '商品关联二级分类',
     sanzhung bit(1) default false comment '是否散装',
     show_able bit(1) default true comment '上下架标志',
+    yongjin_able bit(1) default true comment '是否计入佣金',
     code varchar(100) comment '条形码',
     stock int default 0 comment '库存',
 
     origin_price decimal(10,2) not null comment '原价',
-    cost_price decimal(10,2) not null default 0 comment '成本价',
+    cost_price decimal(10,2) not null default 0 comment '成本价, 当时散装的时候 线上散装元/500g',
     current_price decimal(10, 2) not null comment '售价',
-    offline_price decimal (10, 2) not null default 0 comment '线下价格',
+    offline_price decimal (10, 2) not null default 0 comment '线下价格， 散装的时候这个为0',
+
+    sanzhuang_unit_online_price decimal(10,2) not null default 0 comment '线上散装元/500g',
+    sanzhuang_unit_offline_price decimal(10,2) not null default 0 comment '线下散装元/500g',
 
     supplier_id int comment '供应商',
     sort int default 0 not null comment '排序',

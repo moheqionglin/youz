@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -53,10 +54,20 @@ public class ProductController {
             @ApiImplicitParam(name = "productId", value = "productId", required = true, paramType = "path", dataType = "Integer"),
             @ApiImplicitParam(name = "product", value = "product", required = true, paramType = "body", dataType = "CreateProductRequest")
     })
-    public void update(@Valid @NotNull @PathVariable("productId") int productId,
+    public ResultJson update(@Valid @NotNull @PathVariable("productId") int productId,
                               @Valid @RequestBody CreateProductRequest product){
         product.setId(productId);
+        if(product.isSanzhung() && (product.getSanzhuangUnitOfflinePrice() == null
+                || product.getSanzhuangUnitOfflinePrice().compareTo(BigDecimal.ZERO)<0) ||
+                product.getSanzhuangUnitOnlinePrice() == null || product.getSanzhuangUnitOnlinePrice().compareTo(BigDecimal.ZERO) < 0
+        ){
+            return ResultJson.failure(HttpYzCode.BAD_REQUEST);
+        }
+        if(!product.isSanzhung() && (product.getOfflinePrice() == null || product.getOfflinePrice().compareTo(BigDecimal.ZERO) < 0)){
+            return ResultJson.failure(HttpYzCode.BAD_REQUEST);
+        }
         productService.update(product);
+        return ResultJson.ok();
     }
 
     @DeleteMapping(path = "/product/{productId}")

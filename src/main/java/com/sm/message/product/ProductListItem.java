@@ -34,6 +34,10 @@ public class ProductListItem {
     private int maxKanjiaPerson;
     private boolean isKanjiaing;
     private boolean validKanjiaProduct = false;
+    private BigDecimal offlinePrice;
+    private boolean yongjinAble;
+    private BigDecimal sanzhuangUnitOfflinePrice;
+    private BigDecimal sanzhuangUnitOnlinePrice;
 
     public static class ProductListItemRowMapper implements RowMapper<ProductListItem> {
         @Override
@@ -90,6 +94,18 @@ public class ProductListItem {
             }
             if(existsColumn(resultSet, "zhuanqu_price")){
                 product.setZhuanquPrice(resultSet.getBigDecimal("zhuanqu_price"));
+            }
+            if(existsColumn(resultSet, "offline_price")){
+                product.setOfflinePrice(resultSet.getBigDecimal("offline_price"));
+            }
+            if(existsColumn(resultSet, "yongjin_able")){
+                product.setYongjinAble(resultSet.getBoolean("yongjin_able"));
+            }
+            if(existsColumn(resultSet, "sanzhuang_unit_offline_price")){
+                product.setSanzhuangUnitOfflinePrice(resultSet.getBigDecimal("sanzhuang_unit_offline_price"));
+            }
+            if(existsColumn(resultSet, "sanzhuang_unit_online_price")){
+                product.setSanzhuangUnitOnlinePrice(resultSet.getBigDecimal("sanzhuang_unit_online_price"));
             }
             return product;
         }
@@ -253,6 +269,38 @@ public class ProductListItem {
 
     public BigDecimal getCostPrice() {
         return costPrice;
+    }
+
+    public BigDecimal getOfflinePrice() {
+        return offlinePrice;
+    }
+
+    public void setOfflinePrice(BigDecimal offlinePrice) {
+        this.offlinePrice = offlinePrice;
+    }
+
+    public boolean isYongjinAble() {
+        return yongjinAble;
+    }
+
+    public void setYongjinAble(boolean yongjinAble) {
+        this.yongjinAble = yongjinAble;
+    }
+
+    public BigDecimal getSanzhuangUnitOfflinePrice() {
+        return sanzhuangUnitOfflinePrice;
+    }
+
+    public void setSanzhuangUnitOfflinePrice(BigDecimal sanzhuangUnitOfflinePrice) {
+        this.sanzhuangUnitOfflinePrice = sanzhuangUnitOfflinePrice;
+    }
+
+    public BigDecimal getSanzhuangUnitOnlinePrice() {
+        return sanzhuangUnitOnlinePrice;
+    }
+
+    public void setSanzhuangUnitOnlinePrice(BigDecimal sanzhuangUnitOnlinePrice) {
+        this.sanzhuangUnitOnlinePrice = sanzhuangUnitOnlinePrice;
     }
 
     public void setCostPrice(BigDecimal costPrice) {

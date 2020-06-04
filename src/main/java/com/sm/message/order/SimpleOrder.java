@@ -28,6 +28,9 @@ public class SimpleOrder {
     private BigDecimal useYue;
     private String yongjincode;
     private BigDecimal yongjinBasePrice;
+    private BigDecimal totalPrice;
+    private BigDecimal totalCostPrice;
+
 
     public static class SimpleOrderRowMapper implements RowMapper<SimpleOrder>{
 
@@ -82,6 +85,12 @@ public class SimpleOrder {
             }
             if(existsColumn(resultSet, "yongjin_base_price")){
                 simpleOrder.setYongjinBasePrice(resultSet.getBigDecimal("yongjin_base_price"));
+            }
+            if(existsColumn(resultSet, "total_cost_price")){
+                simpleOrder.setTotalCostPrice(resultSet.getBigDecimal("total_cost_price"));
+            }
+            if(existsColumn(resultSet, "total_price")){
+                simpleOrder.setTotalPrice(resultSet.getBigDecimal("total_price"));
             }
             return simpleOrder;
         }
@@ -172,6 +181,22 @@ public class SimpleOrder {
 
     public BigDecimal getUseYue() {
         return useYue;
+    }
+
+    public BigDecimal getTotalPrice() {
+        return totalPrice;
+    }
+
+    public void setTotalPrice(BigDecimal totalPrice) {
+        this.totalPrice = totalPrice;
+    }
+
+    public BigDecimal getTotalCostPrice() {
+        return totalCostPrice;
+    }
+
+    public void setTotalCostPrice(BigDecimal totalCostPrice) {
+        this.totalCostPrice = totalCostPrice;
     }
 
     public void setUseYue(BigDecimal useYue) {

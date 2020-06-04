@@ -53,27 +53,6 @@ public class ShouYinController {
         return ResultJson.ok(shouYinService.getAllCartItems(userDetail.getId(), isDrawback));
     }
 
-    @GetMapping(path = "/shouyin/list")
-    @PreAuthorize("hasAuthority('SHOUYIN')")
-    @ApiOperation(value = "[获取收银员列表] 部分页")
-    public ResultJson<ShouYinCartInfo> getAllCartItems_delete(@NotNull @RequestParam("isDrawback") Boolean isDrawback){
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
-        return ResultJson.ok(shouYinService.getAllCartItems(userDetail.getId(), isDrawback));
-    }
-
-    @PostMapping(path = "/shouyin/cart/{code}")
-    @PreAuthorize("hasAuthority('SHOUYIN')")
-    @ApiOperation(value = "[根据code查询商品] 只要code能够查询得到商品就返回，不管商品状态，库存等, 扫码成功 加入临时购物车。")
-    @ApiResponses(value={@ApiResponse(code=472, message="商品不存在") })
-    public ResultJson<ShouYinCartInfo> addCart_delete(@NotNull @PathVariable("code") String code,
-                                               @NotNull @RequestParam("isDrawback") Boolean isDrawback){
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
-        return shouYinService.addCart(userDetail.getId(), code, isDrawback);
-    }
-
-
     @PostMapping(path = "/shouyin/{orderType}/cart/{code}")
     @PreAuthorize("hasAuthority('SHOUYIN')")
     @ApiOperation(value = "[根据code查询商品] 只要code能够查询得到商品就返回，不管商品状态，库存等, 扫码成功 加入临时购物车。")
@@ -97,29 +76,6 @@ public class ShouYinController {
         shouYinService.addCartWithNoCode(userDetail.getId(), price);
         return ResultJson.ok(shouYinService.getAllCartItems(userDetail.getId(), isDrawback));
     }
-    @PostMapping(path = "/shouyin/cart/{id}/{action}")
-    @PreAuthorize("hasAuthority('SHOUYIN')")
-    @ApiOperation(value = "[根据cart id更新个数]")
-    public ResultJson<ShouYinCartInfo> updateCount_delete(@Valid @NotNull @PathVariable("id") int cartItemId,
-                                                   @Valid @NotNull @PathVariable("action") ShoppingCartController.CountAction action,
-                                                   @NotNull @RequestParam("isDrawback") Boolean isDrawback){
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
-        shouYinService.updateCount(userDetail.getId(), cartItemId, action);
-        return ResultJson.ok(shouYinService.getAllCartItems(userDetail.getId(), isDrawback));
-    }
-
-    @PostMapping(path = "/shouyin/cart/nocode/{price}")
-    @PreAuthorize("hasAuthority('SHOUYIN')")
-    @ApiOperation(value = "[综合商品加入购物车] 传入价格。")
-    public ResultJson<ShouYinCartInfo> addCartWithNoCode_delete(@NotNull @PathVariable("price") BigDecimal price,
-                                                         @NotNull @RequestParam("isDrawback") Boolean isDrawback){
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
-        price = isDrawback ? price.negate().setScale(2, RoundingMode.UP) : price;
-        shouYinService.addCartWithNoCode(userDetail.getId(), price);
-        return ResultJson.ok(shouYinService.getAllCartItems(userDetail.getId(), isDrawback));
-    }
 
     @PostMapping(path = "/shouyin/{orderType}/cart/{id}/{action}")
     @PreAuthorize("hasAuthority('SHOUYIN')")
@@ -131,20 +87,6 @@ public class ShouYinController {
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
         shouYinService.updateCount(userDetail.getId(), cartItemId, action);
         return ResultJson.ok(shouYinService.getAllCartItems(userDetail.getId(), orderType == SHOUYIN_ORDER_TYPE.DRAWBACK));
-    }
-
-    @PostMapping(path = "/shouyin/cart/delete")
-    @PreAuthorize("hasAuthority('SHOUYIN') ")
-    @ApiOperation(value = "[删除购物车] ")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "cartItemIds", value = "cartItemIds", required = true, paramType = "body", allowMultiple=true, dataType = "Integer")
-    })
-    public ResultJson<ShouYinCartInfo> deleteCartItem_delete(@Valid @NotEmpty @RequestBody List<Integer> cartItemIds,
-                                                             @NotNull @RequestParam("isDrawback") Boolean isDrawback){
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
-        shouYinService.deleteCartItem(cartItemIds);
-        return ResultJson.ok(shouYinService.getAllCartItems(userDetail.getId(), isDrawback));
     }
 
     @PostMapping(path = "/shouyin/{orderType}/cart/delete")
@@ -159,14 +101,6 @@ public class ShouYinController {
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
         shouYinService.deleteCartItem(cartItemIds);
         return ResultJson.ok(shouYinService.getAllCartItems(userDetail.getId(), orderType == SHOUYIN_ORDER_TYPE.DRAWBACK));
-    }
-    @PostMapping(path = "/shouyin/order")
-    @PreAuthorize("hasAuthority('SHOUYIN') ")
-    @ApiOperation(value = "[创建订单] 返回订单号")
-    public ResultJson<ShouYinFinishOrderInfo> finishOrder_delete(@NotNull @RequestParam("isDrawback") Boolean isDrawback){
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
-        return shouYinService.createOrder(userDetail.getId(), isDrawback);
     }
 
     @PostMapping(path = "/shouyin/{orderType}/order")
@@ -185,15 +119,6 @@ public class ShouYinController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
         return shouYinService.guadan(userDetail.getId());
-    }
-
-    @GetMapping(path = "/shouyin/order/guadan/ids")
-    @PreAuthorize("hasAuthority('SHOUYIN') ")
-    @ApiOperation(value = "[挂单列表] 返回个数")
-    public ResultJson<List<String>> getGuadanOrderNums_delete(){
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
-        return shouYinService.getGuadanOrderNums_delete(userDetail.getId());
     }
 
     @GetMapping(path = "/shouyin/order/guadans")

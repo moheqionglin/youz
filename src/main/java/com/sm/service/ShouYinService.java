@@ -40,6 +40,15 @@ public class ShouYinService {
         return shouYinDao.getAllCartItems(userId, isDrawback);
     }
 
+    /**
+     *  利润计算：
+     *    2.1 散装
+     *       2.1.1 线上：  (多退少补实际价格 / 线上单位售价) * （线上单位售价 - 单位成本）
+     *       2.1.2 线下：  (线下扫码价格 / 线上单位售价) * （线上单位售价 - 单位成本）
+     *    2.2 费散装
+     *       2.2.1 线上：  线上价格-成本
+     *       2.2.2 线下：  线下价格-成本
+     */
     public ResultJson<ShouYinCartInfo> addCart(int userId, String code, boolean isDrawback) {
         ShouYinProductInfo shouYinProductByCode = null;
         if(StringUtils.length(code) == 5){//后五位查找
@@ -59,6 +68,16 @@ public class ShouYinService {
         if(shouYinProductByCode == null){
             return ResultJson.failure(HttpYzCode.PRODUCT_NOT_EXISTS, "商品不存在");
         }
+        //计算成本 (线下扫码价格 / 线下单位售价) * （线上单位售价 - 单位成本）
+        if(shouYinProductByCode.isSanZhuang()){
+            BigDecimal cost = BigDecimal.ZERO;
+            if(shouYinProductByCode.getOfflinePrice() != null && shouYinProductByCode.getOfflinePrice().compareTo(BigDecimal.ZERO) > 0){
+                BigDecimal weight = shouYinProductByCode.getCurrentPrice().divide(shouYinProductByCode.getOfflinePrice(),2, RoundingMode.UP);
+                cost = weight.multiply(shouYinProductByCode.getCostPrice());
+            }
+            shouYinProductByCode.setCostPrice(cost);
+        }
+
         if(isDrawback){
             shouYinProductByCode.setCurrentPrice(shouYinProductByCode.getCurrentPrice().negate().setScale(2, RoundingMode.UP));
             shouYinProductByCode.setOfflinePrice(shouYinProductByCode.getOfflinePrice().negate().setScale(2, RoundingMode.UP));
