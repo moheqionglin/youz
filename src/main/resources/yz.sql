@@ -20,7 +20,7 @@ CREATE TABLE users (
     created_time timestamp DEFAULT CURRENT_TIMESTAMP ,
 	modified_time timestamp  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
+create unique index open_code_user_idx on users(open_code)
 CREATE TABLE roles (
     id int auto_increment primary key,
     role_name varchar(20) NULL

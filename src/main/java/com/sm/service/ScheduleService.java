@@ -35,6 +35,9 @@ public class ScheduleService {
     @Autowired
     private SearchDao searchDao;
 
+    @Autowired
+    private UserDao userDao;
+
     @Value("${enable.schedule:false}")
     private boolean enableSchedule;
     @Scheduled(cron = "0 30 0 * * *")
@@ -115,5 +118,13 @@ public class ScheduleService {
         logger.info("finish order statistics");
     }
 
+    /**
+     * 开始清空佣金，清空完以后，记录佣金日志
+     */
+    private void clearYongJin(){
+        logger.info("start clear YongJin");
+        userDao.clearAllYongJin();
+        logger.info("stop clear YongJin");
+    }
 
 }

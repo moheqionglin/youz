@@ -34,7 +34,7 @@ public class CacheService {
             .build();
 
     private final Cache<String, List<LunBoInfo>> lunboCache = CacheBuilder.newBuilder()
-            .expireAfterWrite(120, TimeUnit.MINUTES)
+            .expireAfterWrite(5, TimeUnit.MINUTES)
             .maximumSize(2)
             .build();
 

@@ -1,12 +1,15 @@
 package com.sm.dao.dao;
 
 import com.sm.dao.domain.User;
+import com.sm.dao.domain.UserAmountLog;
 import com.sm.dao.domain.UserAmountLogType;
 import com.sm.dao.rowMapper.UserRowMapper;
 import com.sm.message.admin.TixianInfo;
 import com.sm.message.profile.*;
 import com.sm.utils.SmUtil;
 import org.apache.logging.log4j.message.StringFormattedMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -24,12 +27,16 @@ import java.util.*;
  */
 @Component
 public class UserDao {
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
     Random random = new Random();
     @Autowired
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
+    @Autowired
+    private UserAmountLogDao userAmountLogDao;
 
     public User getUserByOpenId(String openId){
         String sql = "select id, sex, password, nick_name, birthday, head_picture, open_code, amount, yongjin from users where open_code = ?";
@@ -143,5 +150,33 @@ public class UserDao {
         final String sql = String.format("update %s set bind_yongjin_code = ? where id = ? and yongjin_code != ? ", VarProperties.USERS);
         int result =  jdbcTemplate.update(sql, new Object[]{code, userId, code});
         return result > 0;
+    }
+
+    /**
+     * 清空所有佣金，记录日志
+     */
+    public void clearAllYongJin() {
+        final String sql = String.format("select id,yongjin from users where yongjin > 0");
+        final String updateSql = String.format("update %s set yongjin = 0 where id = ?", VarProperties.USERS);
+        jdbcTemplate.queryForList(sql).stream().forEach(map -> {
+            Integer userId = Integer.valueOf(map.getOrDefault("id", "0").toString());
+            BigDecimal amount = BigDecimal.valueOf(Double.valueOf(map.getOrDefault("yongjin", "0").toString()));
+            if(userId != 0 && amount.compareTo(BigDecimal.ZERO) > 0){
+                try{
+                    jdbcTemplate.update(updateSql, new Object[]{userId});
+                    UserAmountLog userAmountLog = new UserAmountLog();
+                    userAmountLog.setUserId(userId);
+                    userAmountLog.setAmount(amount.negate());
+                    userAmountLog.setLogType(UserAmountLogType.YONGJIN);
+                    userAmountLog.setRemark("佣金月底清零");
+                    userAmountLog.setRemarkDetail("佣金月底清零");
+                    userAmountLogDao.create(userAmountLog);
+                }catch (Exception e){
+                    log.error("clear yongjin error uid = "+userId+" + amount =" + amount, e);
+                }
+
+            }
+        });
+
     }
 }

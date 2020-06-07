@@ -1,5 +1,6 @@
 package com.sm.controller;
 
+import com.sm.config.UserDetail;
 import com.sm.message.ResultJson;
 import com.sm.message.lunbo.LunBoInfo;
 import com.sm.service.LunBoService;
@@ -9,6 +10,8 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -28,9 +31,12 @@ public class LunBoController {
     private LunBoService lunboService;
 
     @GetMapping(path = "/lunbo/all")
+    @PreAuthorize("hasAuthority('BUYER') ")
     @ApiOperation(value = "[获取所有轮播] ")
     public ResultJson<List<LunBoInfo>> getAll(){
-        return ResultJson.ok(lunboService.getAll());
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean admin = authentication.getAuthorities().stream().filter((a) -> a.getAuthority().equals("ADMIN")).count() > 0;
+        return ResultJson.ok(lunboService.getAll(admin));
     }
 
     @PostMapping(path = "/lunbo/{type}")

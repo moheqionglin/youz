@@ -22,7 +22,10 @@ public class LunBoService {
     @Autowired
     private CacheService cacheService;
 
-    public List<LunBoInfo> getAll() {
+    public List<LunBoInfo> getAll(boolean admin) {
+        if(admin){
+            return  lunBoDao.getAll();
+        }
         return cacheService.getAllLunBo();
     }
 
