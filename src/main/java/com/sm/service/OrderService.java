@@ -4,10 +4,7 @@ import com.sm.config.UserDetail;
 import com.sm.controller.HttpYzCode;
 import com.sm.controller.OrderAdminController;
 import com.sm.controller.OrderController;
-import com.sm.dao.dao.AdminDao;
-import com.sm.dao.dao.OrderDao;
-import com.sm.dao.dao.UserAmountLogDao;
-import com.sm.dao.dao.UserDao;
+import com.sm.dao.dao.*;
 import com.sm.message.ResultJson;
 import com.sm.message.address.AddressDetailInfo;
 import com.sm.message.order.*;
@@ -45,6 +42,8 @@ public class OrderService {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private ConfigDao configDao;
     @Autowired
     private AdminDao adminDao;
     @Autowired
@@ -106,6 +105,9 @@ public class OrderService {
 
         CreateOrderInfo createOrderInfo = new CreateOrderInfo();
 
+        BigDecimal totalProductAmount = ServiceUtil.calcCartTotalPrice(cartItems);
+        BigDecimal deliveryFee = orderDao.needPayDeliveryFee(userID, totalProductAmount) ? configDao.getDeliveryFee() : BigDecimal.ZERO;
+
         createOrderInfo.setOrderNum(SmUtil.getOrderCode());
         createOrderInfo.setUserId(userID);
         createOrderInfo.setAddressId(addressDetail.getId());
@@ -113,9 +115,11 @@ public class OrderService {
         createOrderInfo.setAddressContract(addressDetail.getLinkPerson() + " " + addressDetail.getPhone());
         createOrderInfo.setStatus(OrderController.BuyerOrderStatus.WAIT_PAY.toString());
         createOrderInfo.setTotalCostPrice(ServiceUtil.calcCartTotalCost(cartItems));
-        createOrderInfo.setTotalPrice(ServiceUtil.calcCartTotalPrice(cartItems));
+        createOrderInfo.setTotalPrice(totalProductAmount.add(deliveryFee).setScale(2, RoundingMode.UP));
         createOrderInfo.setUseYongjin(order.getUseYongjin());
         createOrderInfo.setUseYue(order.getUseYue());
+        createOrderInfo.setDeliveryFee(deliveryFee);
+
         if((createOrderInfo.getUseYongjin().add(createOrderInfo.getUseYue())).compareTo(createOrderInfo.getTotalPrice()) > 0){
             return ResultJson.failure(HttpYzCode.YONGJIN_YUE_PRICE_ERROR);
         }
@@ -154,12 +158,6 @@ public class OrderService {
         createAmountLog(createOrderInfo);
         //产品销量加加
         productService.addSalesCount(collect.stream().map(o -> o.getProductId()).collect(Collectors.toList()));
-        // 库存减少
-        HashMap<Integer, Integer> pid2cnt = new HashMap<>();
-        collect.stream().forEach(p -> {
-            pid2cnt.put(p.getProductId(), p.getProductCnt());
-        });
-        productService.subStock(pid2cnt);
 
         //删除购物车
         shoppingCartService.deleteCartItem(userID, order.getCartIds());
@@ -590,7 +588,7 @@ public class OrderService {
         }
         BigDecimal payAmount = BigDecimal.valueOf(money).divide(BigDecimal.valueOf(100)).setScale(2, RoundingMode.UP);
         String simpon = orderNum.replaceAll("CJ", "");
-        OrderDetailInfo orderDetailInfo =  orderDao.getOrderDetail(simpon);
+        OrderDetailInfo orderDetailInfo = orderDao.getOrderDetail(simpon);
         if(orderDetailInfo == null){
             return -1;
         }
@@ -600,6 +598,10 @@ public class OrderService {
         }
         orderDao.surePayment(orderDetailInfo.getId(), payAmount, orderNum.contains("CJ"));
         if(!orderNum.contains("CJ")){
+            // 库存减少
+            HashMap<Integer, Integer> pid2cnt = orderDao.getPid2StockByOrderId(orderDetailInfo.getId());
+
+            productService.subStock(pid2cnt);
             printOrder(orderDetailInfo);
         }
         return 1;

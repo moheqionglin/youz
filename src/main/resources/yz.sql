@@ -211,6 +211,7 @@ create table orders(
     chajia_need_pay_money decimal(10, 2) default 0 not null ,
     chajia_had_pay_money decimal(10, 2) default 0  not null ,
 
+    delivery_fee decimal(10, 2) default 0  not null ,
     message varchar(300),
     deleted boolean default false,
 
@@ -454,6 +455,14 @@ create table shouyin_work_record(
 	modified_time timestamp  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 )
 
+
+create table config(
+    id int auto_increment primary key,
+    config_key_code int not null,
+    config_value varchar(128) not null,
+    created_time timestamp DEFAULT CURRENT_TIMESTAMP ,
+	modified_time timestamp  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+)
 
 
 select t1.id, t1.name,t1.parent_id,t2.id, t2.name from product_category t1 inner join product_category t2 on t1.parent_id = t2.id where t1.id =   154

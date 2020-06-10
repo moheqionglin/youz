@@ -44,6 +44,8 @@ public class OrderDetailInfo {
     private Timestamp createdTime;
     private String drawbackStatus;
     List<OrderDetailItemInfo> items;
+    private BigDecimal deliveryFee;
+
     public static class OrderDetailInfoRowMapper implements RowMapper<OrderDetailInfo> {
 
         @Override
@@ -130,8 +132,12 @@ public class OrderDetailInfo {
             if(existsColumn(resultSet, "created_time")){
                 odi.setCreatedTime(resultSet.getTimestamp("created_time"));
             }
+
             if(existsColumn(resultSet, "drawback_status")){
                 odi.setDrawbackStatus(resultSet.getString("drawback_status"));
+            }
+            if(existsColumn(resultSet, "delivery_fee")){
+                odi.setDeliveryFee(resultSet.getBigDecimal("delivery_fee"));
             }
             return odi;
         }
@@ -342,6 +348,14 @@ public class OrderDetailInfo {
 
     public void setCreatedTime(Timestamp createdTime) {
         this.createdTime = createdTime;
+    }
+
+    public BigDecimal getDeliveryFee() {
+        return deliveryFee;
+    }
+
+    public void setDeliveryFee(BigDecimal deliveryFee) {
+        this.deliveryFee = deliveryFee;
     }
 
     public List<OrderDetailItemInfo> getItems() {

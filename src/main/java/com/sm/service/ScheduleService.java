@@ -40,6 +40,7 @@ public class ScheduleService {
 
     @Value("${enable.schedule:false}")
     private boolean enableSchedule;
+
     @Scheduled(cron = "0 30 0 * * *")
     public void work() {
 
@@ -75,6 +76,15 @@ public class ScheduleService {
             logger.error("deleteMySearch", e);
         }
 
+    }
+
+    @Scheduled(cron = "0 15 0 1 * *")
+    public void clearYongJinSchedule(){
+        try{
+            clearYongJin();
+        }catch (Exception e){
+            logger.error("clearYongJinSchedule", e);
+        }
     }
 
     private void deleteMySearch() {

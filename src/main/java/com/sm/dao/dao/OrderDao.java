@@ -3,6 +3,7 @@ package com.sm.dao.dao;
 import com.sm.controller.OrderAdminController;
 import com.sm.controller.OrderController;
 import com.sm.message.order.*;
+import com.sm.utils.SmUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -13,9 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -29,13 +28,16 @@ public class OrderDao {
     private JdbcTemplate jdbcTemplate;
 
     @Autowired
+    private ConfigDao configDao;
+
+    @Autowired
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     public Integer createOrder(CreateOrderInfo order) {
         final String sql = String.format("insert into %s (order_num, user_id, address_id, address_detail ,address_contract , yongjin_code , status ," +
-                "    total_cost_price,total_price ,use_yongjin ,use_yue , need_pay_money , had_pay_money ,message,yongjin_base_price) values(" +
+                "    total_cost_price,total_price ,use_yongjin ,use_yue , need_pay_money , had_pay_money ,message,yongjin_base_price, delivery_fee) values(" +
                 ":order_num, :user_id, :address_id, :address_detail ,:address_contract , :yongjin_code , :status, " +
-                "    :total_cost_price,:total_price ,:use_yongjin ,:use_yue , :need_pay_money , :had_pay_money ,:message,:yongjin_base_price)", VarProperties.ORDER);
+                "    :total_cost_price,:total_price ,:use_yongjin ,:use_yue , :need_pay_money , :had_pay_money ,:message,:yongjin_base_price, :delivery_fee)", VarProperties.ORDER);
         KeyHolder keyHolder = new GeneratedKeyHolder();
         MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
         mapSqlParameterSource.addValue("order_num", order.getOrderNum());
@@ -53,6 +55,7 @@ public class OrderDao {
         mapSqlParameterSource.addValue("had_pay_money", order.getHadPayMoney());
         mapSqlParameterSource.addValue("message", order.getMessage());
         mapSqlParameterSource.addValue("yongjin_base_price", order.getYongjinBasePrice());
+        mapSqlParameterSource.addValue("delivery_fee", order.getDeliveryFee());
         namedParameterJdbcTemplate.update(sql, mapSqlParameterSource, keyHolder);
         return keyHolder.getKey().intValue();
     }
@@ -128,7 +131,7 @@ public class OrderDao {
     }
 
     public DrawBackAmount getDrawbackAmount(String orderNum) {
-        final String sql = String.format("select total_price, use_yongjin ,use_yue , need_pay_money, had_pay_money , chajia_status,chajia_price,chajia_use_yongjin ,chajia_use_yue , chajia_need_pay_money , chajia_had_pay_money from %s where order_num = ?", VarProperties.ORDER);
+        final String sql = String.format("select total_price, use_yongjin ,use_yue , need_pay_money, had_pay_money , chajia_status,chajia_price,chajia_use_yongjin ,chajia_use_yue , chajia_need_pay_money , chajia_had_pay_money,delivery_fee from %s where order_num = ?", VarProperties.ORDER);
         return jdbcTemplate.query(sql, new Object[]{orderNum}, new DrawBackAmount.DrawBackAmountRowMapper()).stream().findFirst().orElse(null);
     }
 
@@ -173,7 +176,7 @@ public class OrderDao {
     }
 
     public OrderDetailInfo getOrderDetail(String orderNum) {
-        String sql = String.format("select id, user_id, order_num,address_detail,address_contract,yongjin_code,status,total_price,drawback_status,use_yongjin,use_yue,need_pay_money,had_pay_money,chajia_status,chajia_price,chajia_use_yongjin,chajia_use_yue,chajia_need_pay_money,chajia_had_pay_money,message,jianhuoyuan_id,jianhuo_status,has_fahuo,created_time from %s where order_num = ?", VarProperties.ORDER);
+        String sql = String.format("select id, user_id, order_num,address_detail,address_contract,yongjin_code,status,total_price,drawback_status,use_yongjin,use_yue,need_pay_money,had_pay_money,chajia_status,chajia_price,chajia_use_yongjin,chajia_use_yue,chajia_need_pay_money,chajia_had_pay_money,message,jianhuoyuan_id,jianhuo_status,has_fahuo,created_time, delivery_fee from %s where order_num = ?", VarProperties.ORDER);
         return jdbcTemplate.query(sql, new Object[]{orderNum}, new OrderDetailInfo.OrderDetailInfoRowMapper()).stream().findFirst().orElse(null);
     }
 
@@ -408,5 +411,35 @@ public class OrderDao {
     public int countDrawbackManagerCnt() {
         final String sql = String.format("select count(1) from %s where drawback_status = 'WAIT_APPROVE'", VarProperties.ORDER);
         return jdbcTemplate.queryForObject(sql, Long.class).intValue();
+    }
+
+    /**
+     * 超过两次需要付运费
+     * @param userId
+     * @return
+     */
+    public int todayOrderCnt(int userId) {
+        final String sql = String.format("select count(1) from %s where user_id = ? and created_time > ? and status != 'CANCEL_TIMEOUT' AND status!= 'CANCEL_MANUAL' AND not (status = 'WAIT_PAY' and  now() > DATE_ADD(created_time, INTERVAL 15 MINUTE ))", VarProperties.ORDER);
+        return jdbcTemplate.queryForObject(sql, new Object[]{userId, SmUtil.getTodayYMD() + " 00:00:00"}, Integer.class);
+    }
+
+    public boolean needPayDeliveryFee(int userId, BigDecimal amount) {
+        int orderCnt = todayOrderCnt(userId);
+        BigDecimal freeDeliveryFeeOrderAmount = configDao.getFreeDeliveryFeeOrderAmount();
+        return amount.compareTo(freeDeliveryFeeOrderAmount) < 0 && orderCnt >= 2;
+    }
+
+    public HashMap<Integer, Integer> getPid2StockByOrderId(Integer orderId) {
+        final String sql = String.format("select product_id, product_cnt from %s where order_id = ?", VarProperties.ORDERS_ITEM);
+        List<Map<String, Object>> results = jdbcTemplate.queryForList(sql, new Object[]{orderId});
+        HashMap<Integer, Integer> pid2cnt = new HashMap<>();
+        results.stream().forEach(map -> {
+            try{
+                pid2cnt.put(Integer.valueOf(map.get("product_id").toString()), Integer.valueOf(map.get("product_cnt").toString()));
+            }catch (Exception e){
+
+            }
+        });
+        return pid2cnt;
     }
 }

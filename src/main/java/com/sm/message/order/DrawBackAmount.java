@@ -43,7 +43,7 @@ public class DrawBackAmount {
     private BigDecimal chajiaPrice;
     private BigDecimal chajiaNeedPayMoney;
     private BigDecimal chajiaHadPayMoney;
-
+    private BigDecimal deliveryFee;
     //not use
     private BigDecimal chajiaUseYongjin;
     //not use
@@ -108,6 +108,51 @@ public class DrawBackAmount {
                 }
             }
         }
+        //从 现金扣除运费
+        BigDecimal sub = this.deliveryFee;
+        if(sub.compareTo(BigDecimal.ZERO) > 0 && this.displayOrderAmount.compareTo(BigDecimal.ZERO) > 0){
+            sub = this.displayOrderAmount.subtract(this.deliveryFee);
+            if(sub.compareTo(BigDecimal.ZERO) < 0){// 现金扣除
+                this.displayOrderAmount = BigDecimal.ZERO;
+                sub = sub.negate();
+            }else{
+                this.displayOrderAmount = sub;
+                sub = BigDecimal.ZERO;
+            }
+        }
+        //从 差价金额扣除运费
+        if(sub.compareTo(BigDecimal.ZERO) > 0 && this.displayChajiaAmount.compareTo(BigDecimal.ZERO) > 0){
+            sub = this.displayChajiaAmount.subtract(sub);
+            if(sub.compareTo(BigDecimal.ZERO) < 0){
+                sub = sub.negate();
+                this.displayChajiaAmount = BigDecimal.ZERO;
+            }else{
+                this.displayChajiaAmount = sub;
+                sub = BigDecimal.ZERO;
+            }
+        }
+        //佣金扣除 运费
+        if(sub.compareTo(BigDecimal.ZERO) > 0 && this.displayTotalYongjin.compareTo(BigDecimal.ZERO) > 0){
+            sub = this.displayTotalYongjin.subtract(sub);
+
+            if(sub.compareTo(BigDecimal.ZERO) <0 ){//佣金扣除
+                this.displayTotalYongjin = BigDecimal.ZERO;
+                sub = sub.negate();
+            }else{
+                this.displayTotalYongjin = sub;
+                sub = BigDecimal.ZERO;
+            }
+        }
+        //余额中扣除运费
+        if(sub.compareTo(BigDecimal.ZERO) > 0 && this.displayTotalYue.compareTo(BigDecimal.ZERO) > 0){//余额中扣除 运费
+            sub = this.displayTotalYue.subtract(sub);
+            if(sub.compareTo(BigDecimal.ZERO) < 0){
+                this.displayTotalYue = BigDecimal.ZERO;
+            }else{
+                this.displayTotalYue = sub;
+            }
+        }
+
         this.displayTotalAmount = this.displayOrderAmount.add(this.displayChajiaAmount);
     }
 
@@ -145,8 +190,12 @@ public class DrawBackAmount {
             if(existsColumn(resultSet, "chajia_need_pay_money")){
                 drawBackAmount.setChajiaNeedPayMoney(resultSet.getBigDecimal("chajia_need_pay_money"));
             }
+
             if(existsColumn(resultSet, "chajia_had_pay_money")){
                 drawBackAmount.setChajiaHadPayMoney(resultSet.getBigDecimal("chajia_had_pay_money"));
+            }
+            if(existsColumn(resultSet, "delivery_fee")){
+                drawBackAmount.setDeliveryFee(resultSet.getBigDecimal("delivery_fee"));
             }
             return drawBackAmount;
         }
@@ -277,6 +326,14 @@ public class DrawBackAmount {
 
     public void setChajiaNeedPayMoney(BigDecimal chajiaNeedPayMoney) {
         this.chajiaNeedPayMoney = chajiaNeedPayMoney;
+    }
+
+    public BigDecimal getDeliveryFee() {
+        return deliveryFee;
+    }
+
+    public void setDeliveryFee(BigDecimal deliveryFee) {
+        this.deliveryFee = deliveryFee;
     }
 
     public BigDecimal getDisplayOrderAmount() {

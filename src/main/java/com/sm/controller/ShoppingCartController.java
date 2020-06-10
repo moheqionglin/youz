@@ -1,6 +1,8 @@
 package com.sm.controller;
 
 import com.sm.config.UserDetail;
+import com.sm.dao.dao.ConfigDao;
+import com.sm.dao.dao.OrderDao;
 import com.sm.dao.domain.ShoppingCart;
 import com.sm.message.ResultJson;
 import com.sm.message.order.CartInfo;
@@ -39,6 +41,11 @@ public class ShoppingCartController {
     @Autowired
     private ProductService productService;
 
+    @Autowired
+    private OrderDao orderDao;
+    @Autowired
+    private ConfigDao configDao;
+
     @GetMapping(path = "/cart/list")
     @PreAuthorize("hasAuthority('BUYER')")
     @ApiOperation(value = "[获取所有购物车] 返回全部购物车,不分页, selected=true 的时候，为下单确认页数据，只返回选中，且没下架，且库存大于购物车数量的商品。 false的时候返回所有")
@@ -51,7 +58,8 @@ public class ShoppingCartController {
 
         List<CartItemInfo> cartItems = shoppingCartService.getAllCartItems(userDetail.getId(), selected);
         BigDecimal totalAmount = ServiceUtil.calcCartTotalPrice(cartItems);
-        return new CartInfo(cartItems, totalAmount);
+        BigDecimal freeDeliveryFeeOrderAmount = configDao.getFreeDeliveryFeeOrderAmount();
+        return new CartInfo(cartItems, totalAmount, configDao.getDeliveryFee(), orderDao.needPayDeliveryFee(userDetail.getId(), totalAmount), freeDeliveryFeeOrderAmount);
     }
 
     @GetMapping(path = "/cart/count")

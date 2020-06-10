@@ -25,6 +25,7 @@ public class CreateOrderInfo {
     private String yongjinCode;
     private BigDecimal yongjinBasePrice;
     private String message;
+    private BigDecimal deliveryFee;
 
     public Integer getId() {
         return id;
@@ -148,6 +149,14 @@ public class CreateOrderInfo {
 
     public String getMessage() {
         return message;
+    }
+
+    public BigDecimal getDeliveryFee() {
+        return deliveryFee;
+    }
+
+    public void setDeliveryFee(BigDecimal deliveryFee) {
+        this.deliveryFee = deliveryFee;
     }
 
     public void setMessage(String message) {
