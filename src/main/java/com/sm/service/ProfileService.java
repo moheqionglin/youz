@@ -67,4 +67,7 @@ public class ProfileService {
         userDao.deleteBindyongjingcode(userId, code);
     }
 
+    public int countAlert() {
+        return userDao.countAlert();
+    }
 }

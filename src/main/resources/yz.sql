@@ -389,6 +389,9 @@ create table feeback(
     user_id int,
     content varchar(500),
     phone varchar(12),
+    answer varchar(500),
+    had_read bit(1) not null default 0,
+    user_had_read bit(1) not null default 0,
     created_time timestamp DEFAULT CURRENT_TIMESTAMP
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 

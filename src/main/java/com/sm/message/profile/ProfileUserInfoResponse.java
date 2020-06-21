@@ -30,9 +30,10 @@ public class ProfileUserInfoResponse {
     private int waitCommentCnt;
     private int drawbackCnt;
 
+    private int alertCnt;
     private int orderManagerCnt;
     private int drawbackManagerCnt;
-
+    private int feedManagerCnt;
 
     public void initOrderCnt(OrderAllStatusCntInfo info) {
         this.setWaitPayCnt(info.getWaitPayCnt());
@@ -45,6 +46,7 @@ public class ProfileUserInfoResponse {
     public void initAdminInfo(AdminCntInfo info) {
         this.setDrawbackManagerCnt(info.getDrawbackManagerCnt());
         this.setOrderManagerCnt(info.getOrderManagerCnt());
+        this.setFeedManagerCnt(info.getFeedbackManagerCnt());
     }
 
     public static class ProfileUserInfoResponseRowMapper implements RowMapper<ProfileUserInfoResponse> {
@@ -119,8 +121,24 @@ public class ProfileUserInfoResponse {
         return sex;
     }
 
+    public int getFeedManagerCnt() {
+        return feedManagerCnt;
+    }
+
+    public void setFeedManagerCnt(int feedManagerCnt) {
+        this.feedManagerCnt = feedManagerCnt;
+    }
+
     public void setSex(String sex) {
         this.sex = sex;
+    }
+
+    public int getAlertCnt() {
+        return alertCnt;
+    }
+
+    public void setAlertCnt(int alertCnt) {
+        this.alertCnt = alertCnt;
     }
 
     public String getBirthday() {

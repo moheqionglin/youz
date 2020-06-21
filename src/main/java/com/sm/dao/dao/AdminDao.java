@@ -181,6 +181,7 @@ public class AdminDao {
         AdminCntInfo adminCntInfo = new AdminCntInfo();
         adminCntInfo.setOrderManagerCnt(orderDao.countOrderManagerCnt());
         adminCntInfo.setDrawbackManagerCnt(orderDao.countDrawbackManagerCnt());
+        adminCntInfo.setFeedbackManagerCnt(orderDao.countFeedbackManagerCnt());
         return adminCntInfo;
     }
 }

@@ -689,4 +689,5 @@ public class OrderService {
     public OrderAllStatusCntInfo countOrderAllStatus(int userId) {
         return orderDao.countOrderAllStatus(userId);
     }
+
 }

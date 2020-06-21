@@ -442,4 +442,10 @@ public class OrderDao {
         });
         return pid2cnt;
     }
+
+    public int countFeedbackManagerCnt() {
+        final String sql = String.format("select count(1) from %s where had_read = 0", VarProperties.FEEBACK);
+        return jdbcTemplate.queryForObject(sql,  Long.class).intValue();
+
+    }
 }

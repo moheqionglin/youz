@@ -1,10 +1,15 @@
 package com.sm.service;
 
+import com.sm.controller.HttpYzCode;
+import com.sm.controller.ProfileYzController;
 import com.sm.dao.dao.UserDao;
 import com.sm.dao.dao.UserRoleMapDao;
 import com.sm.dao.domain.Role;
 import com.sm.dao.domain.User;
+import com.sm.message.ResultJson;
 import com.sm.message.profile.FeebackRequest;
+import com.sm.message.profile.FeedBackItemInfo;
+import com.sm.message.profile.FeedbackInfo;
 import com.sm.message.profile.UserAmountInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -54,5 +59,23 @@ public class UserService {
 
     public void createFeeback(Integer userid, FeebackRequest feeback) {
         userDao.createFeeback(userid, feeback);
+    }
+
+    public ResultJson<FeedbackInfo> getFeedbacks(int pageSize, int pageNum, ProfileYzController.FeedbackListPageType type, int userId) {
+       return ResultJson.ok(userDao.getFeedbacks(pageSize, pageNum, type, userId));
+    }
+
+    public ResultJson answerFeedback(int id, String content) {
+        userDao.answerFeedback(id, content);
+        return ResultJson.ok();
+    }
+
+    public ResultJson<FeedBackItemInfo> getFeedback(int userId, Integer id, boolean admin, ProfileYzController.FeedbackDetailPageSource source) {
+        FeedBackItemInfo rst = userDao.getFeedback(userId, id, admin);
+        if(rst == null){
+            return ResultJson.failure(HttpYzCode.NOT_FOUND);
+        }
+        userDao.updateFeedbackHadRead(id, source);
+        return ResultJson.ok(rst);
     }
 }

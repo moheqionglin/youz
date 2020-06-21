@@ -1,5 +1,6 @@
 package com.sm.dao.dao;
 
+import com.sm.controller.ProfileYzController;
 import com.sm.dao.domain.User;
 import com.sm.dao.domain.UserAmountLog;
 import com.sm.dao.domain.UserAmountLogType;
@@ -178,5 +179,50 @@ public class UserDao {
             }
         });
 
+    }
+
+    public FeedbackInfo getFeedbacks(int pageSize, int pageNum, ProfileYzController.FeedbackListPageType type, Integer userid) {
+        int startIndex = (pageNum - 1) * pageSize;
+        Object[] params = new Object[]{startIndex, pageSize};
+        String sql = "select feeback.id as id ,user_id, nick_name ,content, phone, feeback.created_time as created_time, answer, had_read,user_had_read from feeback left join users u on feeback.user_id = u.id order by  had_read asc,feeback.created_time desc   limit ?,?";
+        if(type.equals(ProfileYzController.FeedbackListPageType.ME)){
+            sql = "select feeback.id as id ,user_id, nick_name ,content, phone, feeback.created_time as created_time, answer, had_read,user_had_read from feeback left join users u on feeback.user_id = u.id where u.id = ? order by user_had_read asc,feeback.created_time desc    limit ?,?";
+            params = new Object[]{userid, startIndex, pageSize};
+        }
+        FeedbackInfo feedbackInfo = new FeedbackInfo();
+
+        List<FeedBackItemInfo> items = jdbcTemplate.query(sql, params, new FeedBackItemInfo.FeedBackItemInfoRowMapper());
+        feedbackInfo.getItems().addAll(items);
+        return feedbackInfo;
+    }
+
+    public void answerFeedback(int id, String content) {
+        final String sql = String.format("update %s set answer = ? , had_read = 1 where id = ?", VarProperties.FEEBACK);
+        jdbcTemplate.update(sql, new Object[]{content, id});
+    }
+
+    public FeedBackItemInfo getFeedback(int userId, Integer id, boolean admin) {
+        String sql = "select feeback.id as id,user_id, nick_name ,content, phone, feeback.created_time as created_time, answer, had_read,user_had_read from feeback left join users u on feeback.user_id = u.id where feeback.id = ?";
+        FeedBackItemInfo info = jdbcTemplate.query(sql, new Object[]{id}, new FeedBackItemInfo.FeedBackItemInfoRowMapper()).stream().findFirst().orElse(null);
+        if(!admin && info.getUserId() != userId){
+            return null;
+        }
+        return info;
+    }
+
+    public void updateFeedbackHadRead(Integer id, ProfileYzController.FeedbackDetailPageSource source) {
+        String sql = "update feeback ";
+        if(ProfileYzController.FeedbackDetailPageSource.ADMIN.equals(source)){
+            sql += " set had_read = 1 ";
+        }else if(ProfileYzController.FeedbackDetailPageSource.USER.equals(source)){
+            sql += " set user_had_read = 1 ";
+        }
+        sql += " where id = ?";
+        jdbcTemplate.update(sql, new Object[]{id});
+    }
+
+    public int countAlert() {
+        final String sql = String.format("select count(1) from %s where user_had_read = 0", VarProperties.FEEBACK);
+        return jdbcTemplate.queryForObject(sql, Long.class).intValue();
     }
 }

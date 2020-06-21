@@ -99,7 +99,7 @@ public class ProfileYzController {
         boolean admin = authentication.getAuthorities().stream().filter((a) -> a.getAuthority().equals("ADMIN")).count() > 0;
         OrderAllStatusCntInfo orderAllStatusCntInfo = orderService.countOrderAllStatus(userDetail.getId());
         profileBaseInfo.initOrderCnt(orderAllStatusCntInfo);
-
+        profileBaseInfo.setAlertCnt(profileService.countAlert());
         if(admin){
             AdminCntInfo info = adminOtherService.countAdminCnt();
             profileBaseInfo.initAdminInfo(info);
@@ -160,4 +160,61 @@ public class ProfileYzController {
         userService.createFeeback(userDetail.getId(), feeback);
     }
 
+    @GetMapping(path = "/user/feedbacks/{type}")
+    @PreAuthorize("hasAuthority('BUYER')")
+    @ApiOperation(value = "[分页获取所有feeback] 按照feeback的逆序, 如果是管理员获取所有的feedback，如果普通用户只能获取自己的")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "type", value = "type", required = true, paramType = "path", dataType = "String"),
+            @ApiImplicitParam(name = "page_size", value = "page_size", required = true, paramType = "query", dataType = "Integer"),
+            @ApiImplicitParam(name = "page_num", value = "page_num", required = true, paramType = "query", dataType = "Integer")
+    })
+    public ResultJson<FeedbackInfo> getFeedbacks(@Valid @NotNull @PathVariable("type") FeedbackListPageType type,
+                                                 @Valid @NotNull @RequestParam("page_size") int pageSize,
+                                           @Valid @NotNull @RequestParam("page_num") int pageNum){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
+        boolean admin = authentication.getAuthorities().stream().filter((a) -> a.getAuthority().equals("ADMIN")).count() > 0;
+        type = type.equals(FeedbackListPageType.ALL) && !admin ? FeedbackListPageType.ME : type;
+        return userService.getFeedbacks(pageSize, pageNum, type, userDetail.getId());
+    }
+
+    @PostMapping(path = "/user/feedback/{id}")
+    @PreAuthorize("hasAuthority('BUYER')")
+    @ApiOperation(value = "[回复feeback]")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id", value = "id", required = true, paramType = "path", dataType = "Integer"),
+            @ApiImplicitParam(name = "content", value = "content", required = true, paramType = "body", dataType = "String")
+    })
+    public ResultJson answerFeedback(
+            @Valid @NotNull @PathVariable("id") int id,
+            @Valid @NotNull @RequestBody String content){
+        return userService.answerFeedback(id, content);
+    }
+
+    @GetMapping(path = "/user/feedback/{id}")
+    @PreAuthorize("hasAuthority('BUYER')  ")
+    @ApiOperation(value = "[返回feeback详情] ")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id", value = "id", required = true, paramType = "path", dataType = "Integer"),
+            @ApiImplicitParam(name = "source", value = "source", required = true, paramType = "query", dataType = "String"),
+
+    })
+    public ResultJson<FeedBackItemInfo> getFeedback(@Valid @NotNull @PathVariable("id") Integer id,
+                                                    @Valid @NotNull @RequestParam("source") FeedbackDetailPageSource source){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
+        boolean admin = authentication.getAuthorities().stream().filter((a) -> a.getAuthority().equals("ADMIN")).count() > 0;
+        return userService.getFeedback(userDetail.getId(), id, admin, source);
+
+    }
+
+    public static enum FeedbackDetailPageSource{
+        ADMIN,
+        USER
+    }
+
+    public static enum FeedbackListPageType{
+        ME,
+        ALL
+    }
 }
