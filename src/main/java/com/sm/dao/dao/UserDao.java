@@ -222,7 +222,7 @@ public class UserDao {
     }
 
     public int countAlert() {
-        final String sql = String.format("select count(1) from %s where user_had_read = 0", VarProperties.FEEBACK);
+        final String sql = String.format("select count(1) from %s where user_had_read = 0 and answer is not null", VarProperties.FEEBACK);
         return jdbcTemplate.queryForObject(sql, Long.class).intValue();
     }
 }
