@@ -186,7 +186,7 @@ public class UserDao {
         Object[] params = new Object[]{startIndex, pageSize};
         String sql = "select feeback.id as id ,user_id, nick_name ,content, phone, feeback.created_time as created_time, answer, had_read,user_had_read from feeback left join users u on feeback.user_id = u.id order by  had_read asc,feeback.created_time desc   limit ?,?";
         if(type.equals(ProfileYzController.FeedbackListPageType.ME)){
-            sql = "select feeback.id as id ,user_id, nick_name ,content, phone, feeback.created_time as created_time, answer, had_read,user_had_read from feeback left join users u on feeback.user_id = u.id where u.id = ? order by user_had_read asc,feeback.created_time desc    limit ?,?";
+            sql = "select feeback.id as id ,user_id, nick_name ,content, phone, feeback.created_time as created_time, answer, had_read,user_had_read from feeback left join users u on feeback.user_id = u.id where u.id = ? and answer is not null order by user_had_read asc,feeback.created_time desc    limit ?,?";
             params = new Object[]{userid, startIndex, pageSize};
         }
         FeedbackInfo feedbackInfo = new FeedbackInfo();
