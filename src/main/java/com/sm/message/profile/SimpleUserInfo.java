@@ -18,20 +18,28 @@ public class SimpleUserInfo {
     private String headImg;
 
     public static class SimpleUserInfoRowMapper implements RowMapper<SimpleUserInfo> {
+        private boolean mockUserName = true;
+        public SimpleUserInfoRowMapper() {
+        }
+        public SimpleUserInfoRowMapper(boolean mockUserName) {
+            this.mockUserName = mockUserName;
+        }
         @Override
         public SimpleUserInfo mapRow(ResultSet resultSet, int i) throws SQLException {
             SimpleUserInfo user = new SimpleUserInfo();
             if(existsColumn(resultSet, "id")){
                 user.setId(resultSet.getInt("id"));
             }
-            if(existsColumn(resultSet, "nickName")){
-                String nickName = resultSet.getString("nickName");
-                if(StringUtils.isNoneBlank(nickName)){
+            if(existsColumn(resultSet, "nick_name")){
+                String nickName = resultSet.getString("nick_name");
+                if(mockUserName && StringUtils.isNoneBlank(nickName)){
                     user.setNickName(SmUtil.mockName(nickName));
+                }else{
+                    user.setNickName(nickName);
                 }
             }
-            if(existsColumn(resultSet, "headImg")){
-                user.setHeadImg(resultSet.getString("headImg"));
+            if(existsColumn(resultSet, "head_picture")){
+                user.setHeadImg(resultSet.getString("head_picture"));
             }
             return user;
         }

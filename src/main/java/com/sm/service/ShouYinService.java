@@ -9,6 +9,7 @@ import com.sm.dao.dao.ShouYinDao;
 import com.sm.message.ResultJson;
 import com.sm.message.order.ShouYinFinishOrderInfo;
 import com.sm.message.product.ShouYinProductInfo;
+import com.sm.message.profile.SimpleUserInfo;
 import com.sm.message.shouyin.*;
 import com.sm.third.yilianyun.Prienter;
 import com.sm.utils.SmUtil;
@@ -22,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class ShouYinService {
@@ -274,5 +276,32 @@ public class ShouYinService {
 
     public void batchAddCart(Integer uid, List<ShouYinOrderItemInfo> shouYinOrderItemInfoList) {
         shouYinDao.batchAddCart(uid, shouYinOrderItemInfoList);
+    }
+
+    public List<ShouYinOrderInfo> getAllShouYinOrders(Integer shouYinUserId, String start, String end, Integer pageSize, Integer pageNum, ShouYinController.SHOUYIN_ORDER_STATUS status) {
+        return shouYinDao.queryOrderWithOutItems(shouYinUserId, start, end, pageSize, pageNum, status);
+    }
+
+    public ShouYinOrderInfo getShouYinOrderDetail(String orderNum) {
+        return shouYinDao.queryOrder(orderNum);
+    }
+
+    public List<ShouYinWorkRecordStatisticsInfo> getShouYinWorkRecordList(Integer pageSize, Integer pageNum) {
+        List<ShouYinWorkRecordInfo> shouYinWorkRecordList = shouYinDao.getShouYinWorkRecordList(pageSize, pageNum);
+        return shouYinWorkRecordList.stream().map(sii -> {
+            ShouYinWorkRecordStatisticsInfo si = shouYinDao.getShouYinWorkRecordStatisticsInfo(sii.getUserId(), sii.getStartTimeL(), sii.getEndTimeL());
+            si.setUserId(sii.getUserId());
+            si.setName(sii.getUserName());
+            si.setStartTimeStr(sii.getStartTime());
+            si.setEndTimeStr(sii.getEndTime());
+            si.setBackupAmount(sii.getBackupAmount());
+            si.setStatus(sii.getStatus());
+            return si;
+        }).collect(Collectors.toList());
+
+    }
+
+    public List<SimpleUserInfo> getAllShouYinUsers() {
+        return shouYinDao.getAllShouYinUsers();
     }
 }

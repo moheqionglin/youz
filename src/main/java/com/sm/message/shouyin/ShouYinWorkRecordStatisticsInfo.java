@@ -16,6 +16,7 @@ public class ShouYinWorkRecordStatisticsInfo {
     private BigDecimal totalOrderAmount;
     private BigDecimal totalOfflineAmount;
     private BigDecimal totalOnlineAmount;
+    private String status;
 
     public static class ShouYinWorkRecordStatisticsInfoRowMapper implements RowMapper<ShouYinWorkRecordStatisticsInfo> {
         @Override
@@ -98,6 +99,14 @@ public class ShouYinWorkRecordStatisticsInfo {
 
     public String getEndTimeStr() {
         return endTimeStr;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public void setEndTimeStr(String endTimeStr) {

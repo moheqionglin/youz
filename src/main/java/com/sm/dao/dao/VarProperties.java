@@ -10,6 +10,7 @@ public class VarProperties {
     public static final String PRODUCT_SUPPLIERS = "product_suppliers";
     public static final String PRODUCTS = "products";
     public static final String USERS = "users";
+    public static final String USER_ROLES = "user_roles";
     public static final String PRODUCT_KANJIA = "product_kanjia";
     public static final String PRODUCT_CATEGORY = "product_category";
     public static final String SHOPPING_CART = "shopping_cart";

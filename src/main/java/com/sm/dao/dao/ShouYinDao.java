@@ -5,6 +5,7 @@ import com.sm.controller.ShoppingCartController;
 import com.sm.controller.ShouYinController;
 import com.sm.message.order.ShouYinFinishOrderInfo;
 import com.sm.message.product.ShouYinProductInfo;
+import com.sm.message.profile.SimpleUserInfo;
 import com.sm.message.shouyin.*;
 import com.sm.utils.SmUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -236,7 +237,7 @@ public class ShouYinDao {
     }
 
     public ShouYinOrderInfo queryOrder(String orderNum) {
-        String orderSql = "select id, order_num, user_id, total_cost_price,total_price,had_pay_money,offline_pay_money, online_pay_money,status,zhao_ling from shouyin_order where order_num = ? ";
+        String orderSql = "select id, order_num, user_id, total_cost_price,total_price,had_pay_money,offline_pay_money, online_pay_money,status,zhao_ling,created_time from shouyin_order where order_num = ? ";
         String orderItemsql = "select order_id,product_id,product_profile_img,product_name,product_size,product_cnt,unit_price, cost_price from shouyin_order_item where order_id = ?";
         ShouYinOrderInfo orderInfo = null;
         try{
@@ -252,6 +253,21 @@ public class ShouYinDao {
         return orderInfo;
     }
 
+    public List<ShouYinOrderInfo> queryOrderWithOutItems(Integer shouYinUserId, String start, String end, Integer pageSize, Integer pageNum, ShouYinController.SHOUYIN_ORDER_STATUS status) {
+        String orderSql = "select id, order_num, user_id, total_cost_price,total_price,had_pay_money,offline_pay_money, online_pay_money,status,zhao_ling,created_time from shouyin_order where user_id = ? and created_time between ? and ? and status = ? order by created_time desc limit ?, ?";
+        List<ShouYinOrderInfo> orderInfo = null;
+
+        int startIndex = (pageNum - 1) * pageSize;
+        try{
+            orderInfo = jdbcTemplate.query(orderSql, new Object[]{shouYinUserId, start, end, status.toString(), startIndex, pageSize}, new ShouYinOrderInfo.ShouYinOrderInfoRowMapper());
+        }catch (Exception e){
+            logger.error("Get order empty order shouYinUserId = {}, start = {}, end = {}, status={}, pageSize = {}, pageNum = {}", shouYinUserId, start, end, status.toString(), pageSize, pageNum);
+        }
+        if(orderInfo == null){
+            return null;
+        }
+        return orderInfo;
+    }
     public void reduceStockAndAddSaleCnt(Integer id) {
 
         final String sql = String.format("select product_id, product_cnt from %s where order_id = ? and product_id > 0", VarProperties.SHOUYIN_ORDER_ITEM);
@@ -346,5 +362,16 @@ public class ShouYinDao {
                 return allCartItems.getItems().size();
             }
         });
+    }
+
+    public List<ShouYinWorkRecordInfo> getShouYinWorkRecordList(Integer pageSize, Integer pageNum) {
+        final String sql = String.format("select user_id,nick_name,backup_amount,start_time,end_time,t1.status as status from %s t1 left join %s t2 on t1.user_id = t2.id order by t1.id desc limit ?,?", VarProperties.SHOUYIN_WORK_RECORD, VarProperties.USERS);
+        int startIndex = (pageNum - 1) * pageSize;
+        return jdbcTemplate.query(sql, new Object[]{startIndex, pageSize}, new ShouYinWorkRecordInfo.ShouYinWorkRecordInfoRowMapper());
+    }
+
+    public List<SimpleUserInfo> getAllShouYinUsers() {
+        final String sql = String.format("select t1.id as id, nick_name,head_picture from %s t1 left join %s t2 on t1.id = t2.user_id where t2.roles_id = 4", VarProperties.USERS, VarProperties.USER_ROLES);
+        return jdbcTemplate.query(sql, new SimpleUserInfo.SimpleUserInfoRowMapper(false));
     }
 }

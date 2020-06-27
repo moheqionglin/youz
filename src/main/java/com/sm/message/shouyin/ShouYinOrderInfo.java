@@ -1,5 +1,6 @@
 package com.sm.message.shouyin;
 
+import com.sm.utils.SmUtil;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.math.BigDecimal;
@@ -18,6 +19,8 @@ public class ShouYinOrderInfo {
     private BigDecimal offlinePayMoney;
     private BigDecimal onlinePayMoney;
     private BigDecimal zhaoling;
+    private String createTime;
+    private String status;
 
     private List<ShouYinOrderItemInfo> shouYinOrderItemInfoList = new ArrayList<>();
 
@@ -53,6 +56,12 @@ public class ShouYinOrderInfo {
                 BigDecimal zhao_ling = resultSet.getBigDecimal("zhao_ling");
                 item.setZhaoling(zhao_ling == null ? BigDecimal.ZERO: zhao_ling);
             }
+            if(existsColumn(resultSet, "created_time")){
+                item.setCreateTime(SmUtil.parseLongToTMDHMS(resultSet.getTimestamp("created_time").getTime()));
+            }
+            if(existsColumn(resultSet, "status")){
+                item.setStatus(resultSet.getString("status"));
+            }
             return item;
         }
 
@@ -67,6 +76,14 @@ public class ShouYinOrderInfo {
 
     public String getOrderNum() {
         return orderNum;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public void setOrderNum(String orderNum) {
@@ -89,6 +106,13 @@ public class ShouYinOrderInfo {
         UserId = userId;
     }
 
+    public String getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(String createTime) {
+        this.createTime = createTime;
+    }
 
     public BigDecimal getTotalCostPrice() {
         return totalCostPrice;
