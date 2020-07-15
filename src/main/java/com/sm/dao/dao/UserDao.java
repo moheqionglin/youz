@@ -221,8 +221,8 @@ public class UserDao {
         jdbcTemplate.update(sql, new Object[]{id});
     }
 
-    public int countAlert() {
-        final String sql = String.format("select count(1) from %s where user_had_read = 0 and answer is not null", VarProperties.FEEBACK);
-        return jdbcTemplate.queryForObject(sql, Long.class).intValue();
+    public int countAlert(Integer userID) {
+        final String sql = String.format("select count(1) from %s where user_had_read = 0 and answer is not null and user_id = ?", VarProperties.FEEBACK);
+        return jdbcTemplate.queryForObject(sql, new Object[]{userID}, Long.class).intValue();
     }
 }
