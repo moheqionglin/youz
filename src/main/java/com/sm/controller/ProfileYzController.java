@@ -99,7 +99,7 @@ public class ProfileYzController {
         boolean admin = authentication.getAuthorities().stream().filter((a) -> a.getAuthority().equals("ADMIN")).count() > 0;
         OrderAllStatusCntInfo orderAllStatusCntInfo = orderService.countOrderAllStatus(userDetail.getId());
         profileBaseInfo.initOrderCnt(orderAllStatusCntInfo);
-        profileBaseInfo.setAlertCnt(profileService.countAlert());
+        profileBaseInfo.setAlertCnt(profileService.countAlert(userDetail.getId()));
         if(admin){
             AdminCntInfo info = adminOtherService.countAdminCnt();
             profileBaseInfo.initAdminInfo(info);
