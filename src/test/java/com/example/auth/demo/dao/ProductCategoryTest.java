@@ -17,7 +17,6 @@ public class ProductCategoryTest extends BaseTest {
     @Autowired
     private ProductCategoryDao productCategoryDao;
 
-    @Test
     public void createTest(){
         for (int i = 0; i < 11; i++) {
             productCategoryDao.create(generate(0, i));
@@ -35,14 +34,12 @@ public class ProductCategoryTest extends BaseTest {
         return productCategory;
     }
 
-    @Test
     public void deleteTest(){
         for (int i = 1; i <= 11; i++) {
             productCategoryDao.delete(i);
         }
     }
 
-    @Test
     public void updateTest(){
         ProductCategory pc = generate(1, 1);
         pc.setName("更新-" + pc.getName());
