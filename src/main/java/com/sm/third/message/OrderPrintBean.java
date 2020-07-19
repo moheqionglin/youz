@@ -123,5 +123,23 @@ public class OrderPrintBean {
     public void setMessage(String message) {
         this.message = message;
     }
+
+    @Override
+    public String toString() {
+        return "OrderPrintBean{" +
+                "items=" + items +
+                ", orderNum='" + orderNum + '\'' +
+                ", orderTime='" + orderTime + '\'' +
+                ", address='" + address + '\'' +
+                ", link='" + link + '\'' +
+                ", totalPrice=" + totalPrice +
+                ", useYongjin=" + useYongjin +
+                ", useYue=" + useYue +
+                ", hadPayMoney=" + hadPayMoney +
+                ", chajiaPrice=" + chajiaPrice +
+                ", chajiaHadPayMoney=" + chajiaHadPayMoney +
+                ", message='" + message + '\'' +
+                '}';
+    }
 }
 

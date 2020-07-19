@@ -11,6 +11,7 @@ import org.bouncycastle.util.test.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -31,6 +32,8 @@ import java.util.concurrent.Executors;
 public class Prienter{
 	private Logger log = LoggerFactory.getLogger(this.getClass());
 	Random random = new Random();
+	@Value("${close_printer:false}")
+	private boolean closePrinter = false;
 	@Autowired
 	private LYYService lyyService;
 	@Autowired
@@ -44,6 +47,10 @@ public class Prienter{
 
 	// 设置小票打印
 	public void print(OrderPrintBean orderPrintBean){
+		if("周万里 18917605557".equalsIgnoreCase(orderPrintBean.getLink())){
+			log.info("ignore print order{}", orderPrintBean);
+			return;
+		}
 		//字符串拼接
 		StringBuilder sb=new StringBuilder();
 		sb.append("<center>悠哉到家\r\n</center>");
@@ -126,6 +133,9 @@ public class Prienter{
 
 	// 设置小票打印
 	public void printShouyinOrder(ShouYinOrderInfo orderInfo){
+		if(closePrinter){
+			return;
+		}
 		//字符串拼接
 		StringBuilder sb=new StringBuilder();
 		sb.append("<center>悠哉到家\r\n</center>");
