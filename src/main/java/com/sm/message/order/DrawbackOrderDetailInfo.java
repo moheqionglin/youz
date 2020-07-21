@@ -20,6 +20,8 @@ import java.util.stream.Collectors;
 public class DrawbackOrderDetailInfo {
 
     private Integer orderId;
+    private List<Integer> orderItemIds = new ArrayList<>();
+    private String dStatus;
     private String type;
     private String reason;
     private String detail;
@@ -29,10 +31,14 @@ public class DrawbackOrderDetailInfo {
     private BigDecimal drawbackPayPrice;
     private BigDecimal drawbackYue;
     private BigDecimal drawbackYongjin;
-
+    //drawback_amount
+    private BigDecimal drawbackAmount;
+    //chajia_drawback_amount
+    private BigDecimal chajiaDrawbackAmount;
     private Integer approveUserId;
     private String approveComment;
     private String drawBackTime;
+    private boolean drawbackTotalOrder;
 
     public static class DrawbackOrderDetailInfoRowMapper implements RowMapper<DrawbackOrderDetailInfo> {
 
@@ -75,6 +81,22 @@ public class DrawbackOrderDetailInfo {
             if(existsColumn(resultSet, "created_time")){
                 dod.setDrawBackTime(SmUtil.parseLongToTMDHMS(resultSet.getTimestamp("created_time").getTime()));
             }
+            if(existsColumn(resultSet, "order_item_ids")){
+                dod.getOrderItemIds().addAll(Arrays.stream(resultSet.getString("order_item_ids").split(",")).map(Integer::parseInt).collect(Collectors.toList()));
+            }
+            if(existsColumn(resultSet, "d_status")){
+                dod.setdStatus(resultSet.getString("d_status"));
+            }
+            if(existsColumn(resultSet, "drawback_amount")){
+                dod.setDrawbackAmount(resultSet.getBigDecimal("drawback_amount"));
+            }
+            if(existsColumn(resultSet, "chajia_drawback_amount")){
+                dod.setChajiaDrawbackAmount(resultSet.getBigDecimal("chajia_drawback_amount"));
+            }
+            if(existsColumn(resultSet, "drawback_total_order")){
+                dod.setDrawbackTotalOrder(resultSet.getBoolean("drawback_total_order"));
+            }
+
             return dod;
         }
         private boolean existsColumn(ResultSet rs, String column) {
@@ -120,6 +142,22 @@ public class DrawbackOrderDetailInfo {
 
     public List<String> getImages() {
         return images;
+    }
+
+    public List<Integer> getOrderItemIds() {
+        return orderItemIds;
+    }
+
+    public void setOrderItemIds(List<Integer> orderItemIds) {
+        this.orderItemIds = orderItemIds;
+    }
+
+    public String getdStatus() {
+        return dStatus;
+    }
+
+    public void setdStatus(String dStatus) {
+        this.dStatus = dStatus;
     }
 
     public void setImages(List<String> images) {
@@ -168,6 +206,30 @@ public class DrawbackOrderDetailInfo {
 
     public Integer getApproveUserId() {
         return approveUserId;
+    }
+
+    public BigDecimal getDrawbackAmount() {
+        return drawbackAmount;
+    }
+
+    public void setDrawbackAmount(BigDecimal drawbackAmount) {
+        this.drawbackAmount = drawbackAmount;
+    }
+
+    public BigDecimal getChajiaDrawbackAmount() {
+        return chajiaDrawbackAmount;
+    }
+
+    public void setChajiaDrawbackAmount(BigDecimal chajiaDrawbackAmount) {
+        this.chajiaDrawbackAmount = chajiaDrawbackAmount;
+    }
+
+    public boolean isDrawbackTotalOrder() {
+        return drawbackTotalOrder;
+    }
+
+    public void setDrawbackTotalOrder(boolean drawbackTotalOrder) {
+        this.drawbackTotalOrder = drawbackTotalOrder;
     }
 
     public void setApproveUserId(Integer approveUserId) {

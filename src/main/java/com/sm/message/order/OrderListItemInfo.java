@@ -1,14 +1,19 @@
 package com.sm.message.order;
 
+import com.sm.controller.OrderAdminController;
 import com.sm.controller.OrderController;
 import com.sm.utils.SmUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author wanli.zhou
@@ -35,7 +40,11 @@ public class OrderListItemInfo {
     private boolean hasFahuo;
     private String orderTime;
     List<String> productImges;
-    private String drawbackStatus;
+
+    //退款的orderItemId
+    List<Integer> drawbackItemIds = new ArrayList<>();
+    private boolean drawbackTotalOrder = false;//退款列表的时候，用到
+    private String dStatus;
     private int totalItemCount;
     public static class OrderListItemInfoRowMapper implements RowMapper<OrderListItemInfo> {
 
@@ -72,15 +81,40 @@ public class OrderListItemInfo {
                     }
                 }
             }
-            if(existsColumn(resultSet, "total_price")){
-                olii.setTotalPrice(resultSet.getBigDecimal("total_price"));
+            //item_price
+            if(existsColumn(resultSet, "drawback_total_order")){
+                olii.setDrawbackTotalOrder(resultSet.getBoolean("drawback_total_order"));
+                boolean drawbackTotalOrder = resultSet.getBoolean("drawback_total_order");
+                if(drawbackTotalOrder){
+                    if(existsColumn(resultSet, "total_price")){
+                        olii.setTotalPrice(resultSet.getBigDecimal("total_price"));
+                    }
+                    if(existsColumn(resultSet, "chajia_price")){
+                        olii.setChajiaPrice(resultSet.getBigDecimal("chajia_price"));
+                    }
+                    if(existsColumn(resultSet, "chajia_status")){
+                        olii.setChajiaStatus(resultSet.getString("chajia_status"));
+                    }
+                }else{
+                    if(existsColumn(resultSet, "item_price")){
+                        olii.setTotalPrice(resultSet.getBigDecimal("item_price"));
+                    }
+                    olii.setChajiaPrice(BigDecimal.ZERO);
+                    olii.setChajiaStatus(OrderAdminController.ChaJiaOrderStatus.NO.toString());
+                }
+
+            }else{//订单正常流程
+                if(existsColumn(resultSet, "total_price")){
+                    olii.setTotalPrice(resultSet.getBigDecimal("total_price"));
+                }
+                if(existsColumn(resultSet, "chajia_price")){
+                    olii.setChajiaPrice(resultSet.getBigDecimal("chajia_price"));
+                }
+                if(existsColumn(resultSet, "chajia_status")){
+                    olii.setChajiaStatus(resultSet.getString("chajia_status"));
+                }
             }
-            if(existsColumn(resultSet, "chajia_status")){
-                olii.setChajiaStatus(resultSet.getString("chajia_status"));
-            }
-            if(existsColumn(resultSet, "chajia_price")){
-                olii.setChajiaPrice(resultSet.getBigDecimal("chajia_price"));
-            }
+
             if(existsColumn(resultSet, "chajia_need_pay_money")){
                 olii.setChajiaNeedPayMoney(resultSet.getBigDecimal("chajia_need_pay_money"));
             }
@@ -96,13 +130,19 @@ public class OrderListItemInfo {
             if(existsColumn(resultSet, "created_time")){
                 olii.setOrderTime(SmUtil.parseLongToTMDHMS(resultSet.getTimestamp("created_time").getTime()));
             }
-            if(existsColumn(resultSet, "drawback_status")){
-                olii.setDrawbackStatus(resultSet.getString("drawback_status"));
+            if(existsColumn(resultSet, "d_status")){
+                olii.setdStatus(resultSet.getString("d_status"));
             }
-
             if(existsColumn(resultSet, "has_fahuo")){
                 olii.setHasFahuo(resultSet.getBoolean("has_fahuo"));
             }
+            if(existsColumn(resultSet, "order_item_ids")){
+                String orderItemIds = resultSet.getString("order_item_ids");
+                if(StringUtils.isNoneBlank(orderItemIds)){
+                    olii.setDrawbackItemIds(Arrays.stream(orderItemIds.split(",")).map(Integer::valueOf).collect(Collectors.toList()));
+                }
+            }
+
             return olii;
         }
         private boolean existsColumn(ResultSet rs, String column) {
@@ -114,6 +154,14 @@ public class OrderListItemInfo {
         }
     }
 
+    public List<Integer> getDrawbackItemIds() {
+        return drawbackItemIds;
+    }
+
+    public void setDrawbackItemIds(List<Integer> drawbackItemIds) {
+        this.drawbackItemIds = drawbackItemIds;
+    }
+
     public String getOrderTime() {
         return orderTime;
     }
@@ -122,12 +170,12 @@ public class OrderListItemInfo {
         this.orderTime = orderTime;
     }
 
-    public String getDrawbackStatus() {
-        return drawbackStatus;
+    public String getdStatus() {
+        return dStatus;
     }
 
-    public void setDrawbackStatus(String drawbackStatus) {
-        this.drawbackStatus = drawbackStatus;
+    public void setdStatus(String dStatus) {
+        this.dStatus = dStatus;
     }
 
     public static class OrderItemsForListPage{
@@ -186,6 +234,14 @@ public class OrderListItemInfo {
 
     public void setOrderNum(String orderNum) {
         this.orderNum = orderNum;
+    }
+
+    public boolean isDrawbackTotalOrder() {
+        return drawbackTotalOrder;
+    }
+
+    public void setDrawbackTotalOrder(boolean drawbackTotalOrder) {
+        this.drawbackTotalOrder = drawbackTotalOrder;
     }
 
     public Integer getUserId() {

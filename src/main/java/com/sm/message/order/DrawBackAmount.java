@@ -10,6 +10,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author wanli.zhou
@@ -24,13 +26,14 @@ public class DrawBackAmount {
     private Logger log = LoggerFactory.getLogger(this.getClass());
     //下面两个变量不是从数据库中查询的
     private Integer orderId;
-    private String drawbackStatus;
-
+    // 界面展示用的
     private BigDecimal displayTotalAmount;
+
     private BigDecimal displayTotalYue;
     private BigDecimal displayTotalYongjin;
     private BigDecimal displayOrderAmount;
     private BigDecimal displayChajiaAmount;
+
 
 
     private BigDecimal totalPrice;
@@ -44,6 +47,7 @@ public class DrawBackAmount {
     private BigDecimal chajiaNeedPayMoney;
     private BigDecimal chajiaHadPayMoney;
     private BigDecimal deliveryFee;
+
     //not use
     private BigDecimal chajiaUseYongjin;
     //not use
@@ -67,7 +71,7 @@ public class DrawBackAmount {
             //do nothing
         }else{//HAD_PAY
             if(chajiaHadPayMoney == null || chajiaHadPayMoney.compareTo(BigDecimal.ZERO) < 0){
-                //do nothing
+                //do nothing 不可能出现的情况
             }else if(chajiaHadPayMoney.compareTo(BigDecimal.ZERO) > 0){
                 this.displayChajiaAmount = this.chajiaHadPayMoney;
             }else{ //chajiaHadPayMoney ==0
@@ -109,8 +113,17 @@ public class DrawBackAmount {
             }
         }
         //从 现金扣除运费
+        calcDeliveryFee();
+
+        this.displayTotalAmount = this.displayOrderAmount.add(this.displayChajiaAmount);
+    }
+
+    private void calcDeliveryFee() {
         BigDecimal sub = this.deliveryFee;
-        if(sub.compareTo(BigDecimal.ZERO) > 0 && this.displayOrderAmount.compareTo(BigDecimal.ZERO) > 0){
+        if(sub.compareTo(BigDecimal.ZERO) <= 0){
+            return;
+        }
+        if(this.displayOrderAmount.compareTo(BigDecimal.ZERO) > 0){
             sub = this.displayOrderAmount.subtract(this.deliveryFee);
             if(sub.compareTo(BigDecimal.ZERO) < 0){// 现金扣除
                 this.displayOrderAmount = BigDecimal.ZERO;
@@ -152,7 +165,88 @@ public class DrawBackAmount {
                 this.displayTotalYue = sub;
             }
         }
+    }
 
+    /**
+     * 单个item计算
+     *   差价订单没有支付，不能退款。
+     * 总原理： 用户总支付 =  总主订单已支付金额 + 总差价订单支付金额 + 总主订单余额支付 + 总主订单佣金支付
+     *      1. 单个item 退还的 主订单金额 <= 【总主订单已支付金额】， 退还的 单个item差价金额 <= 【总差价订单支付金额】
+     * @param hadDrawbackOrderDetail
+     */
+    public void calcItemDisplayTotal(SimpleOrder simpleOrder, OrderDetailItemInfo orderItem, List<DrawbackOrderDetailInfo> hadDrawbackOrderDetail) {
+        //本次要退的商品
+        BigDecimal currentItemPrice = orderItem.getProductTotalPrice();
+        BigDecimal currentItemChajiaTotalPrice = orderItem.getChajiaTotalPrice();
+
+        //已经退款的金额
+        BigDecimal hadDrawbackMainOrderTotalAmount = BigDecimal.ZERO;
+        BigDecimal hadDrawbackChaJiaOrderTotalAmount = BigDecimal.ZERO;
+        BigDecimal hadDrawbackYueTotalAmount = BigDecimal.ZERO;
+        BigDecimal hadDrawbackYongJinTotalAmount = BigDecimal.ZERO;
+        if(hadDrawbackOrderDetail != null && !hadDrawbackOrderDetail.isEmpty()){
+            List<DrawbackOrderDetailInfo> hadDrawbackOrderDetails = hadDrawbackOrderDetail.stream().filter(di -> OrderController.DrawbackStatus.APPROVE_PASS.toString().equals(di.getdStatus()) || OrderController.DrawbackStatus.WAIT_APPROVE.toString().equals(di.getdStatus())).collect(Collectors.toList());
+            hadDrawbackMainOrderTotalAmount = hadDrawbackOrderDetails.stream().map(di -> di.getDrawbackAmount()).reduce(BigDecimal.ZERO, BigDecimal::add);
+            hadDrawbackChaJiaOrderTotalAmount = hadDrawbackOrderDetails.stream().map(di -> di.getChajiaDrawbackAmount()).reduce(BigDecimal.ZERO, BigDecimal::add);
+            hadDrawbackYueTotalAmount = hadDrawbackOrderDetails.stream().map(di -> di.getDrawbackYue()).reduce(BigDecimal.ZERO, BigDecimal::add);
+            hadDrawbackYongJinTotalAmount = hadDrawbackOrderDetails.stream().map(di -> di.getDrawbackYongjin()).reduce(BigDecimal.ZERO, BigDecimal::add);
+        }
+
+        //用户总支付 =  总主订单已支付金额 + 总差价订单支付金额 + 总主订单余额支付 + 总主订单佣金支付
+        BigDecimal hadPayMainOrderTotalAmount = simpleOrder.getHadPayMoney();
+        BigDecimal hadPayChaJiaOrderTotalAmount = simpleOrder.getChajiaHadPayMoney();
+        BigDecimal hadPayYueTotalAmount = simpleOrder.getUseYue();
+        BigDecimal hadPayYongJinTotalAmount = simpleOrder.getUseYongjin();
+
+        //总支付 - 已经退款金额
+        BigDecimal shengYuMainOrderTotalAmount = hadPayMainOrderTotalAmount.subtract(hadDrawbackMainOrderTotalAmount);
+        BigDecimal shengYuChaJiaOrderTotalAmount = hadPayChaJiaOrderTotalAmount.subtract(hadDrawbackChaJiaOrderTotalAmount);
+        BigDecimal shengYuYueTotalAmount = hadPayYueTotalAmount.subtract(hadDrawbackYueTotalAmount);
+        BigDecimal shengYuYongJinTotalAmount = hadPayYongJinTotalAmount.subtract(hadDrawbackYongJinTotalAmount);
+        shengYuMainOrderTotalAmount = shengYuMainOrderTotalAmount.compareTo(BigDecimal.ZERO) > 0 ? shengYuMainOrderTotalAmount : BigDecimal.ZERO;
+        shengYuChaJiaOrderTotalAmount = shengYuChaJiaOrderTotalAmount.compareTo(BigDecimal.ZERO) > 0 ? shengYuChaJiaOrderTotalAmount : BigDecimal.ZERO;
+        shengYuYueTotalAmount = shengYuYueTotalAmount.compareTo(BigDecimal.ZERO) > 0 ? shengYuYueTotalAmount : BigDecimal.ZERO;
+        shengYuYongJinTotalAmount = shengYuYongJinTotalAmount.compareTo(BigDecimal.ZERO) > 0 ? shengYuYongJinTotalAmount : BigDecimal.ZERO;
+
+        //本次应该退还给用户的
+
+        BigDecimal currentDrawbackYongJinTotalAmount = BigDecimal.ZERO;
+        BigDecimal currentDrawbackYueTotalAmount = BigDecimal.ZERO;
+        BigDecimal currentDrawbackDrawbackMainOrder = BigDecimal.ZERO;
+        BigDecimal currentDrawbackChaJiaOrderTotalAmount = BigDecimal.ZERO;
+
+        BigDecimal price = currentItemPrice;
+        if(currentItemChajiaTotalPrice.compareTo(BigDecimal.ZERO) > 0){
+            price = currentItemChajiaTotalPrice;
+        }
+        if(price.compareTo(BigDecimal.ZERO) > 0){//有差价，【先返回除佣金】 【在返回余额】【返回差价】 【返回主订单】
+            if(price.compareTo(shengYuYongJinTotalAmount) >= 0){
+                //不作处理，表明 本次需要退还全部佣金
+                currentDrawbackYongJinTotalAmount = shengYuYongJinTotalAmount;
+                BigDecimal substract = price.subtract(shengYuYongJinTotalAmount);
+                if(substract.compareTo(shengYuYueTotalAmount) >= 0){
+                    currentDrawbackYueTotalAmount = shengYuYueTotalAmount;
+                    BigDecimal substract2 = substract.subtract(shengYuYueTotalAmount);
+                    if(substract2.compareTo(shengYuChaJiaOrderTotalAmount) >= 0){
+                        currentDrawbackChaJiaOrderTotalAmount = shengYuChaJiaOrderTotalAmount;
+
+                        BigDecimal substract3 = substract2.subtract(shengYuChaJiaOrderTotalAmount);
+                        currentDrawbackDrawbackMainOrder = substract3.compareTo(shengYuMainOrderTotalAmount) >= 0 ? shengYuMainOrderTotalAmount : substract3;
+                    }else{
+                        currentDrawbackChaJiaOrderTotalAmount = substract2;
+                    }
+                }else{
+                    currentDrawbackYueTotalAmount = substract;
+                }
+            }else{
+                currentDrawbackYongJinTotalAmount = currentItemChajiaTotalPrice;
+            }
+        }
+
+        this.displayTotalYongjin = currentDrawbackYongJinTotalAmount;
+        this.displayTotalYue = currentDrawbackYueTotalAmount;
+        this.displayOrderAmount = currentDrawbackDrawbackMainOrder;
+        this.displayChajiaAmount = currentDrawbackChaJiaOrderTotalAmount;
         this.displayTotalAmount = this.displayOrderAmount.add(this.displayChajiaAmount);
     }
 
@@ -214,14 +308,6 @@ public class DrawBackAmount {
 
     public void setOrderId(Integer orderId) {
         this.orderId = orderId;
-    }
-
-    public String getDrawbackStatus() {
-        return drawbackStatus;
-    }
-
-    public void setDrawbackStatus(String drawbackStatus) {
-        this.drawbackStatus = drawbackStatus;
     }
 
     public BigDecimal getTotalPrice() {

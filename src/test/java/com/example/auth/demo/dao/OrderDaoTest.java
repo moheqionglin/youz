@@ -5,6 +5,8 @@ import com.sm.dao.dao.OrderDao;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.HashMap;
+
 public class OrderDaoTest extends BaseTest {
 
     @Autowired
@@ -17,5 +19,11 @@ public class OrderDaoTest extends BaseTest {
     @Test
     public void getPid2StockByOrderIdTest(){
         System.out.println(orderDao.getPid2StockByOrderId(159));
+    }
+
+    @Test
+    public void getHadDrawbackItemTest(){
+        HashMap<Integer, Boolean> hadDrawbackItem = orderDao.getHadDrawbackItem(180);
+        System.out.println(hadDrawbackItem);
     }
 }

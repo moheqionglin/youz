@@ -26,7 +26,20 @@ public class OrderDetailItemInfo {
     private BigDecimal chajiaTotalPrice;
     private Boolean jianhuoSuccess;
     private Timestamp jianhuoTime;
+    private boolean hasDrawback = false;
 
+    public OrderDetailItemInfo(CreateOrderItemInfo i) {
+        this.setOrderId(i.getOrderId());
+        this.setProductId(i.getProductId());
+        this.setProductName(i.getProductName());
+        this.setProductProfileImg(i.getProductProfileImg());
+        this.setProductSize(i.getProductSize());
+        this.setProductCnt(i.getProductCnt());
+        this.setProductTotalPrice(i.getProductTotalPrice());
+        this.setProductSanzhuang(i.isProductSanzhuang());
+    }
+    public OrderDetailItemInfo() {
+    }
 
     public static class OrderDetailItemInfoRowMapper implements RowMapper<OrderDetailItemInfo> {
 
@@ -67,7 +80,8 @@ public class OrderDetailItemInfo {
                 item.setChajiaTotalWeight(resultSet.getString("chajia_total_weight"));
             }
             if(existsColumn(resultSet, "chajia_total_price")){
-                item.setChajiaTotalPrice(resultSet.getBigDecimal("chajia_total_price"));
+                BigDecimal chajia_total_price = resultSet.getBigDecimal("chajia_total_price");
+                item.setChajiaTotalPrice(chajia_total_price == null ? BigDecimal.ZERO : chajia_total_price);
             }
             if(existsColumn(resultSet, "jianhuo_success")){
                 item.setJianhuoSuccess(resultSet.getBoolean("jianhuo_success"));
@@ -100,6 +114,14 @@ public class OrderDetailItemInfo {
 
     public void setOrderId(Integer orderId) {
         this.orderId = orderId;
+    }
+
+    public boolean isHasDrawback() {
+        return hasDrawback;
+    }
+
+    public void setHasDrawback(boolean hasDrawback) {
+        this.hasDrawback = hasDrawback;
     }
 
     public Integer getProductId() {

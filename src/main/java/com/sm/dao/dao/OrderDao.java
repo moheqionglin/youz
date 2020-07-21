@@ -4,6 +4,8 @@ import com.sm.controller.OrderAdminController;
 import com.sm.controller.OrderController;
 import com.sm.message.order.*;
 import com.sm.utils.SmUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -24,6 +26,8 @@ import java.util.stream.Collectors;
  */
 @Component
 public class OrderDao {
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
+
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
@@ -91,32 +95,60 @@ public class OrderDao {
 
     }
 
-    public void actionDrawbackStatus(String orderNum, OrderController.DrawbackStatus status) {
-        final String sql = String.format("update %s set drawback_status = ? where order_num = ?", VarProperties.ORDER);
-        jdbcTemplate.update(sql, new Object[]{status.toString(), orderNum});
+    public void actionTotalOrderDrawbackStatus(String orderNum) {
+        final String sql = String.format("update %s set last_status = status, status = ? where order_num = ?", VarProperties.ORDER);
+        jdbcTemplate.update(sql, new Object[]{OrderController.BuyerOrderStatus.DRAWBACK.toString(), orderNum});
     }
-    public Integer creteDrawbackOrder(int userId, Integer order_id, DrawbackRequest drawbackRequest, BigDecimal price, BigDecimal yue, BigDecimal yongjin, DrawBackAmount drawBackAmount) {
-        final String sql = String.format("insert into %s(order_id, drawback_type, drawback_reason, drawback_detail, drawback_pay_price, drawback_yue, drawback_yongjin, drawback_imgs,  drawback_amount ,chajia_drawback_amount) " +
-                "values (:order_id, :drawback_type, :drawback_reason, :drawback_detail, :drawback_pay_price, :drawback_yue, :drawback_yongjin, :drawback_imgs, :drawback_amount, :chajia_drawback_amount)", VarProperties.ORDER_DRAWBACK);
+    public Integer creteDrawbackOrder(int userId, DrawbackRequest drawbackRequest,  DrawBackAmount drawBackAmount) {
+        Integer order_id = drawBackAmount.getOrderId();
+        List<Integer> orderItemIds = new ArrayList<>();
+        if(isDrawbackTotalOrder(drawbackRequest.getOrderItemId())){
+            try{
+                final String itemIdsSql = String.format("select id from %s where order_id = ?", VarProperties.ORDERS_ITEM);
+                orderItemIds = jdbcTemplate.queryForList(itemIdsSql, new Object[]{order_id}, Integer.class);
+            }catch (Exception e){
+                log.error("get order items error for order id " + order_id);
+                throw e;
+            }
+        }else{
+            final String existSql = String.format("select count(1) from %s where id = ?", VarProperties.ORDERS_ITEM);
+            Long aLong = jdbcTemplate.queryForObject(existSql, new Object[]{drawbackRequest.getOrderItemId()}, Long.class);
+            if(aLong >= 0){
+                orderItemIds.add(drawbackRequest.getOrderItemId());
+            }
+        }
+        if(orderItemIds.isEmpty()){
+            return -1;
+        }
+
+        final String sql = String.format("insert into %s(order_id, order_item_ids,drawback_type, drawback_reason, drawback_detail, drawback_pay_price, drawback_yue, drawback_yongjin, drawback_imgs,  drawback_amount ,chajia_drawback_amount, drawback_total_order) " +
+                "values (:order_id, :order_item_ids, :drawback_type, :drawback_reason, :drawback_detail, :drawback_pay_price, :drawback_yue, :drawback_yongjin, :drawback_imgs, :drawback_amount, :chajia_drawback_amount, :drawback_total_order)", VarProperties.ORDER_DRAWBACK);
         KeyHolder keyHolder = new GeneratedKeyHolder();
         MapSqlParameterSource pams = new MapSqlParameterSource();
         pams.addValue("order_id", order_id);
+        pams.addValue("order_item_ids", orderItemIds.stream().sorted().map(String::valueOf).collect(Collectors.joining(",")));
         pams.addValue("drawback_type", drawbackRequest.getType());
         pams.addValue("drawback_reason", drawbackRequest.getReason());
         pams.addValue("drawback_detail", drawbackRequest.getDetail());
-        pams.addValue("drawback_pay_price", price);
-        pams.addValue("drawback_yue", yue);
-        pams.addValue("drawback_yongjin", yongjin);
+        //总退款 = 订单退款 + 差价退款
+        pams.addValue("drawback_pay_price", drawBackAmount.getDisplayTotalAmount());
+        pams.addValue("drawback_yue", drawBackAmount.getDisplayTotalYue());
+        pams.addValue("drawback_yongjin", drawBackAmount.getDisplayTotalYongjin());
         String imgs = drawbackRequest == null ? "" : drawbackRequest.getImages().stream().collect(Collectors.joining(" | "));
         pams.addValue("drawback_imgs", imgs);
-        pams.addValue("drawback_amount", drawBackAmount.getHadPayMoney());
-        pams.addValue("chajia_drawback_amount", drawBackAmount.getChajiaHadPayMoney());
+        pams.addValue("drawback_amount", drawBackAmount.getDisplayOrderAmount());
+        pams.addValue("chajia_drawback_amount", drawBackAmount.getDisplayChajiaAmount());
+        pams.addValue("drawback_total_order", isDrawbackTotalOrder(drawbackRequest.getOrderItemId()));
         namedParameterJdbcTemplate.update(sql, pams, keyHolder);
         return keyHolder.getKey().intValue();
     }
 
+    private boolean isDrawbackTotalOrder(Integer itemId) {
+        return itemId == null || itemId <= 0;
+    }
+
     public SimpleOrder getSimpleOrder(String orderNum){
-        final String sql = String.format("select id,user_id,status,yongjin_base_price,order_num, drawback_status ,yongjin_code,jianhuoyuan_id, use_yongjin,had_pay_money,chajia_had_pay_money,use_yue,chajia_need_pay_money,chajia_status,need_pay_money,jianhuo_status,total_cost_price,total_price from %s where order_num = ?", VarProperties.ORDER);
+        final String sql = String.format("select id,user_id,status,yongjin_base_price,order_num ,yongjin_code,jianhuoyuan_id, use_yongjin,had_pay_money,chajia_had_pay_money,use_yue,chajia_need_pay_money,chajia_status,need_pay_money,jianhuo_status,total_cost_price,total_price from %s where order_num = ?", VarProperties.ORDER);
         return jdbcTemplate.query(sql, new Object[]{orderNum}, new SimpleOrder.SimpleOrderRowMapper()).stream().findFirst().orElse(null);
     }
     public boolean existsOrder(Integer userId, String orderNum) {
@@ -135,34 +167,52 @@ public class OrderDao {
         return jdbcTemplate.query(sql, new Object[]{orderNum}, new DrawBackAmount.DrawBackAmountRowMapper()).stream().findFirst().orElse(null);
     }
 
-    public DrawbackOrderDetailInfo getDrawbackOrderDetail(Integer id) {
-        final String sql = String.format("select order_id,drawback_type,drawback_reason,drawback_detail,drawback_pay_price,drawback_yue ,drawback_yongjin ,drawback_imgs,approve_user_id ,approve_comment ,created_time from %s where order_id = ?",  VarProperties.ORDER_DRAWBACK);
-        return jdbcTemplate.query(sql, new Object[]{id}, new DrawbackOrderDetailInfo.DrawbackOrderDetailInfoRowMapper()).stream().findFirst().orElse(null);
+    /**
+     * orderItemId != null 的时候返回单独的退款商品
+     * 否则表明整单取消，返回整个商品
+     * @param orderId
+     * @param orderItemId
+     * @return
+     */
+    public DrawbackOrderDetailInfo getDrawbackOrderDetail(Integer orderId, Integer orderItemId) {
+        final String sql = String.format("select order_id,drawback_type,drawback_amount,chajia_drawback_amount,drawback_reason,drawback_detail,drawback_pay_price,drawback_yue ,drawback_yongjin ,drawback_imgs,approve_user_id ,approve_comment ,created_time,drawback_total_order,d_status,order_item_ids from %s where order_id = ?",  VarProperties.ORDER_DRAWBACK);
+        List<DrawbackOrderDetailInfo> details = jdbcTemplate.query(sql, new Object[]{orderId}, new DrawbackOrderDetailInfo.DrawbackOrderDetailInfoRowMapper());
+        if(isDrawbackTotalOrder(orderItemId)){
+            return details.stream().filter(item -> item.isDrawbackTotalOrder()).findFirst().orElse(null);
+        }
+        return details.stream().filter(item -> item.getOrderItemIds().size() == 1 && item.getOrderItemIds().get(0).equals(orderItemId)).findFirst().orElse(null);
+    }
+
+    public List<DrawbackOrderDetailInfo> getAllDrawbackOrderDetailByOrderId(Integer orderId) {
+        final String sql = String.format("select order_id,drawback_type,drawback_reason,drawback_detail,drawback_pay_price,drawback_yue ,drawback_yongjin ,drawback_amount,chajia_drawback_amount,drawback_imgs,approve_user_id ,approve_comment ,created_time, d_status from %s where order_id = ?",  VarProperties.ORDER_DRAWBACK);
+        return jdbcTemplate.query(sql, new Object[]{orderId}, new DrawbackOrderDetailInfo.DrawbackOrderDetailInfoRowMapper());
     }
 
     public List<OrderListItemInfo> getBuyerOrderList(int userId, OrderController.BuyerOrderStatus orderType, int pageSize, int pageNum) {
+        int startIndex = (pageNum - 1) * pageSize;
+        if(OrderController.BuyerOrderStatus.DRAWBACK.equals(orderType)){
+            return getDrawbackApproveList(OrderController.DrawbackStatus.ALL ,userId, pageSize, pageNum);
+        }
+
         String whereStr = "";
         switch (orderType){
             case ALL:
-                whereStr = "and drawback_status in ( 'NONE' ,'APPROVE_REJECT') ";
+                whereStr = "and status <> 'DRAWBACK' ";
                 break;
             case WAIT_PAY:
-                whereStr = " and drawback_status in ( 'NONE', 'APPROVE_REJECT') and  ((status = 'WAIT_PAY' and  now() < DATE_ADD(created_time, INTERVAL 15 MINUTE )) or (chajia_status='WAIT_PAY' and status != 'WAIT_SEND')) ";
+                whereStr = " and ((status = 'WAIT_PAY' and  now() < DATE_ADD(created_time, INTERVAL 15 MINUTE )) or (chajia_status='WAIT_PAY' and status != 'WAIT_SEND')) ";
                 break;
             case WAIT_SEND:
-                whereStr = " and drawback_status in ( 'NONE' , 'APPROVE_REJECT') and  status = 'WAIT_SEND'";
+                whereStr = " and  status = 'WAIT_SEND'";
                 break;
             case WAIT_RECEIVE:
-                whereStr = " and drawback_status in ( 'NONE' , 'APPROVE_REJECT') and  status = 'WAIT_RECEIVE'";
+                whereStr = " and status = 'WAIT_RECEIVE' AND chajia_status != 'WAIT_PAY'";
                 break;
             case WAIT_COMMENT:
-                whereStr = " and drawback_status in ( 'NONE' , 'APPROVE_REJECT') and  status = 'WAIT_COMMENT'";
-                break;
-            case DRAWBACK:
-                whereStr = " and   drawback_status != '" + OrderController.DrawbackStatus.NONE.toString() + "'";
+                whereStr = " and status = 'WAIT_COMMENT' AND chajia_status != 'WAIT_PAY'";
                 break;
         }
-        int startIndex = (pageNum - 1) * pageSize;
+
         final String sql = String.format("select id ,order_num,user_id ,address_id ,address_detail ,address_contract , created_time, status, total_price ,chajia_status,chajia_price, chajia_need_pay_money, chajia_had_pay_money, message,  jianhuo_status , has_fahuo from %s where user_id = ?  %s order by id desc limit ?, ?", VarProperties.ORDER, whereStr);
         return jdbcTemplate.query(sql, new Object[]{userId, startIndex, pageSize}, new OrderListItemInfo.OrderListItemInfoRowMapper());
     }
@@ -176,7 +226,7 @@ public class OrderDao {
     }
 
     public OrderDetailInfo getOrderDetail(String orderNum) {
-        String sql = String.format("select id, user_id, order_num,address_detail,address_contract,yongjin_code,status,total_price,drawback_status,use_yongjin,use_yue,need_pay_money,had_pay_money,chajia_status,chajia_price,chajia_use_yongjin,chajia_use_yue,chajia_need_pay_money,chajia_had_pay_money,message,jianhuoyuan_id,jianhuo_status,has_fahuo,created_time, delivery_fee from %s where order_num = ?", VarProperties.ORDER);
+        String sql = String.format("select id, user_id, order_num,address_detail,address_contract,yongjin_code,status,total_price,use_yongjin,use_yue,need_pay_money,had_pay_money,chajia_status,chajia_price,chajia_use_yongjin,chajia_use_yue,chajia_need_pay_money,chajia_had_pay_money,message,jianhuoyuan_id,jianhuo_status,has_fahuo,created_time, delivery_fee from %s where order_num = ?", VarProperties.ORDER);
         return jdbcTemplate.query(sql, new Object[]{orderNum}, new OrderDetailInfo.OrderDetailInfoRowMapper()).stream().findFirst().orElse(null);
     }
 
@@ -184,7 +234,14 @@ public class OrderDao {
         final String sql = String.format( "select id,order_id,product_id,product_name,product_profile_img,product_size,product_cnt,product_total_price,product_total_price,product_sanzhuang,chajia_total_weight,chajia_total_price,jianhuo_success,jianhuo_time from %s where order_id = ? ", VarProperties.ORDERS_ITEM);
         return jdbcTemplate.query(sql, new Object[]{id}, new OrderDetailItemInfo.OrderDetailItemInfoRowMapper());
     }
-
+    public List<OrderDetailItemInfo> getOrderDetailItemByItemId(Integer OrderId, Integer itemId) {
+        final String sql = String.format( "select id,order_id,product_id,product_name,product_profile_img,product_size,product_cnt,product_total_price,product_total_price,product_sanzhuang,chajia_total_weight,chajia_total_price,jianhuo_success,jianhuo_time from %s where id = ? and order_id = ?", VarProperties.ORDERS_ITEM);
+        return jdbcTemplate.query(sql, new Object[]{itemId, OrderId}, new OrderDetailItemInfo.OrderDetailItemInfoRowMapper());
+    }
+    public OrderDetailItemInfo getOrderDetailItemByOrderItemId(Integer orderItemId){
+        final String sql = String.format( "select id,order_id,product_id,product_name,product_profile_img,product_size,product_cnt,product_total_price,product_total_price,product_sanzhuang,chajia_total_weight,chajia_total_price,jianhuo_success,jianhuo_time from %s where id = ? ", VarProperties.ORDERS_ITEM);
+        return jdbcTemplate.query(sql, new Object[]{orderItemId}, new OrderDetailItemInfo.OrderDetailItemInfoRowMapper()).stream().findAny().orElse(null);
+    }
     public List<OrderListItemInfo> getAdminFahuoOrderList(OrderAdminController.AdminOrderStatus orderType, int pageSize, int pageNum) {
         String whereStr = "";
         switch (orderType){
@@ -198,7 +255,7 @@ public class OrderDao {
                 break;
         }
         int startIndex = (pageNum - 1) * pageSize;
-        final String sql = String.format("select id ,order_num,user_id ,address_id ,address_detail ,address_contract , status, total_price ,chajia_status,chajia_price, chajia_need_pay_money, chajia_had_pay_money, message,  jianhuo_status , has_fahuo,created_time from %s where drawback_status in ( 'NONE', 'APPROVE_REJECT') %s order by id desc limit ?, ?", VarProperties.ORDER, whereStr);
+        final String sql = String.format("select id ,order_num,user_id ,address_id ,address_detail ,address_contract , status, total_price ,chajia_status,chajia_price, chajia_need_pay_money, chajia_had_pay_money, message,  jianhuo_status , has_fahuo,created_time from %s where status <> 'DRAWBACK' %s order by id desc limit ?, ?", VarProperties.ORDER, whereStr);
         return jdbcTemplate.query(sql, new Object[]{startIndex, pageSize}, new OrderListItemInfo.OrderListItemInfoRowMapper());
     }
 
@@ -208,12 +265,14 @@ public class OrderDao {
     }
 
     @Transactional
-    public void adminApproveDrawback(int approveUserId, Integer orderId, String orderNum, OrderController.DrawbackStatus actionType, String attach) {
-        final String sql1 = String.format("update %s set drawback_status = ? where order_num= ?", VarProperties.ORDER);
-        jdbcTemplate.update(sql1, new Object[]{actionType.toString(), orderNum});
+    public void adminApproveDrawback(int approveUserId, Integer orderId, String orderNum, Integer orderItemId, OrderController.DrawbackStatus actionType, String attach) {
+        if(isDrawbackTotalOrder(orderItemId) && OrderController.DrawbackStatus.APPROVE_REJECT.toString().equals(actionType.toString())){
+            final String sql1 = String.format("update %s set status = last_status where order_num= ?", VarProperties.ORDER);
+            jdbcTemplate.update(sql1, new Object[]{orderNum});
+        }
 
-        final String sql = String.format("update %s set  approve_user_id = ?, approve_comment= ? where order_id = ? ", VarProperties.ORDER_DRAWBACK);
-        jdbcTemplate.update(sql, new Object[]{ approveUserId, attach, orderId});
+        final String sql = String.format("update %s set d_status = ?, approve_user_id = ?, approve_comment= ? where order_id = ? ", VarProperties.ORDER_DRAWBACK);
+        jdbcTemplate.update(sql, new Object[]{ actionType.toString(), approveUserId, attach, orderId});
     }
 
     public void updateChajiaOrder(Integer orderID, ChaJiaOrderItemRequest chajia) {
@@ -249,25 +308,40 @@ public class OrderDao {
         jdbcTemplate.update(sql, new Object[]{id, orderItemId});
     }
 
-    public List<OrderListItemInfo> getDrawbackApproveList(OrderController.DrawbackStatus orderType, int pageSize, int pageNum) {
+    public List<OrderListItemInfo> getDrawbackApproveList(OrderController.DrawbackStatus orderType, Integer buyerID, int pageSize, int pageNum) {
+        String userWhere = " ";
+        if(buyerID != null){
+            userWhere = " AND t1.user_id = " + buyerID + " ";
+        }
         String whereStr = "";
         switch (orderType){
             case ALL:
-                whereStr = " and drawback_status != 'NONE' ";
+                whereStr = " ";
                 break;
             case WAIT_APPROVE:
-                whereStr = " and drawback_status = 'WAIT_APPROVE' ";
+                whereStr = " and t2.d_status = 'WAIT_APPROVE' ";
                 break;
             case APPROVE_PASS:
-                whereStr = " and drawback_status = 'APPROVE_PASS'";
+                whereStr = " and t2.d_status = 'APPROVE_PASS' ";
                 break;
             case APPROVE_REJECT:
-                whereStr = " and drawback_status = 'APPROVE_REJECT' ";
+                whereStr = " and t2.d_status = 'APPROVE_REJECT' ";
                 break;
         }
         int startIndex = (pageNum - 1) * pageSize;
-        final String sql = String.format("select id ,order_num,user_id ,address_id ,address_detail ,address_contract , status, total_price ,chajia_status, chajia_price, chajia_need_pay_money, chajia_had_pay_money, message,  jianhuo_status ,created_time, drawback_status, has_fahuo from %s where 1=1  %s order by id desc limit ?, ?", VarProperties.ORDER, whereStr);
-        return jdbcTemplate.query(sql, new Object[]{ startIndex, pageSize}, new OrderListItemInfo.OrderListItemInfoRowMapper());
+        final String sql = String.format("select t1.id as id,t1.order_num as order_num, t1.user_id  as user_id, address_id, address_detail, address_contract, t1.created_time as created_time,  t1.status  as status, t1.total_price as total_price, chajia_status, chajia_price,  chajia_need_pay_money, chajia_had_pay_money, message, jianhuo_status, has_fahuo, t2.d_status as d_status, order_item_ids, t2.drawback_total_order, (t2.drawback_pay_price + t2.drawback_yue + t2.drawback_yongjin) as item_price from %s t2 left join %s t1 on t1.id = t2.order_id where 1=1 %s %s order by t1.id desc limit ?, ?", VarProperties.ORDER_DRAWBACK, VarProperties.ORDER, userWhere, whereStr);
+        List<OrderListItemInfo> rst = jdbcTemplate.query(sql, new Object[]{ startIndex, pageSize}, new OrderListItemInfo.OrderListItemInfoRowMapper());
+
+        final String imgSql = String.format("select product_profile_img from %s where id in (:ids)", VarProperties.ORDERS_ITEM);
+
+        rst.stream().forEach(it -> {
+            List<Integer> drawbackItemIds = it.getDrawbackItemIds();
+            if(drawbackItemIds != null && !drawbackItemIds.isEmpty()){
+                List<String> imgs = namedParameterJdbcTemplate.queryForList(imgSql, Collections.singletonMap("ids", drawbackItemIds), String.class);
+                it.setProductImges(imgs);
+            }
+        });
+        return rst;
     }
 
     public List<OrderListItemInfo> getOrderListForJianHuoyuan(Integer userid, OrderAdminController.JianHYOrderStatus orderType, int pageSize, int pageNum) {
@@ -281,7 +355,7 @@ public class OrderDao {
                 whereSql = "and jianhuoyuan_id = " + userid + " ";
                 break;
         }
-        final String sql = String.format("select id ,order_num,user_id ,address_id ,address_detail ,address_contract , status, total_price ,chajia_status,chajia_price, chajia_need_pay_money, chajia_had_pay_money, created_time, message,  jianhuo_status , has_fahuo from %s where jianhuo_status = ? and drawback_status in ( 'NONE', 'APPROVE_REJECT') %s order by id desc limit ?, ?", VarProperties.ORDER, whereSql);
+        final String sql = String.format("select id ,order_num,user_id ,address_id ,address_detail ,address_contract , status, total_price ,chajia_status,chajia_price, chajia_need_pay_money, chajia_had_pay_money, created_time, message,  jianhuo_status , has_fahuo from %s where jianhuo_status = ? and status <> 'DRAWBACK' %s order by id desc limit ?, ?", VarProperties.ORDER, whereSql);
         return jdbcTemplate.query(sql, new Object[]{orderType.toString(),  startIndex, pageSize}, new OrderListItemInfo.OrderListItemInfoRowMapper());
     }
 
@@ -306,12 +380,17 @@ public class OrderDao {
     }
 
     @Transactional
-    public void cancelDrawback(String orderNum, Integer orderId) {
-        final String sql = String.format("update %s set drawback_status = ? where order_num =?", VarProperties.ORDER);
+    public void cancelDrawback(String orderNum, Integer orderId, Integer orderItemID) {
+        final String sql = String.format("update %s set status = last_status where order_num =?", VarProperties.ORDER);
         jdbcTemplate.update(sql, new Object[]{OrderController.DrawbackStatus.NONE.toString(), orderNum});
-        final String sql1 = String.format("delete from %s where order_id = ?", VarProperties.ORDER_DRAWBACK);
+        if(isDrawbackTotalOrder(orderItemID)){
+            final String sql1 = String.format("delete from %s where order_id = ? and drawback_total_order = 1", VarProperties.ORDER_DRAWBACK);
+            jdbcTemplate.update(sql1, new Object[]{orderId});
+        }else{
+            final String sql1 = String.format("delete from %s where order_id = ? and drawback_total_order = 0 and order_item_ids = ?", VarProperties.ORDER_DRAWBACK);
+            jdbcTemplate.update(sql1, new Object[]{orderId, orderItemID});
+        }
 
-        jdbcTemplate.update(sql1, new Object[]{orderId});
     }
 
     public void surePayment(Integer id, BigDecimal payAmount, boolean chajia) {
@@ -352,12 +431,32 @@ public class OrderDao {
     }
 
     public boolean hasWaitPayChajiaOrder(int userID) {
-        final String sql = String.format("select count(1) from %s where drawback_status in ( 'NONE' , 'APPROVE_REJECT')  and chajia_status = 'WAIT_PAY' and status != 'WAIT_SEND' and user_id = ?", VarProperties.ORDER);
+        final String sql = String.format("select count(1) from %s where  chajia_status = 'WAIT_PAY' and status != 'WAIT_SEND' and status != 'DRAWBACK' and user_id = ?", VarProperties.ORDER);
         long count = jdbcTemplate.queryForObject(sql, new Object[]{userID}, Long.class);
         return count > 0;
     }
 
+    /**
+     * 归还 超时取消订单的佣金合约
+     */
     public void fixCancelTimeoutOrder() {
+        final String sql1 = String.format("select user_id, use_yongjin,use_yue from %s where status = 'WAIT_PAY' and  now() > DATE_ADD(created_time, INTERVAL 15 MINUTE )", VarProperties.ORDER);
+        try{
+            jdbcTemplate.queryForList(sql1).stream().forEach(o -> {
+               int userId = Integer.parseInt(o.get("user_id").toString());
+               double useYongjin = Double.valueOf(o.get("use_yongjin").toString());
+               double useYue = Double.valueOf(o.get("use_yue").toString());
+               if(useYongjin >=0 || useYue>=0){
+                   final String sql2 = String.format("update users set yongjin = yongjin + ?, amount = amount + ? where id = ", VarProperties.USERS);
+                   jdbcTemplate.update(sql2, new Object[]{useYongjin, useYue, userId});
+                   log.info("drawback for cancel timeout order, yongjin = {}, yue ={}, userId ={}", useYongjin, useYue, userId);
+               }
+            });
+        }catch (Exception e){
+            log.error("process fixCancelTimeoutOrder error ", e);
+        }
+
+
         final String sql = String.format("update %s set status = 'CANCEL_TIMEOUT' where status = 'WAIT_PAY' and  now() > DATE_ADD(created_time, INTERVAL 15 MINUTE )", VarProperties.ORDER);
         jdbcTemplate.update(sql);
     }
@@ -377,39 +476,41 @@ public class OrderDao {
                 OrderAdminController.JianHYOrderStatus.ING_JIANHUO.equals(type) ){
             userCon = " and jianhuoyuan_id = " + userId;
         }
-        final String sql = String.format("select count(1) from %s where jianhuo_status = ? and drawback_status in ( 'NONE', 'APPROVE_REJECT') %s ", VarProperties.ORDER, userCon);
+        final String sql = String.format("select count(1) from %s where jianhuo_status = ? and status <> 'DRAWBACK' %s ", VarProperties.ORDER, userCon);
         return jdbcTemplate.queryForObject(sql, new Object[]{type.toString()}, Long.class);
     }
 
     public OrderAllStatusCntInfo countOrderAllStatus(int userId) {
-        final String WAIT_PAY = " and drawback_status in ( 'NONE', 'APPROVE_REJECT') and  ((status = 'WAIT_PAY' and  now() < DATE_ADD(created_time, INTERVAL 15 MINUTE )) or (chajia_status='WAIT_PAY' and status != 'WAIT_SEND')) ";
-        final String WAIT_SEND = " and drawback_status in ( 'NONE' , 'APPROVE_REJECT') and  status = 'WAIT_SEND'";
-        final String WAIT_RECEIVE = " and drawback_status in ( 'NONE' , 'APPROVE_REJECT') and  status = 'WAIT_RECEIVE'";
-        final String WAIT_COMMENT = " and drawback_status in ( 'NONE' , 'APPROVE_REJECT') and  status = 'WAIT_COMMENT'";
-        final String DRAWBACK = " and   drawback_status = '" + OrderController.DrawbackStatus.WAIT_APPROVE.toString() + "'";
+        final String WAIT_PAY = " and  ((status = 'WAIT_PAY' and  now() < DATE_ADD(created_time, INTERVAL 15 MINUTE )) or (chajia_status='WAIT_PAY' and status != 'WAIT_SEND')) ";
+        final String WAIT_SEND = " and status = 'WAIT_SEND'";
+        final String WAIT_RECEIVE = " and  status = 'WAIT_RECEIVE'";
+        final String WAIT_COMMENT = " and status = 'WAIT_COMMENT'";
+        final String DRAWBACK = " and   d_status = '" + OrderController.DrawbackStatus.WAIT_APPROVE.toString() + "'";
 
         OrderAllStatusCntInfo info = new OrderAllStatusCntInfo();
         final String WAIT_PAY_SQL = String.format("select count(1) from %s where user_id = ?  %s ", VarProperties.ORDER, WAIT_PAY);
         final String WAIT_SEND_SQL = String.format("select count(1) from %s where user_id = ?  %s ", VarProperties.ORDER, WAIT_SEND);
         final String WAIT_RECEIVE_SQL = String.format("select count(1) from %s where user_id = ?  %s ", VarProperties.ORDER, WAIT_RECEIVE);
         final String WAIT_COMMENT_SQL = String.format("select count(1) from %s where user_id = ?  %s ", VarProperties.ORDER, WAIT_COMMENT);
-        final String DRAWBACK_SQL = String.format("select count(1) from %s where user_id = ?  %s ", VarProperties.ORDER, DRAWBACK);
+        final String DRAWBACK_SQL = String.format("select count(1) from %s t1 left join %s t2 on t1.order_id = t2.id  where t2.user_id = ?  %s ", VarProperties.ORDER_DRAWBACK, VarProperties.ORDER, DRAWBACK);
+        final String TIXIAN_SQL = String.format("select count(1) from tixian_approve where approve_status = 'WAIT_APPROVE'");
 
         info.setWaitPayCnt(jdbcTemplate.queryForObject(WAIT_PAY_SQL, new Object[]{userId}, Long.class).intValue());
         info.setWaitSentCnt(jdbcTemplate.queryForObject(WAIT_SEND_SQL, new Object[]{userId}, Long.class).intValue());
         info.setWaitReceiveCnt(jdbcTemplate.queryForObject(WAIT_RECEIVE_SQL, new Object[]{userId}, Long.class).intValue());
         info.setWaitCommentCnt(jdbcTemplate.queryForObject(WAIT_COMMENT_SQL, new Object[]{userId}, Long.class).intValue());
         info.setDrawbackCnt(jdbcTemplate.queryForObject(DRAWBACK_SQL, new Object[]{userId}, Long.class).intValue());
+        info.setWaitTiXianCnt(jdbcTemplate.queryForObject(TIXIAN_SQL, Long.class).intValue());
         return info;
     }
 
     public int countOrderManagerCnt() {
-        final String sql = String.format("select count(1) from %s where drawback_status in ( 'NONE', 'APPROVE_REJECT') and status = 'WAIT_SEND' ", VarProperties.ORDER);
+        final String sql = String.format("select count(1) from %s where status = 'WAIT_SEND' ", VarProperties.ORDER);
         return jdbcTemplate.queryForObject(sql, Long.class).intValue();
     }
 
     public int countDrawbackManagerCnt() {
-        final String sql = String.format("select count(1) from %s where drawback_status = 'WAIT_APPROVE'", VarProperties.ORDER);
+        final String sql = String.format("select count(1) from %s where d_status = 'WAIT_APPROVE'", VarProperties.ORDER_DRAWBACK);
         return jdbcTemplate.queryForObject(sql, Long.class).intValue();
     }
 
@@ -447,5 +548,46 @@ public class OrderDao {
         final String sql = String.format("select count(1) from %s where had_read = 0", VarProperties.FEEBACK);
         return jdbcTemplate.queryForObject(sql,  Long.class).intValue();
 
+    }
+
+    public void modifyOrderStatus() {
+        final String sql = String.format("update %s set status = '"+OrderController.BuyerOrderStatus.FINISH+"' where (status = '"+OrderController.BuyerOrderStatus.WAIT_RECEIVE.toString()+"' or status = '"+OrderController.BuyerOrderStatus.WAIT_COMMENT.toString()+"' ) and chajia_status != '"+ OrderAdminController.ChaJiaOrderStatus.WAIT_PAY.toString()+"' and modified_time < DATE_SUB(now(),INTERVAL 2 DAY)", VarProperties.ORDER);
+        jdbcTemplate.update(sql);
+    }
+
+    public String getDstatus(Integer orderId, Integer orderItemId) {
+        String sql = String.format("select d_status from %s where order_id = ? and drawback_total_order = 1", VarProperties.ORDER_DRAWBACK);
+        Object[] parms = new Object[]{orderId};
+        if(!isDrawbackTotalOrder(orderItemId)){
+            sql = String.format("select d_status from %s where order_id = ? and order_item_ids = ?", VarProperties.ORDER_DRAWBACK);
+            parms = new Object[]{orderId, orderItemId.toString()};
+        }
+        try{
+            return jdbcTemplate.queryForObject(sql, parms, String.class);
+        }catch (Exception e){
+            return null;
+        }
+    }
+
+    public HashMap<Integer, Boolean> getHadDrawbackItem(Integer orderId) {
+
+        try{
+            HashMap<Integer, Boolean> rst = new HashMap<>();
+            List<Map<String, Object>> maps = jdbcTemplate.queryForList("select order_item_ids, drawback_total_order from order_drawback where order_id = ? and d_status in ('"+OrderController.DrawbackStatus.WAIT_APPROVE.toString()+"','"+OrderController.DrawbackStatus.APPROVE_PASS.toString()+"') ",
+                    new Object[]{orderId});
+            for(Map<String, Object> map : maps){
+                if(Boolean.valueOf(map.get("drawback_total_order").toString())){
+                    Arrays.stream(map.get("order_item_ids").toString().split(",")).forEach(id -> {
+                        rst.put(Integer.parseInt(id), true);
+                    });
+                }else{
+                    rst.put(Integer.parseInt(map.get("order_item_ids").toString()), true);
+                }
+            }
+            return rst;
+        }catch (Exception e){
+            log.error("getHadDrawbackItem error", e);
+        }
+        return null;
     }
 }

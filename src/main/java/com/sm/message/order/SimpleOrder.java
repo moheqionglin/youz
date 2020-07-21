@@ -16,7 +16,6 @@ public class SimpleOrder {
     private Integer userId;
     private String status;
     private String orderNum;
-    private String drawbackStatus;
     private String jianhuoStatus;
     private Integer jianhuoyuanId;
     private BigDecimal needPayMoney;
@@ -48,9 +47,6 @@ public class SimpleOrder {
             }
             if(existsColumn(resultSet, "order_num")){
                 simpleOrder.setOrderNum(resultSet.getString("order_num"));
-            }
-            if(existsColumn(resultSet, "drawback_status")){
-                simpleOrder.setDrawbackStatus(resultSet.getString("drawback_status"));
             }
             if(existsColumn(resultSet, "chajia_status")){
                 simpleOrder.setChajiaStatus(resultSet.getString("chajia_status"));
@@ -207,13 +203,6 @@ public class SimpleOrder {
         this.id = id;
     }
 
-    public String getDrawbackStatus() {
-        return drawbackStatus;
-    }
-
-    public void setDrawbackStatus(String drawbackStatus) {
-        this.drawbackStatus = drawbackStatus;
-    }
 
     public String getJianhuoStatus() {
         return jianhuoStatus;

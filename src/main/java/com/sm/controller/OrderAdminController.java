@@ -20,6 +20,45 @@ import java.util.List;
  * @author wanli.zhou
  * @description
  * @time 2020-01-12 19:17
+ *   ------------------------------------------------------------------------------------------------------------------
+ *   ------------------------------------------------------------------------------------------------------------------
+ *    待支付       |   待发货/待收货       |  待评论
+ *    CANCEL      |   整单取消           |   支持每件商品售后
+ *   ------------------------------------------------------------------------------------------------------------------
+ *   ------------------------------------------------------------------------------------------------------------------
+ *
+ * 主订单状态 ：
+ *    【1】 买家可以看到的状态： status : WAIT_PAY,  WAIT_SEND, WAIT_RECEIVE, WAIT_COMMENT, FINISH,  CANCEL_TIMEOUT, CANCEL_MANUAL, DRAWBACK（标记退款，可能退款成功，可能退款失败）
+ *    【2】 单个商品售后状态看： d_status : NONE,  WAIT_APPROVE, APPROVE_PASS, APPROVE_REJECT
+ *    【3】 拣货员状态：NOT_JIANHUO, ING_JIANHUO, HAD_JIANHUO;
+ *
+ * -------------------我的订单页面-------------------
+ * 【待支付】： ((status = 'WAIT_PAY' and  now() < DATE_ADD(created_time, INTERVAL 15 MINUTE )) or (chajia_status='WAIT_PAY' and status != 'WAIT_SEND'))
+ * 【待发货】：  status = 'WAIT_SEND'
+ * 【待收货】：  status = 'WAIT_RECEIVE'
+ * 【待评价】：  status = 'WAIT_COMMENT'
+ * 【全部】：   status != 'DRAWBACK'
+ *
+ *
+ * -------------------我的退款售后-------------------
+ * 【退款售后】 直接从 order_drawback表获取
+ *
+ * -------------------拣货员-------------------
+ * 【待拣货】status == 'WAIT_SEND' AND jianhuo_status = 'NOT_JIANHUO'
+ * 【拣货中】jianhuo_user_id = '' AND jianhuo_status = 'ING_JIANHUO' and status <> 'DRAWBACK'
+ * 【已拣货】jianhuo_user_id = '' AND jianhuo_status = 'HAD_JIANHUO' and status <> 'DRAWBACK'
+ *
+ * -------------------管理员 订单管理-------------------
+ * 【待发货】status == 'WAIT_SEND'
+ * 【已发货】has_fahuo = true AND status <> 'DRAWBACK'
+ * 【全部】status <> 'DRAWBACK'
+ *
+ * -------------------管理员 退货管理-------------------
+ * 【待审核】  d_status = 'WAIT_APPROVE'
+ * 【审核通过】 d_status = 'APPROVE_PASS'
+ * 【审核不通过】d_status = 'APPROVE_REJECT'
+ * 【全部】    d_status != 'NONE'
+ *
  */
 
 @RestController
@@ -85,17 +124,19 @@ public class OrderAdminController {
     @ApiImplicitParams(value = {
             @ApiImplicitParam(name = "actionType", value = "actionType", required = true, paramType = "path", dataType = "AdminActionOrderType"),
             @ApiImplicitParam(name = "orderNum", value = "orderNum", required = true, paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "orderItemId", value = "orderItemId", required = false, paramType = "query", dataType = "Integer"),
             @ApiImplicitParam(name = "attach", value = "attach", required = true, paramType = "body", dataType = "String"),
     })
     @ApiResponses(value={@ApiResponse(code= 420, message="订单不存在")})
     public ResultJson adminActionOrder(@Valid @NotNull @PathVariable("actionType") AdminActionOrderType actionType,
                             @Valid @NotNull @RequestParam("orderNum") String orderNum,
+                            @RequestParam(value = "orderItemId", required = false)Integer orderItemId,
                             @RequestBody String attach){
         //订单状态待支付
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
         //admin点击发货的时候，开始计算总的差价订单的金额。
-        return orderService.adminActionOrder(userDetail.getId(), orderNum, actionType, attach);
+        return orderService.adminActionOrder(userDetail.getId(), orderNum, orderItemId, actionType, attach);
     }
 
     @PutMapping(path = "/ajorder/chajia")

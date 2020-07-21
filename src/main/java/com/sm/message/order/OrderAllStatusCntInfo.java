@@ -6,7 +6,7 @@ public class OrderAllStatusCntInfo {
     private int waitReceiveCnt;
     private int waitCommentCnt;
     private int drawbackCnt;
-
+    private int waitTiXianCnt;
     public int getWaitPayCnt() {
         return waitPayCnt;
     }
@@ -41,6 +41,14 @@ public class OrderAllStatusCntInfo {
 
     public int getDrawbackCnt() {
         return drawbackCnt;
+    }
+
+    public int getWaitTiXianCnt() {
+        return waitTiXianCnt;
+    }
+
+    public void setWaitTiXianCnt(int waitTiXianCnt) {
+        this.waitTiXianCnt = waitTiXianCnt;
     }
 
     public void setDrawbackCnt(int drawbackCnt) {

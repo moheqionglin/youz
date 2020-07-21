@@ -59,7 +59,7 @@ public class OrderController {
 
     @PutMapping(path = "/order/{actionType}/action")
     @PreAuthorize("hasAuthority('BUYER') ")
-    @ApiOperation(value = "[订单状态]<待付款，取消订单>  <待收货 确认收货> 1. 订单不存在校验，2. 订单状态校验 ")
+    @ApiOperation(value = "[订单状态]<待付款，取消订单>  <待收货 确认收货> 1. 订单不存在校验，2. 订单状态校验 ; 确认收货必须强制校验差价订单已经支付成功")
     @ApiImplicitParams(value = {
             @ApiImplicitParam(name = "actionType", value = "actionType", required = true, paramType = "path", dataType = "ActionOrderType"),
             @ApiImplicitParam(name = "orderNum", value = "orderNum", required = true, paramType = "query", dataType = "String")
@@ -74,9 +74,16 @@ public class OrderController {
         return orderService.actionOrder(userDetail, orderNum, actionType);
     }
 
+    /**
+     * 代发货，待收货 可以整单取消
+     * 待评价且没有待支付的差价订单  可以 但商品取消
+     * 否则 提示状态错误不能退款
+     * @param drawbackRequest
+     * @return
+     */
     @PostMapping(path = "/order/drawbackOrder")
     @PreAuthorize("hasAuthority('BUYER') ")
-    @ApiOperation(value = "[订单状态]  <待发货，申请退款> <待收货，申请退款> <评价，申请退款>")
+    @ApiOperation(value = "[用户申请订单整单、单个商品退款] 只有在未支付，代发货，待收货的时候支持 整单取消， 一单收货， 只能单个商品申请退货。")
     @ApiImplicitParams(value = {
             @ApiImplicitParam(name = "drawbackRequest", value = "drawbackRequest", required = true, paramType = "body", dataType = "DrawbackRequest")
     })
@@ -93,46 +100,53 @@ public class OrderController {
 
     @GetMapping(path = "/order/drawbackOrder/amount")
     @PreAuthorize("hasAuthority('BUYER') ")
-    @ApiOperation(value = "[获取退款金额,退还的佣金，退还的余额] ")
+    @ApiOperation(value = "[获取退款金额,退还的佣金，退还的余额] 如果orderItemId 为空那么就是整单申请退款， 如果orderItemId 不为空，就是单个item申请退还")
     @ApiImplicitParams(value = {
-            @ApiImplicitParam(name = "orderNum", value = "orderNum", required = true, paramType = "query", dataType = "String")
+            @ApiImplicitParam(name = "orderNum", value = "orderNum", required = true, paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "orderItemId", value = "orderItemId", required = false, paramType = "query", dataType = "Integer")
     })
     @ApiResponses(value={@ApiResponse(code= 420, message="订单不存在"),
             @ApiResponse(code=421, message="订单状态不对")})
-    public ResultJson<DrawBackAmount> drawbackOrderAmount(@Valid @NotNull @RequestParam("orderNum") String orderNum){
+    public ResultJson<DrawBackAmount> drawbackOrderAmount(@Valid @NotNull @RequestParam("orderNum") String orderNum,
+                                                          @RequestParam(value = "orderItemId", required = false) Integer orderItemId){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
 
         //订单状态待支付
-        return orderService.drawbackOrderAmount(userDetail.getId(), orderNum);
+        return orderService.drawbackOrderAmount(userDetail.getId(), orderNum, orderItemId);
     }
 
     @GetMapping(path = "/order/drawbackOrder/{orderNum}/detail")
     @PreAuthorize("hasAuthority('BUYER') ")
-    @ApiOperation(value = "[获取drawback订单详情], 管理员从 退换货审批列表中点击进入详情，  普通买家从我的退换货列表中点击进入 详情页面")
+    @ApiOperation(value = "[获取drawback订单详情], 管理员从 退换货审批列表中点击进入详情，  普通买家从我的退换货列表中点击进入 详情页面, 如果orderItemId为空 表明整单取消，" +
+            " 如果orderItemId 不为空 表明 单个取消")
     @ApiImplicitParams(value = {
-            @ApiImplicitParam(name = "orderNum", value = "orderNum", required = true, paramType = "path", dataType = "String")
+            @ApiImplicitParam(name = "orderNum", value = "orderNum", required = true, paramType = "path", dataType = "String"),
+            @ApiImplicitParam(name = "orderItemId", value = "orderItemId", required = false, paramType = "query", dataType = "Integer")
     })
     @ApiResponses(value={@ApiResponse(code= 420, message="订单不存在")})
-    public ResultJson<DrawbackOrderDetailInfo> getDrawbackOrderDetail(@Valid @NotNull @PathVariable("orderNum") String orderNum){
+    public ResultJson<DrawbackOrderDetailInfo> getDrawbackOrderDetail(@Valid @NotNull @PathVariable("orderNum") String orderNum,
+                                                                      @RequestParam(value = "orderItemId", required = false) Integer orderItemId){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
         boolean admin = authentication.getAuthorities().stream().filter((a) -> a.getAuthority().equals("ADMIN")).count() > 0;
-        return orderService.getDrawbackOrderDetail(userDetail.getId(), orderNum, admin);
+        return orderService.getDrawbackOrderDetail(userDetail.getId(), orderNum, admin, orderItemId);
     }
 
     @GetMapping(path = "/order/drawbackOrder/{orderNum}/cancel")
     @PreAuthorize("hasAuthority('BUYER') ")
     @ApiOperation(value = "[取消退款申请]")
     @ApiImplicitParams(value = {
-            @ApiImplicitParam(name = "orderNum", value = "orderNum", required = true, paramType = "path", dataType = "String")
+            @ApiImplicitParam(name = "orderNum", value = "orderNum", required = true, paramType = "path", dataType = "String"),
+            @ApiImplicitParam(name = "orderItemId", value = "orderItemId", required = false, paramType = "query", dataType = "Integer")
     })
     @ApiResponses(value={@ApiResponse(code= 420, message="订单不存在"), @ApiResponse(code= 420, message="订单不存在")})
-    public ResultJson cancelDrawback(@Valid @NotNull @PathVariable("orderNum") String orderNum){
+    public ResultJson cancelDrawback(@Valid @NotNull @PathVariable("orderNum") String orderNum,
+                                     @RequestParam(value = "orderItemId", required = false) Integer orderItemId){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
         boolean admin = authentication.getAuthorities().stream().filter((a) -> a.getAuthority().equals("ADMIN")).count() > 0;
-        return orderService.cancelDrawback(userDetail.getId(), orderNum);
+        return orderService.cancelDrawback(userDetail.getId(), orderNum, orderItemId);
     }
 
     @GetMapping(path = "/order/{orderType}/list")
@@ -155,17 +169,19 @@ public class OrderController {
 
     @GetMapping(path = "/order/{orderNum}")
     @PreAuthorize("hasAuthority('BUYER') ")
-    @ApiOperation(value = "[根据类型获取订单详情页面] 从我的订单列表点击进入详情页。 管理员从订单管理列表中 点击进入详情页,拣货员进入拣货详情页面 ")
+    @ApiOperation(value = "[根据类型获取订单详情页面] 《如果是单个商品退换货详情的 drawbackItemId不为空》从我的订单列表点击进入详情页。 管理员从订单管理列表中 点击进入详情页,拣货员进入拣货详情页面 ")
     @ApiImplicitParams(value = {
-            @ApiImplicitParam(name = "orderNum", value = "orderNum", required = true, paramType = "path", dataType = "String")
+            @ApiImplicitParam(name = "orderNum", value = "orderNum", required = true, paramType = "path", dataType = "String"),
+            @ApiImplicitParam(name = "drawbackItemId", value = "drawbackItemId", required = false, paramType = "query", dataType = "Integer")
     })
     @ApiResponses(value={@ApiResponse(code= 420, message="订单不存在")})
-    public ResultJson<OrderDetailInfo> getOrderDetail(@Valid @NotNull @PathVariable("orderNum") String orderNum){
+    public ResultJson<OrderDetailInfo> getOrderDetail(@Valid @NotNull @PathVariable("orderNum") String orderNum,
+                                                      @RequestParam(value = "drawbackItemId", required = false) Integer drawbackItemId){
         //加上发货员
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
         boolean admin = authentication.getAuthorities().stream().filter((a) -> a.getAuthority().equals("ADMIN") || a.getAuthority().equals("JIANHUO")).count() > 0;
-        return orderService.getOrderDetail(userDetail.getId(), orderNum, admin);
+        return orderService.getOrderDetail(userDetail.getId(), orderNum,drawbackItemId, admin);
     }
 
 

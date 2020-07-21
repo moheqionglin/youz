@@ -222,6 +222,7 @@ create table orders(
     has_fahuo boolean default false,
 
     drawback_status varchar(20) default 'NONE' comment ' NONE 代表没有, WAIT_APPROVE 待审核/审批中， APPROVE_PASS 通过/退款成功，APPROVE_REJECT 审核不通过/申请失败',
+    last_status varchar(20) default 'NONE',
     created_time timestamp DEFAULT CURRENT_TIMESTAMP ,
 	modified_time timestamp  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 
@@ -260,7 +261,8 @@ create table orders_item(
 create table order_drawback(
     id int auto_increment primary key,
     order_id int,
-
+    order_item_ids varchar(512),
+    d_status varchar(64) not null default 'WAIT_APPROVE',
 
     drawback_type varchar(50) comment '退货/退款',
     drawback_reason varchar(200),
@@ -281,6 +283,7 @@ create table order_drawback(
 
     approve_user_id int,
     approve_comment varchar(300),
+    drawback_total_order bit(1) default 0 not null,
     created_time timestamp DEFAULT CURRENT_TIMESTAMP ,
 	modified_time timestamp  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -669,7 +672,6 @@ select * from products where id = 2219
 update products set zhuanqu_endTime = 1612022400000
 
 
-select count(1) from orders where drawback_status = 'NONE' and chajia_status = 'WAIT_PAY' and user_id = 1
 select * from user_amonut_log
 
 select *from users

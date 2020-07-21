@@ -19,6 +19,9 @@ import org.springframework.stereotype.Component;
  *
  * 1. 删除 购物车中不存在的产品
  * 2. 修改支付超期的订单状态
+ * 3. 修改订单状态，
+ *    3.1 超过两天没有确认收货，那么修改状态为 已完成。
+ *    3.2 超过三天没有评价的订单，修改状态为 已完成。
  *
  */
 @Component
@@ -75,7 +78,20 @@ public class ScheduleService {
         }catch (Exception e){
             logger.error("deleteMySearch", e);
         }
+        try{
+            modifyOrderStatus();
+        }catch (Exception e){
+            logger.error("modifyOrderStatus", e);
+        }
+    }
 
+    /**
+     * 修改订单状态， 修改 WAIT_RECEIVE 和 WAIT_COMMENT 且 差价状态 != 'WAIT_PAY' 且 3天外的单子。
+     * 为 FINISH
+     *
+     */
+    private void modifyOrderStatus() {
+        orderDao.modifyOrderStatus();
     }
 
     @Scheduled(cron = "0 15 0 1 * *")

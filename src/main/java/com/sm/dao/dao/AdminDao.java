@@ -153,7 +153,7 @@ public class AdminDao {
             pageSize = 10;
         }
         int startIndex = (pageNum - 1) * pageSize;
-        final String sql = String.format("select  day ,total_price ,total_cnt, total_cost , total_profit, type  from %s where day >= ? and day <= ? limit ?,? ", VarProperties.STATISTICS);
+        final String sql = String.format("select  day ,total_price ,total_cnt, total_cost , total_profit, type  from %s where day >= ? and day <= ? order by day desc limit ?,? ", VarProperties.STATISTICS);
         List<YzStatisticsInfoItem> query = jdbcTemplate.query(sql, new Object[]{start, end, startIndex, pageSize}, new YzStatisticsInfoItem.YzStatisticsInfoItemRowMapper());
         return query.stream().collect(Collectors.groupingBy(YzStatisticsInfoItem::getDate))
                     .entrySet().stream().map(en -> {

@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author wanli.zhou
@@ -42,9 +43,29 @@ public class OrderDetailInfo {
     private String jianhuoStatus;
     private Boolean hasFahuo;
     private Timestamp createdTime;
-    private String drawbackStatus;
     List<OrderDetailItemInfo> items;
     private BigDecimal deliveryFee;
+
+    public OrderDetailInfo() {
+    }
+    public OrderDetailInfo(CreateOrderInfo orderInfo,  List<CreateOrderItemInfo> items) {
+        this.setOrderNum(orderInfo.getOrderNum());
+        this.setUserId(orderInfo.getUserId());
+        this.setAddressDetail(orderInfo.getAddressDetail());
+        this.setAddressContract(orderInfo.getAddressContract());
+        this.setYongjinCode(orderInfo.getYongjinCode());
+        this.setStatus(orderInfo.getStatus());
+
+        this.setTotalPrice(orderInfo.getTotalPrice());
+        this.setUseYongjin(orderInfo.getUseYongjin());
+        this.setUseYue(orderInfo.getUseYue());
+        this.setNeedPayMoney(orderInfo.getNeedPayMoney());
+        this.setHadPayMoney(orderInfo.getHadPayMoney());
+        this.setMessage(orderInfo.getMessage());
+        this.setCreatedTime(new Timestamp(System.currentTimeMillis()));
+        this.setDeliveryFee(orderInfo.getDeliveryFee());
+        this.setItems(items.stream().map(i -> new OrderDetailItemInfo(i)).collect(Collectors.toList()));
+    }
 
     public static class OrderDetailInfoRowMapper implements RowMapper<OrderDetailInfo> {
 
@@ -132,10 +153,6 @@ public class OrderDetailInfo {
             if(existsColumn(resultSet, "created_time")){
                 odi.setCreatedTime(resultSet.getTimestamp("created_time"));
             }
-
-            if(existsColumn(resultSet, "drawback_status")){
-                odi.setDrawbackStatus(resultSet.getString("drawback_status"));
-            }
             if(existsColumn(resultSet, "delivery_fee")){
                 odi.setDeliveryFee(resultSet.getBigDecimal("delivery_fee"));
             }
@@ -148,14 +165,6 @@ public class OrderDetailInfo {
                 return false;
             }
         }
-    }
-
-    public String getDrawbackStatus() {
-        return drawbackStatus;
-    }
-
-    public void setDrawbackStatus(String drawbackStatus) {
-        this.drawbackStatus = drawbackStatus;
     }
 
     public Boolean getHasFahuo() {

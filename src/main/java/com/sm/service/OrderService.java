@@ -14,6 +14,7 @@ import com.sm.third.message.OrderItem;
 import com.sm.third.message.OrderPrintBean;
 import com.sm.third.yilianyun.Prienter;
 import com.sm.utils.SmUtil;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -158,7 +160,10 @@ public class OrderService {
         createAmountLog(createOrderInfo);
         //产品销量加加
         productService.addSalesCount(collect.stream().map(o -> o.getProductId()).collect(Collectors.toList()));
-
+        if(createOrderInfo.getStatus().equals(OrderController.BuyerOrderStatus.WAIT_SEND.toString())){
+            OrderDetailInfo orderDetailInfo = new OrderDetailInfo(createOrderInfo, collect);
+            doFinishOrder(orderDetailInfo);
+        }
         //删除购物车
         shoppingCartService.deleteCartItem(userID, order.getCartIds());
         return ResultJson.ok(createOrderInfo.getOrderNum());
@@ -190,6 +195,10 @@ public class OrderService {
                 && OrderController.ActionOrderType.RECEIVE.equals(actionType))){
             return ResultJson.failure(HttpYzCode.ORDER_STATUS_ERROR);
         }
+        if(OrderController.ActionOrderType.RECEIVE.equals(actionType) && hasWaitPayChajiaOrder(userId)){
+            logger.error("有未支付的差价订单，不能点击 确认收货, order = {}, user = {}", orderNum, user.getId());
+            return ResultJson.failure(HttpYzCode.ORDER_CHAJIA_WAIT_PAY);
+        }
         OrderController.BuyerOrderStatus bysta = null;
         if(OrderController.ActionOrderType.RECEIVE.equals(actionType)){
             bysta = OrderController.BuyerOrderStatus.WAIT_COMMENT;
@@ -210,63 +219,105 @@ public class OrderService {
         return ResultJson.ok();
     }
 
+    @Transactional
     public ResultJson drawbackOrder(int userId, DrawbackRequest drawbackRequest) {
         String orderNum = drawbackRequest.getOrderNum();
-        ResultJson<DrawBackAmount> drawBackAmountResultJson = drawbackOrderAmount(userId, orderNum);
+        ResultJson<DrawBackAmount> drawBackAmountResultJson = drawbackOrderAmount(userId, orderNum, drawbackRequest.getOrderItemId());
         if(drawBackAmountResultJson.getCode() != 200){
             return drawBackAmountResultJson;
         }
         DrawBackAmount data = drawBackAmountResultJson.getData();
-        if(!OrderController.DrawbackStatus.NONE.toString().equals(data.getDrawbackStatus())){
+        String dstatus = orderDao.getDstatus(data.getOrderId(), drawbackRequest.getOrderItemId());
+        if(StringUtils.isNoneBlank(dstatus) && !OrderController.DrawbackStatus.NONE.toString().equals(dstatus)){
             return ResultJson.failure(HttpYzCode.ORDER_DRAWBACK_REPEAT_ERROR);
         }
-        orderDao.actionDrawbackStatus(orderNum, OrderController.DrawbackStatus.WAIT_APPROVE);
-        orderDao.creteDrawbackOrder(userId, data.getOrderId(), drawbackRequest, data.getDisplayTotalAmount(), data.getDisplayTotalYue() , data.getDisplayTotalYongjin(), data);
+        if(drawbackRequest.getOrderItemId() == null || drawbackRequest.getOrderItemId() <= 0){
+            orderDao.actionTotalOrderDrawbackStatus(orderNum);
+        }
+        orderDao.creteDrawbackOrder(userId, drawbackRequest, data);
         return ResultJson.ok();
     }
 
-    public ResultJson<DrawBackAmount> drawbackOrderAmount(int userId, String orderNum) {
+    /**
+     *
+     * @param userId
+     * @param orderNum
+     * @param orderItemId
+     * 1. 如果 orderItemId 为空，那么就是整单申请退款，  此时订单状态必须 待发货, 待收货
+     * 2. 如果 orderItemId 不为空，那么此时订单状态必须为 待评价
+     * @return
+     */
+    public ResultJson<DrawBackAmount> drawbackOrderAmount(int userId, String orderNum, Integer orderItemId) {
         SimpleOrder simpleOrder = orderDao.getSimpleOrder(orderNum);
         if(simpleOrder == null || !simpleOrder.getUserId().equals(userId)){
             return ResultJson.failure(HttpYzCode.ORDER_NOT_EXISTS);
         }
+        //只有 WAIT_SEND  WAIT_RECEIVE WAIT_COMMENT 三个状态允许退款
         if(!(OrderController.BuyerOrderStatus.WAIT_SEND.toString().equalsIgnoreCase(simpleOrder.getStatus())
                 || OrderController.BuyerOrderStatus.WAIT_RECEIVE.toString().equalsIgnoreCase(simpleOrder.getStatus())
                 || OrderController.BuyerOrderStatus.WAIT_COMMENT.toString().equalsIgnoreCase(simpleOrder.getStatus()))){
             return ResultJson.failure(HttpYzCode.ORDER_STATUS_ERROR);
         }
-
-        DrawBackAmount drawBackAmount = doCalcDrawBackAmount(simpleOrder);
+        // 如果 orderItemId 为空，那么就是整单申请退款，此时订单状态必须 待发货, 待收货
+        if(isTotalOrderDrawback(orderNum, orderItemId) &&
+                !(OrderController.BuyerOrderStatus.WAIT_SEND.toString().equalsIgnoreCase(simpleOrder.getStatus())
+                || OrderController.BuyerOrderStatus.WAIT_RECEIVE.toString().equalsIgnoreCase(simpleOrder.getStatus()))){
+            return ResultJson.failure(HttpYzCode.ORDER_STATUS_ERROR);
+        }
+        //如果 orderItemId 不为空，那么此时订单状态必须为 待评价
+        if(!isTotalOrderDrawback(orderNum, orderItemId)
+                && (!OrderController.BuyerOrderStatus.WAIT_COMMENT.toString().equalsIgnoreCase(simpleOrder.getStatus())
+                      || OrderAdminController.ChaJiaOrderStatus.WAIT_PAY.toString().equals(simpleOrder.getChajiaStatus()))
+                ){
+            return ResultJson.failure(HttpYzCode.ORDER_STATUS_ERROR);
+        }
+        DrawBackAmount drawBackAmount = doCalcDrawBackAmount(simpleOrder, orderItemId);
         if(drawBackAmount == null){
             return ResultJson.failure(HttpYzCode.ORDER_NOT_EXISTS);
         }
         return ResultJson.ok(drawBackAmount);
     }
 
-    private DrawBackAmount doCalcDrawBackAmount(SimpleOrder simpleOrder) {
+    private boolean isTotalOrderDrawback(String orderNum, Integer orderItemId) {
+        return (orderItemId == null || orderItemId <= 0) && StringUtils.isNoneBlank(orderNum);
+    }
+
+    private DrawBackAmount doCalcDrawBackAmount(SimpleOrder simpleOrder, Integer orderItemId) {
         String orderNum = simpleOrder.getOrderNum();
         DrawBackAmount drawBackAmount = orderDao.getDrawbackAmount(orderNum);
         if(drawBackAmount == null){
             return null;
         }
-        drawBackAmount.setDrawbackStatus(simpleOrder.getDrawbackStatus());
         drawBackAmount.setOrderId(simpleOrder.getId());
-        drawBackAmount.calcDisplayTotal();
+
+        if(isTotalOrderDrawback(orderNum, orderItemId)){//整单取消
+            drawBackAmount.calcDisplayTotal();
+        }else{
+            OrderDetailItemInfo orderItem = orderDao.getOrderDetailItemByOrderItemId(orderItemId);
+            if(orderItem == null){
+                return null;
+            }
+            List<DrawbackOrderDetailInfo> drawbackOrderDetail = orderDao.getAllDrawbackOrderDetailByOrderId(simpleOrder.getId());
+
+            drawBackAmount.calcItemDisplayTotal(simpleOrder, orderItem, drawbackOrderDetail);
+        }
         return drawBackAmount;
     }
 
-    public ResultJson<DrawbackOrderDetailInfo> getDrawbackOrderDetail(int userId, String orderNum, boolean admin) {
+    public ResultJson<DrawbackOrderDetailInfo> getDrawbackOrderDetail(int userId, String orderNum, boolean admin, Integer orderItemId) {
         SimpleOrder simpleOrder = orderDao.getSimpleOrder(orderNum);
         if(simpleOrder == null || (!admin && !simpleOrder.getUserId().equals(userId))){
             return ResultJson.failure(HttpYzCode.ORDER_NOT_EXISTS);
         }
-        DrawbackOrderDetailInfo di = orderDao.getDrawbackOrderDetail(simpleOrder.getId());
+        DrawbackOrderDetailInfo di = orderDao.getDrawbackOrderDetail(simpleOrder.getId(), orderItemId);
         return ResultJson.ok(di);
     }
 
     public ResultJson<List<OrderListItemInfo>> getOrderList(int userId, OrderController.BuyerOrderStatus orderType, int pageSize, int pageNum) {
         List<OrderListItemInfo> os = orderDao.getBuyerOrderList(userId, orderType, pageSize, pageNum);
-        fillOrderItemImg(os);
+        if(!OrderController.BuyerOrderStatus.DRAWBACK.toString().equals(orderType.toString())){
+            fillOrderItemImg(os);
+        }
         return ResultJson.ok(os);
     }
 
@@ -282,16 +333,24 @@ public class OrderService {
         });
     }
 
-    public ResultJson<OrderDetailInfo> getOrderDetail(int userId, String orderNum, boolean admin) {
-        OrderDetailInfo orderDetailInfo =  orderDao.getOrderDetail(orderNum);
+    public ResultJson<OrderDetailInfo> getOrderDetail(int userId, String orderNum, Integer drawbackItemId, boolean admin) {
+        OrderDetailInfo orderDetailInfo = orderDao.getOrderDetail(orderNum);
         if(orderDetailInfo == null){
             return ResultJson.failure(HttpYzCode.ORDER_NOT_EXISTS);
         }
         if(!admin && !orderDetailInfo.getUserId().equals(userId)){
             return ResultJson.failure(HttpYzCode.ORDER_NOT_EXISTS);
         }
-        List<OrderDetailItemInfo> items = orderDao.getOrderDetailItem(orderDetailInfo.getId());
-        orderDetailInfo.setItems(items);
+        if(drawbackItemId != null && drawbackItemId > 0){//展示售后详情页
+            orderDetailInfo.setItems(orderDao.getOrderDetailItemByItemId(orderDetailInfo.getId(), drawbackItemId));
+        }else{
+            List<OrderDetailItemInfo> items = orderDao.getOrderDetailItem(orderDetailInfo.getId());
+            HashMap<Integer, Boolean> itemId2HadDrawback = orderDao.getHadDrawbackItem(orderDetailInfo.getId());
+            if(itemId2HadDrawback != null && !itemId2HadDrawback.isEmpty()){
+                items.stream().forEach(it -> it.setHasDrawback(itemId2HadDrawback.containsKey(it.getId()) && itemId2HadDrawback.get(it.getId())));
+            }
+            orderDetailInfo.setItems(items);
+        }
         String jianhou = userService.getUserName(orderDetailInfo.getJianhuoyuanId());
         orderDetailInfo.setJianhuoyuanName(jianhou);
         return ResultJson.ok(orderDetailInfo);
@@ -346,7 +405,7 @@ public class OrderService {
      * @return
      */
     @Transactional
-    public ResultJson adminActionOrder(int userId, String orderNum, OrderAdminController.AdminActionOrderType actionType, String attach) {
+    public ResultJson adminActionOrder(int userId, String orderNum, Integer orderItemId, OrderAdminController.AdminActionOrderType actionType, String attach) {
         SimpleOrder simpleOrder = orderDao.getSimpleOrder(orderNum);
         if(simpleOrder == null ){
             return ResultJson.failure(HttpYzCode.ORDER_NOT_EXISTS);
@@ -360,11 +419,11 @@ public class OrderService {
                 break;
             case DRAWBACK_APPROVE_PASS:
                 //发起退款
-                doDrawback(simpleOrder);
-                orderDao.adminApproveDrawback(userId, simpleOrder.getId(), orderNum, OrderController.DrawbackStatus.APPROVE_PASS, attach);
+                doDrawback(simpleOrder, orderItemId);
+                orderDao.adminApproveDrawback(userId, simpleOrder.getId(), orderNum, orderItemId,OrderController.DrawbackStatus.APPROVE_PASS, attach);
                 break;
             case DRAWBACK_APPROVE_FAIL:
-                orderDao.adminApproveDrawback(userId, simpleOrder.getId(), orderNum, OrderController.DrawbackStatus.APPROVE_REJECT, attach);
+                orderDao.adminApproveDrawback(userId, simpleOrder.getId(), orderNum, orderItemId, OrderController.DrawbackStatus.APPROVE_REJECT, attach);
                 break;
         }
         return ResultJson.ok();
@@ -377,17 +436,17 @@ public class OrderService {
         }
     }
 
-    private void doDrawback(SimpleOrder simpleOrder){
-        DrawBackAmount drawBackAmount = this.doCalcDrawBackAmount(simpleOrder);
-        if(drawBackAmount == null){
+    private void doDrawback(SimpleOrder simpleOrder, Integer orderItemId){
+        DrawbackOrderDetailInfo drawbackOrderDetail = orderDao.getDrawbackOrderDetail(simpleOrder.getId(), orderItemId);
+        if(drawbackOrderDetail == null){
             logger.error("doDrawback order not exists " + simpleOrder.getOrderNum());
             return;
         }
         //退还主订单
-        BigDecimal mainOrderAmount = drawBackAmount.getDisplayOrderAmount();
+        BigDecimal mainOrderAmount = drawbackOrderDetail.getDrawbackAmount();
         if(mainOrderAmount != null && mainOrderAmount.compareTo(BigDecimal.ZERO) > 0){
             int refoundfree = mainOrderAmount.multiply(BigDecimal.valueOf(100)).intValue();
-            int totalFree = drawBackAmount.getHadPayMoney().multiply(BigDecimal.valueOf(100)).intValue();
+            int totalFree = simpleOrder.getHadPayMoney().multiply(BigDecimal.valueOf(100)).intValue();
             SortedMap<String, String> data = new TreeMap<>();
             data.put("out_refund_no", simpleOrder.getOrderNum()+"DW");
             data.put("out_trade_no", simpleOrder.getOrderNum());
@@ -403,13 +462,14 @@ public class OrderService {
             }
         }
         //退还差价订单
-        BigDecimal chajiaOrderAmount = drawBackAmount.getDisplayChajiaAmount();
+        BigDecimal chajiaOrderAmount = drawbackOrderDetail.getChajiaDrawbackAmount();
         if(chajiaOrderAmount != null && chajiaOrderAmount.compareTo(BigDecimal.ZERO) > 0){
             SortedMap<String, String> dataCJ = new TreeMap<>();
             dataCJ.put("out_refund_no", simpleOrder.getOrderNum()+"CJDW");
             dataCJ.put("out_trade_no", simpleOrder.getOrderNum()+"CJ");
             int foundCJ = chajiaOrderAmount.multiply(BigDecimal.valueOf(100)).intValue();
-            dataCJ.put("total_fee", foundCJ + "");
+            int totalCJ = simpleOrder.getChajiaHadPayMoney().multiply(BigDecimal.valueOf(100)).intValue();
+            dataCJ.put("total_fee", totalCJ + "");
             dataCJ.put("refund_fee", foundCJ + "");
             logger.info("Start dwawback for [chajia order] {}, refound amount = {}  ", simpleOrder.getOrderNum() + "CJ", foundCJ);
             String resultCJ = paymentService.refund(dataCJ);
@@ -421,7 +481,7 @@ public class OrderService {
             }
         }
         //退还佣金
-        BigDecimal yongjinAmount = drawBackAmount.getDisplayTotalYongjin();
+        BigDecimal yongjinAmount = drawbackOrderDetail.getDrawbackYongjin();
         if(yongjinAmount != null && yongjinAmount.compareTo(BigDecimal.ZERO) > 0){
             SimpleOrder simo = new SimpleOrder();
             simo.setUseYongjin(yongjinAmount);
@@ -431,7 +491,7 @@ public class OrderService {
             logger.info("退还佣金给 order {}, 佣金 = {}  ", simo.getOrderNum(), simo.getUseYongjin());
         }
         //退还余额
-        BigDecimal yueAmount = drawBackAmount.getDisplayTotalYue();
+        BigDecimal yueAmount = drawbackOrderDetail.getDrawbackYue();
         if(yueAmount != null && yueAmount.compareTo(BigDecimal.ZERO) > 0){
             SimpleOrder simo = new SimpleOrder();
             simo.setUseYue(yueAmount);
@@ -543,8 +603,7 @@ public class OrderService {
     }
 
     public List<OrderListItemInfo> getDrawbackApproveList(OrderController.DrawbackStatus orderType, int pageSize, int pageNum) {
-        List<OrderListItemInfo> drawbackApproveList = orderDao.getDrawbackApproveList(orderType, pageSize, pageNum);
-        fillOrderItemImg(drawbackApproveList);
+        List<OrderListItemInfo> drawbackApproveList = orderDao.getDrawbackApproveList(orderType, null, pageSize, pageNum);
         return drawbackApproveList;
     }
 
@@ -554,15 +613,16 @@ public class OrderService {
         return orderListForJianHuoyuan;
     }
 
-    public ResultJson cancelDrawback(int uid, String orderNum) {
+    public ResultJson cancelDrawback(int uid, String orderNum, Integer itemID) {
         SimpleOrder simpleOrder = orderDao.getSimpleOrder(orderNum);
         if(simpleOrder == null){
             return ResultJson.failure(HttpYzCode.ORDER_NOT_EXISTS);
         }
-        if(!OrderController.DrawbackStatus.WAIT_APPROVE.toString().equals(simpleOrder.getDrawbackStatus())){
+        DrawbackOrderDetailInfo drawbackOrderDetail = orderDao.getDrawbackOrderDetail(simpleOrder.getId(), itemID);
+        if(!OrderController.DrawbackStatus.WAIT_APPROVE.toString().equals(drawbackOrderDetail.getdStatus())){
             return ResultJson.failure(HttpYzCode.ORDER_STATUS_ERROR);
         }
-        orderDao.cancelDrawback(orderNum, simpleOrder.getId());
+        orderDao.cancelDrawback(orderNum, simpleOrder.getId(), itemID);
         return ResultJson.ok();
     }
 
@@ -598,15 +658,18 @@ public class OrderService {
         }
         orderDao.surePayment(orderDetailInfo.getId(), payAmount, orderNum.contains("CJ"));
         if(!orderNum.contains("CJ")){
-            // 库存减少
-            HashMap<Integer, Integer> pid2cnt = orderDao.getPid2StockByOrderId(orderDetailInfo.getId());
-
-            productService.subStock(pid2cnt);
-            printOrder(orderDetailInfo);
+            doFinishOrder(orderDetailInfo);
         }
         return 1;
     }
 
+    public void doFinishOrder(OrderDetailInfo orderDetailInfo){
+        // 库存减少
+        HashMap<Integer, Integer> pid2cnt = orderDao.getPid2StockByOrderId(orderDetailInfo.getId());
+
+        productService.subStock(pid2cnt);
+        printOrder(orderDetailInfo);
+    }
     public void printOrder(OrderDetailInfo orderDetailInfo) {
         try{
             OrderPrintBean orderPrintBean = new OrderPrintBean();

@@ -13,6 +13,7 @@ public class DrawbackRequest {
     private Integer userId;
     @NotNull
     private String orderNum;
+    private Integer orderItemId;
     @NotNull
     private String type;
     @NotNull
@@ -54,6 +55,14 @@ public class DrawbackRequest {
 
     public String getReason() {
         return reason;
+    }
+
+    public Integer getOrderItemId() {
+        return orderItemId;
+    }
+
+    public void setOrderItemId(Integer orderItemId) {
+        this.orderItemId = orderItemId;
     }
 
     public void setReason(String reason) {

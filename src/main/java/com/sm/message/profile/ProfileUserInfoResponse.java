@@ -34,6 +34,7 @@ public class ProfileUserInfoResponse {
     private int orderManagerCnt;
     private int drawbackManagerCnt;
     private int feedManagerCnt;
+    private int waitTiXianCnt;
 
     public void initOrderCnt(OrderAllStatusCntInfo info) {
         this.setWaitPayCnt(info.getWaitPayCnt());
@@ -41,6 +42,7 @@ public class ProfileUserInfoResponse {
         this.setWaitReceiveCnt(info.getWaitReceiveCnt());
         this.setWaitCommentCnt(info.getWaitCommentCnt());
         this.setDrawbackCnt(info.getDrawbackCnt());
+        this.setWaitTiXianCnt(info.getWaitTiXianCnt());
     }
 
     public void initAdminInfo(AdminCntInfo info) {
@@ -99,6 +101,14 @@ public class ProfileUserInfoResponse {
 
     public Integer getId() {
         return id;
+    }
+
+    public int getWaitTiXianCnt() {
+        return waitTiXianCnt;
+    }
+
+    public void setWaitTiXianCnt(int waitTiXianCnt) {
+        this.waitTiXianCnt = waitTiXianCnt;
     }
 
     public void setId(Integer id) {
