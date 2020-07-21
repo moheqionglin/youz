@@ -47,7 +47,7 @@ public class Prienter{
 
 	// 设置小票打印
 	public void print(OrderPrintBean orderPrintBean){
-		if("周万里 18917605557".equalsIgnoreCase(orderPrintBean.getLink())){
+		if("周xx 11917605557".equalsIgnoreCase(orderPrintBean.getLink())){
 			log.info("ignore print order{}", orderPrintBean);
 			return;
 		}
