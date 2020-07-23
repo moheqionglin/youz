@@ -140,6 +140,7 @@ public class OrderService {
         BigDecimal yongjinbase = ServiceUtil.calcCartTotalPriceWithoutZhuanqu(cartItems);
         createOrderInfo.setYongjinBasePrice(yongjinbase == null ? BigDecimal.ZERO: yongjinbase);
         Integer id = orderDao.createOrder(createOrderInfo);
+        createOrderInfo.setId(id);
 
         List<CreateOrderItemInfo> collect = cartItems.stream().map(c -> {
             CreateOrderItemInfo ci = new CreateOrderItemInfo();
@@ -161,7 +162,7 @@ public class OrderService {
         //产品销量加加
         productService.addSalesCount(collect.stream().map(o -> o.getProductId()).collect(Collectors.toList()));
         if(createOrderInfo.getStatus().equals(OrderController.BuyerOrderStatus.WAIT_SEND.toString())){
-            OrderDetailInfo orderDetailInfo = new OrderDetailInfo(createOrderInfo, collect);
+            OrderDetailInfo orderDetailInfo = new OrderDetailInfo(createOrderInfo);
             doFinishOrder(orderDetailInfo);
         }
         //删除购物车

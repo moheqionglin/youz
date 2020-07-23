@@ -1,6 +1,7 @@
 package com.sm.message.order;
 
 import com.sm.controller.OrderController;
+import com.sm.utils.SmUtil;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.math.BigDecimal;
@@ -48,7 +49,8 @@ public class OrderDetailInfo {
 
     public OrderDetailInfo() {
     }
-    public OrderDetailInfo(CreateOrderInfo orderInfo,  List<CreateOrderItemInfo> items) {
+    public OrderDetailInfo(CreateOrderInfo orderInfo) {
+        this.setId(orderInfo.getId());
         this.setOrderNum(orderInfo.getOrderNum());
         this.setUserId(orderInfo.getUserId());
         this.setAddressDetail(orderInfo.getAddressDetail());
@@ -64,7 +66,6 @@ public class OrderDetailInfo {
         this.setMessage(orderInfo.getMessage());
         this.setCreatedTime(new Timestamp(System.currentTimeMillis()));
         this.setDeliveryFee(orderInfo.getDeliveryFee());
-        this.setItems(items.stream().map(i -> new OrderDetailItemInfo(i)).collect(Collectors.toList()));
     }
 
     public static class OrderDetailInfoRowMapper implements RowMapper<OrderDetailInfo> {
