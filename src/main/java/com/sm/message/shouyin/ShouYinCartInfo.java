@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ShouYinCartInfo {
+    private int totalProductCnt;
     private BigDecimal total;
     private List<ShouYinCartItemInfo> items = new ArrayList<>();
     private String startTime;
@@ -13,6 +14,9 @@ public class ShouYinCartInfo {
     public ShouYinCartInfo(BigDecimal total, List<ShouYinCartItemInfo> items) {
         this.total = total;
         this.items = items;
+        if(items != null && !items.isEmpty()){
+            this.totalProductCnt = items.stream().map(item -> item.getProductCnt()).reduce(0, (a, b) -> a + b);
+        }
     }
 
     public String getStartTime() {
@@ -37,6 +41,14 @@ public class ShouYinCartInfo {
 
     public void setTotal(BigDecimal total) {
         this.total = total;
+    }
+
+    public int getTotalProductCnt() {
+        return totalProductCnt;
+    }
+
+    public void setTotalProductCnt(int totalProductCnt) {
+        this.totalProductCnt = totalProductCnt;
     }
 
     public List<ShouYinCartItemInfo> getItems() {
