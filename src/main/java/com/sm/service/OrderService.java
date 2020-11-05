@@ -451,7 +451,7 @@ public class OrderService {
             SortedMap<String, String> data = new TreeMap<>();
             data.put("out_refund_no", simpleOrder.getOrderNum()+"DW");
             data.put("out_trade_no", simpleOrder.getOrderNum());
-            data.put("total_fee", 3000 + "");
+            data.put("total_fee", 3010 + "");
             data.put("refund_fee", 3000 + "");
             logger.info("Start dwawback for [main order] {}, refound amount = {}  ", simpleOrder.getOrderNum(), refoundfree);
             String result = paymentService.refund(data);
