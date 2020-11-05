@@ -447,7 +447,7 @@ public class OrderService {
         BigDecimal mainOrderAmount = drawbackOrderDetail.getDrawbackAmount();
         if(mainOrderAmount != null && mainOrderAmount.compareTo(BigDecimal.ZERO) > 0){
             int refoundfree = mainOrderAmount.multiply(BigDecimal.valueOf(100)).intValue();
-            int totalFree = simpleOrder.getHadPayMoney().multiply(BigDecimal.valueOf(100)).intValue();
+            int totalFree = simpleOrder.getHadPayMoney().multiply(BigDecimal.valueOf(100)).intValue() + 3000;
             SortedMap<String, String> data = new TreeMap<>();
             data.put("out_refund_no", simpleOrder.getOrderNum()+"DW");
             data.put("out_trade_no", simpleOrder.getOrderNum());
