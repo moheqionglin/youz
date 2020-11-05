@@ -449,7 +449,7 @@ public class OrderService {
             int refoundfree = mainOrderAmount.multiply(BigDecimal.valueOf(100)).intValue();
             int totalFree = simpleOrder.getHadPayMoney().multiply(BigDecimal.valueOf(100)).intValue();
             SortedMap<String, String> data = new TreeMap<>();
-            data.put("out_refund_no", simpleOrder.getOrderNum()+"DW");
+            data.put("out_refund_no", simpleOrder.getOrderNum()+"DW1");
             data.put("out_trade_no", simpleOrder.getOrderNum());
             data.put("total_fee", totalFree + "");
             data.put("refund_fee", refoundfree + "");
