@@ -1,5 +1,6 @@
 package com.sm.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.sm.config.UserDetail;
 import com.sm.message.ResultJson;
 import com.sm.message.product.CreateProductRequest;
@@ -8,6 +9,8 @@ import com.sm.message.product.ProductSalesDetail;
 import com.sm.service.ProductService;
 import com.sm.service.ServiceUtil;
 import io.swagger.annotations.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -29,6 +32,7 @@ import java.util.List;
 @RequestMapping("/api/v1/")
 public class ProductController {
 
+    private static Logger logger = LoggerFactory.getLogger(PaymentController.class);
     @Autowired
     private ProductService productService;
 
@@ -66,6 +70,7 @@ public class ProductController {
         if(!product.isSanzhung() && (product.getOfflinePrice() == null || product.getOfflinePrice().compareTo(BigDecimal.ZERO) < 0)){
             return ResultJson.failure(HttpYzCode.BAD_REQUEST);
         }
+        logger.info("update product id = {}, product = {}", productId, JSONObject.toJSONString(product));
         productService.update(product);
         return ResultJson.ok();
     }
