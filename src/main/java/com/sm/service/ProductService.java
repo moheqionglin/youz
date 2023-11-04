@@ -210,6 +210,7 @@ public class ProductService {
     }
 
     public List<ProductListItem> adminSearch(SearchRequest searchRequest, int pageSize, int pageNum) {
+        pageNum += 1;
         List<ProductListItem> admin = productDao.search(searchRequest, pageSize, pageNum, "ADMIN");
         admin.stream().forEach(pi->{
             pi.setZhuanquName(ServiceUtil.zhuanquName(pi.getZhuanquId(), pi.isZhuanquEnable(), pi.getZhuanquEndTime()));
