@@ -114,8 +114,8 @@ public class Prienter{
 //		if(orderPrintBean.isChajia()) {
 //			sb.append("客户支付差价：￥" + orderPrintBean.getChajiaHadPayMoney()!= null ?orderPrintBean.getChajiaHadPayMoney().setScale(2, RoundingMode.UP).toPlainString():""  + "\r\n");
 //		}
-		sb.append("<center>地址: 浦东区新行路395号</center>");
-		sb.append("<center>电话: 021-68776696</center>");
+//		sb.append("<center>地址: 浦东区新行路395号</center>");
+//		sb.append("<center>电话: 021-68776696</center>");
 
 		executorService.execute(new Runnable() {
 			@Override
