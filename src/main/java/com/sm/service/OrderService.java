@@ -114,7 +114,7 @@ public class OrderService {
         createOrderInfo.setOrderNum(SmUtil.getOrderCode());
         createOrderInfo.setUserId(userID);
         createOrderInfo.setAddressId(addressDetail.getId());
-        createOrderInfo.setAddressDetail(addressDetail.getShippingAddress() + " " + addressDetail.getShippingAddressDetails());
+        createOrderInfo.setAddressDetail(addressDetail.getReceiveAddressManagerInfo().getAddressName()+"(" + addressDetail.getReceiveAddressManagerInfo().getAddressDetail() + ") " + addressDetail.getShippingAddressDetails());
         createOrderInfo.setAddressContract(addressDetail.getLinkPerson() + " " + addressDetail.getPhone());
         createOrderInfo.setStatus(OrderController.BuyerOrderStatus.WAIT_PAY.toString());
         createOrderInfo.setTotalCostPrice(ServiceUtil.calcCartTotalCost(cartItems));

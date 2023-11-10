@@ -114,8 +114,8 @@ public class AddressDao {
     }
 
     public ShippingAddress getDefaultAddress(int userId) {
-        String sql = "select id, link_person , phone, default_address, shipping_address, shipping_address_details , address_id " +
-                "from shipping_address where user_id = ? order by default_address limit 1";
+        String sql = "select t1.id, t1.link_person , t1.phone, t1.default_address, t1.shipping_address, t1.shipping_address_details , t1.address_id " +
+                "from shipping_address t1 left join receive_address_manager t2 on t1.address_id = t2.id where t1.user_id = ? and t2.id > 0 and t2.is_del = 0 order by t1.default_address desc limit 1";
         return jdbcTemplate.query(sql, new Object[]{userId}, new ShippingAddressRowMapper()).stream().findFirst().orElse(null);
 
     }
