@@ -62,6 +62,7 @@ create table shipping_address(
     city varchar(100),
     area varchar(100),
     shipping_address varchar(200),
+    address_id bigint(20) not null default 0 comment '小区编号',
     shipping_address_details varchar(300),
     link_person varchar(20),
     phone varchar(12),
@@ -470,6 +471,16 @@ create table config(
 	modified_time timestamp  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 )
 
+create table receive_address_manager(
+    id int auto_increment primary key,
+    address_name varchar(128) not null,
+    address_detail varchar(256) not null,
+    send_pay varchar(256) not null comment '运费',
+    tuangou_enable  bit(1) not null default 0 comment '是否开启团购',
+    is_del  bit(1) not null default 0 comment '是否删除',
+    created_time timestamp DEFAULT CURRENT_TIMESTAMP ,
+	modified_time timestamp  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+)
 
 select t1.id, t1.name,t1.parent_id,t2.id, t2.name from product_category t1 inner join product_category t2 on t1.parent_id = t2.id where t1.id =   154
 

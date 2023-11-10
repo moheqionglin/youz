@@ -78,9 +78,10 @@ public class OrderService {
         }
         //1. 地址校验
         AddressDetailInfo addressDetail = addressService.getAddressDetail(userID, order.getAddressId());
-        if(addressDetail == null){
+        if(addressDetail == null || addressDetail.getReceiveAddressManagerInfo() == null || addressDetail.getReceiveAddressManagerInfo().getId() <= 0){
             return ResultJson.failure(HttpYzCode.ADDRESS_NOT_EXISTS);
         }
+
         //2. 校验 佣金，和余额
         UserAmountInfo userAmountInfo = userService.getAmount(userID);
         if(order.getUseYongjin() != null && (userAmountInfo == null || userAmountInfo.getYongjin() == null  ||

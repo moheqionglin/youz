@@ -42,6 +42,9 @@ public class ShippingAddressRowMapper implements RowMapper<ShippingAddress> {
         if(existsColumn(resultSet, "link_person")){
             address.setLinkPerson(resultSet.getString("link_person"));
         }
+        if(existsColumn(resultSet, "address_id")){
+            address.setAddressId(resultSet.getInt("address_id"));
+        }
         if(existsColumn(resultSet, "phone")){
             address.setPhone(resultSet.getString("phone"));
         }

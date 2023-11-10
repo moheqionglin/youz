@@ -1,7 +1,9 @@
 package com.sm.controller;
 
+import com.sm.dao.domain.ReceiveAddressManager;
 import com.sm.message.ResultJson;
 import com.sm.message.admin.JinXiaoCunInfo;
+import com.sm.message.admin.ReceiveAddressManagerInfo;
 import com.sm.message.admin.YzStatisticsInfo;
 import com.sm.service.AdminOtherService;
 import com.sm.utils.SmUtil;
@@ -19,6 +21,8 @@ import java.util.List;
  * @author wanli.zhou
  * @description
  * @time 2020-01-15 22:58
+ *
+ *
  */
 @RestController
 @Api(tags={"adminother"})
@@ -99,6 +103,71 @@ public class AdminController {
     })
     public void printOrder(@Valid @NotNull @PathVariable("orderNum") String orderNum){
         adminService.printOrder(orderNum);
+    }
+
+
+    @PostMapping(path = "/adminother/address")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @ApiOperation(value = "增加配送小区")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "request", value = "request", required = true, paramType = "body", dataType = "CreateAddressRequest")
+    })
+    @ApiResponses(value={@ApiResponse(code= 401, message="地址保存失败")})
+    public ResultJson addAddress(@Valid @NotNull @RequestBody ReceiveAddressManagerInfo request){
+        adminService.addAddress(request);
+        return ResultJson.ok();
+    }
+
+    @PutMapping(path = "/adminother/address")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @ApiOperation(value = "更改配送小区")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "request", value = "request", required = true, paramType = "body", dataType = "CreateAddressRequest")
+    })
+    @ApiResponses(value={@ApiResponse(code= 490, message="配送小区不存在")})
+    public ResultJson updateAddress(@Valid @NotNull @RequestBody ReceiveAddressManagerInfo request){
+        if(request.getId() <= 0 ){
+            return ResultJson.failure(HttpYzCode.ADMIN_ADDRESS_NOT_EXISTS);
+        }
+        adminService.updateAddress(request);
+        return ResultJson.ok();
+    }
+
+    @DeleteMapping(path = "/adminother/address")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @ApiOperation(value = "删除配送小区")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "request", value = "request", required = true, paramType = "body", dataType = "CreateAddressRequest")
+    })
+    @ApiResponses(value={@ApiResponse(code= 490, message="配送小区不存在")})
+    public ResultJson deleteAddress(@Valid @NotNull @RequestParam("id") int id){
+        if(id <= 0 ){
+            return ResultJson.failure(HttpYzCode.ADMIN_ADDRESS_NOT_EXISTS);
+        }
+        adminService.deleteAddress(id);
+        return ResultJson.ok();
+    }
+
+    @GetMapping(path = "/adminother/address/list")
+    @PreAuthorize("hasAuthority('ADMIN') OR hasAuthority('BUYER')")
+    @ApiOperation(value = "不分页获取配送小区列表")
+    @ApiResponses(value={@ApiResponse(code= 200, message="成功")})
+    public ResultJson<List<ReceiveAddressManager>> queryAddressList(){
+        return ResultJson.ok(adminService.queryAddressList());
+    }
+
+    @GetMapping(path = "/adminother/address/detail")
+    @PreAuthorize("hasAuthority('ADMIN') OR hasAuthority('BUYER')")
+    @ApiOperation(value = "不分页获取配送小区详情")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id", value = "id", required = true, paramType = "body", dataType = "int")
+    })
+    @ApiResponses(value={@ApiResponse(code= 490, message="配送小区不存在")})
+    public ResultJson<ReceiveAddressManager> queryAddressDetail(@Valid @NotNull @RequestParam("id") int id){
+        if(id <= 0 ){
+            return ResultJson.failure(HttpYzCode.ADMIN_ADDRESS_NOT_EXISTS);
+        }
+        return ResultJson.ok(adminService.queryAddressDetail(id));
     }
 
     public static enum StatisticsType{

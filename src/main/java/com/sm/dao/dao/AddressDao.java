@@ -32,15 +32,15 @@ public class AddressDao {
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     public List<ShippingAddress> getAddressPaged(int userId) {
-        String sql = "select id, link_person , phone, default_address, shipping_address, shipping_address_details " +
+        String sql = "select id, link_person , phone, default_address, shipping_address, shipping_address_details, address_id " +
                 "from shipping_address where user_id = ? order by default_address desc";
         List<ShippingAddress> rst = jdbcTemplate.query(sql, new Object[]{userId}, new ShippingAddressRowMapper());
         return rst;
     }
 
     public Integer create(int userId, AddressDetailInfo addressDetailInfo) {
-        String sql = "insert into shipping_address(user_id,province,city,area,shipping_address, shipping_address_details ,link_person ,phone , default_address ) values(" +
-                " :user_id, :province,:city, :area, :shipping_address, :shipping_address_details , :link_person , :phone , :default_address)";
+        String sql = "insert into shipping_address(user_id,province,city,area,shipping_address, shipping_address_details ,link_person ,phone , default_address,address_id ) values(" +
+                " :user_id, :province,:city, :area, :shipping_address, :shipping_address_details , :link_person , :phone , :default_address, :address_id)";
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
         MapSqlParameterSource sqlParameterSource = new MapSqlParameterSource();
@@ -53,6 +53,7 @@ public class AddressDao {
         sqlParameterSource.addValue("link_person", addressDetailInfo.getLinkPerson());
         sqlParameterSource.addValue("phone", addressDetailInfo.getPhone());
         sqlParameterSource.addValue("default_address", addressDetailInfo.isDefaultAddress());
+        sqlParameterSource.addValue("address_id", addressDetailInfo.getReceiveAddressManagerInfo().getId());
         namedParameterJdbcTemplate.update(sql, sqlParameterSource, keyHolder);
         return keyHolder.getKey().intValue();
     }
@@ -72,7 +73,7 @@ public class AddressDao {
                 "  shipping_address_details = :shipping_address_details," +
                 "  link_person = :link_person," +
                 "  phone = :phone, " +
-                "  default_address = :default_address where id = :id ";
+                "  default_address = :default_address ,address_id =:address_id where id = :id ";
         Map paramsMap = new HashMap();
         paramsMap.put("province", addressDetailInfo.getProvince());
         paramsMap.put("city", addressDetailInfo.getCity());
@@ -83,6 +84,7 @@ public class AddressDao {
         paramsMap.put("phone", addressDetailInfo.getPhone());
         paramsMap.put("default_address", addressDetailInfo.isDefaultAddress());
         paramsMap.put("id", addressDetailInfo.getId());
+        paramsMap.put("address_id", addressDetailInfo.getReceiveAddressManagerInfo().getId());
         if(addressDetailInfo.isDefaultAddress()){
             jdbcTemplate.update("update shipping_address set default_address = false where user_id = ?", new Object[]{addressDetailInfo.getUserId()});
         }
@@ -96,7 +98,7 @@ public class AddressDao {
     }
 
     public ShippingAddress getAddressDetail(int userId, int addressId) {
-        String sql = "select id ,user_id,province,city,area,shipping_address, shipping_address_details ,link_person ,phone , default_address from " +
+        String sql = "select id ,user_id,province,city,area,shipping_address, shipping_address_details ,link_person ,phone , default_address, address_id from " +
                 "shipping_address where id = ?";
         try {
 
@@ -112,9 +114,14 @@ public class AddressDao {
     }
 
     public ShippingAddress getDefaultAddress(int userId) {
-        String sql = "select id, link_person , phone, default_address, shipping_address, shipping_address_details " +
+        String sql = "select id, link_person , phone, default_address, shipping_address, shipping_address_details , address_id " +
                 "from shipping_address where user_id = ? order by default_address limit 1";
         return jdbcTemplate.query(sql, new Object[]{userId}, new ShippingAddressRowMapper()).stream().findFirst().orElse(null);
 
+    }
+
+    public void removeAddressId(int id) {
+        final String sql = String.format("update %s  set address_id = 0 where address_id = ?", VarProperties.SHIPPING_ADDRESS);
+        jdbcTemplate.update(sql, new Object[]{id});
     }
 }

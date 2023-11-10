@@ -17,7 +17,6 @@ public class OrderCommentsRequest {
     private Integer productId;
     @NotNull
     private boolean good;
-    @NotNull
     private String comment;
     private List<String> images;
 

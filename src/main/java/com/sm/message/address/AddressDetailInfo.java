@@ -1,6 +1,7 @@
 package com.sm.message.address;
 
 import com.sm.dao.domain.ShippingAddress;
+import com.sm.message.admin.ReceiveAddressManagerInfo;
 import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.NotNull;
@@ -39,11 +40,13 @@ public class AddressDetailInfo {
     private String phone;
     @NotNull
     private boolean defaultAddress;
+    @NotNull
+    private ReceiveAddressManagerInfo receiveAddressManagerInfo;
 
     public AddressDetailInfo() {
     }
 
-    public AddressDetailInfo(ShippingAddress addressDetail) {
+    public AddressDetailInfo(ShippingAddress addressDetail, ReceiveAddressManagerInfo receiveAddressManagerInfo) {
         this.id = addressDetail.getId();
         this.userId = addressDetail.getUserId();
         this.province = addressDetail.getProvince();
@@ -54,6 +57,7 @@ public class AddressDetailInfo {
         this.linkPerson = addressDetail.getLinkPerson();
         this.phone = addressDetail.getPhone();
         this.defaultAddress = addressDetail.isDefaultAddress();
+        this.receiveAddressManagerInfo = receiveAddressManagerInfo;
     }
 
     public Integer getUserId() {
@@ -116,6 +120,14 @@ public class AddressDetailInfo {
         return linkPerson;
     }
 
+    public ReceiveAddressManagerInfo getReceiveAddressManagerInfo() {
+        return receiveAddressManagerInfo;
+    }
+
+    public void setReceiveAddressManagerInfo(ReceiveAddressManagerInfo receiveAddressManagerInfo) {
+        this.receiveAddressManagerInfo = receiveAddressManagerInfo;
+    }
+
     public void setLinkPerson(String linkPerson) {
         this.linkPerson = linkPerson;
     }
@@ -149,6 +161,7 @@ public class AddressDetailInfo {
                 ", linkPerson='" + linkPerson + '\'' +
                 ", phone='" + phone + '\'' +
                 ", defaultAddress=" + defaultAddress +
+                ", receiveAddressManagerInfo=" + receiveAddressManagerInfo +
                 '}';
     }
 }

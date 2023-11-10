@@ -56,6 +56,8 @@ public enum  HttpYzCode {
     SHOUYIN_ORDER_STATUS_ERROR(486, "收银订单状态不是待支付"),
     SHOUYIN_HAD_KAIGONG(487, "已经开工，请勿重复开工"),
     SHOUYIN_NO_KAIGONG(488, "还没有开工，不能点击手工。"),
+
+    ADMIN_ADDRESS_NOT_EXISTS(490, "配送小区不存在"),
     ;
     private int code;
     private String messsage;

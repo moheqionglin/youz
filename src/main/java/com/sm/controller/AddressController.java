@@ -2,6 +2,7 @@ package com.sm.controller;
 
 import com.google.errorprone.annotations.Var;
 import com.sm.config.UserDetail;
+import com.sm.message.ResultJson;
 import com.sm.message.address.AddressDetailInfo;
 import com.sm.message.address.AddressListItem;
 import com.sm.service.AddressService;
@@ -80,8 +81,10 @@ public class AddressController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "addressDetailInfo", value = "addressDetailInfo", required = true, paramType = "body", dataType = "AddressDetailInfo")
     })
-    public void updateAddress(@Valid @RequestBody AddressDetailInfo addressDetailInfo){
+    public ResultJson updateAddress(@Valid @RequestBody AddressDetailInfo addressDetailInfo){
+
         addressService.update(addressDetailInfo);
+        return ResultJson.ok();
     }
 
     @DeleteMapping(path = "/address")

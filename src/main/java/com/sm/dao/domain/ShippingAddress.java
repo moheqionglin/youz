@@ -17,6 +17,7 @@ public class ShippingAddress {
     private String area;
     private String shippingAddress;
     private String shippingAddressDetails;
+    private int addressId;
     private String linkPerson;
     private String phone;
     private boolean defaultAddress;
@@ -29,6 +30,14 @@ public class ShippingAddress {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public int getAddressId() {
+        return addressId;
+    }
+
+    public void setAddressId(int addressId) {
+        this.addressId = addressId;
     }
 
     public Integer getUserId() {

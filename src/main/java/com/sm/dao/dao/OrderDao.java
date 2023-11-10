@@ -525,9 +525,10 @@ public class OrderDao {
     }
 
     public boolean needPayDeliveryFee(int userId, BigDecimal amount) {
-        int orderCnt = todayOrderCnt(userId);
-        BigDecimal freeDeliveryFeeOrderAmount = configDao.getFreeDeliveryFeeOrderAmount();
-        return amount.compareTo(freeDeliveryFeeOrderAmount) < 0 && orderCnt >= 2;
+//        int orderCnt = todayOrderCnt(userId);
+//        BigDecimal freeDeliveryFeeOrderAmount = configDao.getFreeDeliveryFeeOrderAmount();
+//        return amount.compareTo(freeDeliveryFeeOrderAmount) < 0 && orderCnt >= 2;
+        return true;
     }
 
     public HashMap<Integer, Integer> getPid2StockByOrderId(Integer orderId) {

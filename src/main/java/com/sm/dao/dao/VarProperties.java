@@ -20,6 +20,7 @@ public class VarProperties {
     public static final String ORDER_DRAWBACK = "order_drawback";
     public static final String USER_AMONUT_LOG = "user_amonut_log";
     public static final String PRODUCT_COMMENT = "product_comment";
+    public static final String RECEIVE_ADDRESS_MANAGER = "receive_address_manager";
     public static final String PRODUCT_APPEND_COMMENT = "product_append_comment";
     public static final String STATISTICS = "statistics";
     public static final String LUNBO = "lunbo";
@@ -34,4 +35,5 @@ public class VarProperties {
 
     public static final String SHOUYIN_WORK_RECORD = "shouyin_work_record";
     public static final String CONFIG = "config";
+    public static final String SHIPPING_ADDRESS = "shipping_address";
 }

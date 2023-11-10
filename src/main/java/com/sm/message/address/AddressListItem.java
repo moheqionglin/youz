@@ -1,5 +1,6 @@
 package com.sm.message.address;
 
+import com.sm.message.admin.ReceiveAddressManagerInfo;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
@@ -15,6 +16,8 @@ public class AddressListItem {
     private String shippingAddress;
     @ApiModelProperty(value = "shippingAddressDetails")
     private String shippingAddressDetails;
+    @ApiModelProperty(value = "receiveAddressManagerInfo")
+    private ReceiveAddressManagerInfo receiveAddressManagerInfo;
     @ApiModelProperty(value = "linkPerson")
     private String linkPerson;
     @ApiModelProperty(value = "phone")
@@ -25,13 +28,14 @@ public class AddressListItem {
     public AddressListItem() {
     }
 
-    public AddressListItem(int id, String shippingAddress, String shippingAddressDetails, String linkPerson, String phone, boolean defaultAddress) {
+    public AddressListItem(int id, String shippingAddress, String shippingAddressDetails, String linkPerson, String phone, boolean defaultAddress, ReceiveAddressManagerInfo receiveAddressManagerInfo) {
         this.id = id;
         this.shippingAddress = shippingAddress;
         this.shippingAddressDetails = shippingAddressDetails;
         this.linkPerson = linkPerson;
         this.phone = phone;
         this.defaultAddress = defaultAddress;
+        this.receiveAddressManagerInfo = receiveAddressManagerInfo;
     }
 
     public int getId() {
@@ -68,6 +72,14 @@ public class AddressListItem {
 
     public void setDefaultAddress(boolean defaultAddress) {
         this.defaultAddress = defaultAddress;
+    }
+
+    public ReceiveAddressManagerInfo getReceiveAddressManagerInfo() {
+        return receiveAddressManagerInfo;
+    }
+
+    public void setReceiveAddressManagerInfo(ReceiveAddressManagerInfo receiveAddressManagerInfo) {
+        this.receiveAddressManagerInfo = receiveAddressManagerInfo;
     }
 
     public void setLinkPerson(String linkPerson) {
