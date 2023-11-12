@@ -26,6 +26,7 @@ public class ProductSalesDetail {
     private int stock;
     private BigDecimal originPrice;
     private BigDecimal currentPrice;
+    private BigDecimal deliveryFee;
     private String profileImg;
     private List<String> lunboImgs;
     private List<String> detailImgs;
@@ -153,6 +154,14 @@ public class ProductSalesDetail {
 
     public void setValidKanjiaProduct(boolean validKanjiaProduct) {
         this.validKanjiaProduct = validKanjiaProduct;
+    }
+
+    public BigDecimal getDeliveryFee() {
+        return deliveryFee;
+    }
+
+    public void setDeliveryFee(BigDecimal deliveryFee) {
+        this.deliveryFee = deliveryFee;
     }
 
     public boolean zhuanquExpired(){

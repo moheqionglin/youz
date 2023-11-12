@@ -61,12 +61,6 @@ public class ProductController {
     public ResultJson update(@Valid @NotNull @PathVariable("productId") int productId,
                               @Valid @RequestBody CreateProductRequest product){
         product.setId(productId);
-        if(product.isSanzhung() && (product.getSanzhuangUnitOfflinePrice() == null
-                || product.getSanzhuangUnitOfflinePrice().compareTo(BigDecimal.ZERO)<0) ||
-                product.getSanzhuangUnitOnlinePrice() == null || product.getSanzhuangUnitOnlinePrice().compareTo(BigDecimal.ZERO) < 0
-        ){
-            return ResultJson.failure(HttpYzCode.BAD_REQUEST);
-        }
         if(!product.isSanzhung() && (product.getOfflinePrice() == null || product.getOfflinePrice().compareTo(BigDecimal.ZERO) < 0)){
             return ResultJson.failure(HttpYzCode.BAD_REQUEST);
         }

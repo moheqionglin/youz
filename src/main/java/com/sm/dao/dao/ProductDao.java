@@ -91,7 +91,7 @@ public class ProductDao {
 
     public CreateProductRequest getEditDetail(int productId) {
         final String sql = String.format("select t1.id as id, t1.name as name ,size, second_category_id, sanzhung,show_able, code, stock,origin_price,cost_price,current_price,profile_img,lunbo_imgs,detail_imgs,sales_cnt, t2.name as supplierName , t2.id as  supplierId "+
-                " ,yongjin_able,offline_price,sanzhuang_unit_offline_price,sanzhuang_unit_online_price from %s as t1 left join %s as t2 on t1.supplier_id = t2.id " +
+                " ,yongjin_able,offline_price from %s as t1 left join %s as t2 on t1.supplier_id = t2.id " +
                 " where t1.id = ? ", VarProperties.PRODUCTS, VarProperties.PRODUCT_SUPPLIERS);
         return jdbcTemplate.query(sql, new Object[]{productId}, new CreateProductRequest.CreateProductRequestRowMapper()).stream().findFirst().orElse(null);
     }
@@ -119,8 +119,8 @@ public class ProductDao {
                 " ,sanzhung = :sanzhung, show_able = :show_able, code=:code, stock=:stock, origin_price=:origin_price , " +
                 " cost_price =:cost_price, current_price=:current_price, profile_img=:profile_img, lunbo_imgs=:lunbo_imgs, " +
                 " detail_imgs=:detail_imgs, supplier_id=:supplier_id," +
-                " offline_price = :offline_price, yongjin_able=:yongjin_able, sanzhuang_unit_offline_price=:sanzhuang_unit_offline_price," +
-                " sanzhuang_unit_online_price=:sanzhuang_unit_online_price where id = :id", VarProperties.PRODUCTS);
+                " offline_price = :offline_price, yongjin_able=:yongjin_able" +
+                "  where id = :id", VarProperties.PRODUCTS);
         HashMap<String, Object> parsms = new HashMap<>();
         parsms.put("name", product.getName());
         parsms.put("size", product.getSize());
@@ -139,8 +139,6 @@ public class ProductDao {
         parsms.put("supplier_id", product.getSupplierId());
         parsms.put("offline_price", product.getOfflinePrice());
         parsms.put("yongjin_able", product.isYongjinAble());
-        parsms.put("sanzhuang_unit_offline_price", product.getSanzhuangUnitOfflinePrice());
-        parsms.put("sanzhuang_unit_online_price", product.getSanzhuangUnitOnlinePrice());
         parsms.put("id", product.getId());
         namedParameterJdbcTemplate.update(sql, parsms);
     }
@@ -206,7 +204,7 @@ public class ProductDao {
             return new ArrayList<>(1);
         }
         final String sql = String.format("select t1.id as id, t1.name as name ,cost_price, sanzhung,stock,show_able,origin_price,current_price,profile_img,sales_cnt, zhuanqu_id, size, t2.enable as zhuanquenable, zhuanqu_price, zhuanqu_endTime " +
-                " , offline_price,yongjin_able,sanzhuang_unit_offline_price,sanzhuang_unit_online_price from %s as t1 left join %s as t2 on t1.zhuanqu_id = t2.id " +
+                " , offline_price,yongjin_able from %s as t1 left join %s as t2 on t1.zhuanqu_id = t2.id " +
                 " where t1.id in (:ids)", VarProperties.PRODUCTS, VarProperties.PRODUCT_ZHUANQU_CATEGORY);
         return namedParameterJdbcTemplate.query(sql, Collections.singletonMap("ids", ids), new ProductListItem.ProductListItemRowMapper());
     }
@@ -394,12 +392,12 @@ public class ProductDao {
     }
 
     public ShouYinProductInfo getShouYinProductByCode(String code) {
-        final String sql = String.format("select id,profile_img,name,size,offline_price,cost_price,current_price,sanzhung,sanzhuang_unit_offline_price,sanzhuang_unit_online_price from %s where code = ?", VarProperties.PRODUCTS);
+        final String sql = String.format("select id,profile_img,name,size,offline_price,cost_price,current_price,sanzhung from %s where code = ?", VarProperties.PRODUCTS);
         return jdbcTemplate.query(sql, new Object[]{code}, new ShouYinProductInfo.ShouYinProductInfoRowMapper()).stream().findFirst().orElse(null);
     }
 
     public ShouYinProductInfo getShouYinProductByLast5Code(String code) {
-        final String sql = "select id,profile_img,name,size,offline_price,cost_price,current_price,sanzhung,sanzhuang_unit_offline_price,sanzhuang_unit_online_price from products where code like '%"+code+"' and length(code) > 7";
+        final String sql = "select id,profile_img,name,size,offline_price,cost_price,current_price,sanzhung from products where code like '%"+code+"' and length(code) > 7";
         return jdbcTemplate.query(sql, new ShouYinProductInfo.ShouYinProductInfoRowMapper()).stream().findFirst().orElse(null);
     }
 }

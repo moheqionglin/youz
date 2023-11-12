@@ -2,6 +2,7 @@ package com.sm.service;
 
 import com.sm.controller.HttpYzCode;
 import com.sm.controller.ProductController;
+import com.sm.dao.dao.ConfigDao;
 import com.sm.dao.dao.ProductCategoryDao;
 import com.sm.dao.dao.ProductDao;
 import com.sm.dao.dao.ShoppingCartDao;
@@ -38,7 +39,8 @@ public class ProductService {
     @Autowired
     private SearchService searchService;
 
-
+    @Autowired
+    private ConfigDao configDao;
     @Autowired
     private ServiceUtil serviceUtil;
     /**
@@ -109,6 +111,7 @@ public class ProductService {
         if (productSalesDetail == null){
             return null;
         }
+        productSalesDetail.setDeliveryFee(configDao.getDeliveryFee());
         if(userId == null || productSalesDetail.zhuanquExpired()){
             return productSalesDetail;
         }
