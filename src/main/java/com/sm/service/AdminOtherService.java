@@ -70,17 +70,23 @@ public class AdminOtherService {
     }
 
     public void addAddress(ReceiveAddressManagerInfo request) {
-        ReceiveAddressManager receiveAddressManager = new ReceiveAddressManager();
-        receiveAddressManager.setAddressName(request.getAddressName());
-        receiveAddressManager.setAddressDetail(request.getAddressDetail());
+        ReceiveAddressManager receiveAddressManager = generateReceiveAddressManager(request);
         receiveAddressManagerDao.add(receiveAddressManager);
     }
 
-    public void updateAddress(ReceiveAddressManagerInfo request) {
+    private ReceiveAddressManager generateReceiveAddressManager(ReceiveAddressManagerInfo request) {
         ReceiveAddressManager receiveAddressManager = new ReceiveAddressManager();
         receiveAddressManager.setId(request.getId());
         receiveAddressManager.setAddressName(request.getAddressName());
         receiveAddressManager.setAddressDetail(request.getAddressDetail());
+        receiveAddressManager.setTuangouEnable(request.isTuangouEnable());
+        receiveAddressManager.setTuangouThreshold(request.getTuangouThreshold());
+        receiveAddressManager.setDeliveryFee(request.getDeliveryFee());
+        return receiveAddressManager;
+    }
+
+    public void updateAddress(ReceiveAddressManagerInfo request) {
+        ReceiveAddressManager receiveAddressManager = generateReceiveAddressManager(request);
         receiveAddressManagerDao.update(receiveAddressManager);
     }
 

@@ -168,6 +168,8 @@ public class OrderService {
         }
         //删除购物车
         shoppingCartService.deleteCartItem(userID, order.getCartIds());
+        //处理团购
+
         return ResultJson.ok(createOrderInfo.getOrderNum());
     }
 
@@ -293,7 +295,8 @@ public class OrderService {
         drawBackAmount.setOrderId(simpleOrder.getId());
 
         if(isTotalOrderDrawback(orderNum, orderItemId)){//整单取消
-            drawBackAmount.calcDisplayTotal();
+            boolean drawbackDeliveryFree = !OrderController.BuyerOrderStatus.WAIT_SEND.toString().equalsIgnoreCase(simpleOrder.getStatus());
+            drawBackAmount.calcDisplayTotal(drawbackDeliveryFree);
         }else{
             OrderDetailItemInfo orderItem = orderDao.getOrderDetailItemByOrderItemId(orderItemId);
             if(orderItem == null){

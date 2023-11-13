@@ -1,11 +1,14 @@
 package com.sm.message.admin;
 
 import com.sm.dao.domain.ReceiveAddressManager;
+import com.sun.istack.internal.NotNull;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.springframework.jdbc.core.RowMapper;
 
+import javax.annotation.Nonnegative;
 import javax.validation.constraints.NotEmpty;
+import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 @ApiModel(description= "配送小区管理")
@@ -17,6 +20,14 @@ public class ReceiveAddressManagerInfo {
     @ApiModelProperty(value = "小区详细地址")
     @NotEmpty
     private String addressDetail;
+    @ApiModelProperty(value = "开启团购")
+    private boolean tuangouEnable;
+    @ApiModelProperty(value = "开团人数")
+    @NotNull
+    private int tuangouThreshold;
+    @ApiModelProperty(value = "运费")
+    @Nonnegative
+    private BigDecimal deliveryFee;
 
     public ReceiveAddressManagerInfo(){
 
@@ -27,7 +38,9 @@ public class ReceiveAddressManagerInfo {
             this.id = receiveAddressManager.getId();
             this.addressName = receiveAddressManager.getAddressName();
             this.addressDetail = receiveAddressManager.getAddressDetail();
-
+            this.tuangouEnable = receiveAddressManager.isTuangouEnable();
+            this.tuangouThreshold = receiveAddressManager.getTuangouThreshold();
+            this.deliveryFee = receiveAddressManager.getDeliveryFee();
         }
     }
 
@@ -44,7 +57,15 @@ public class ReceiveAddressManagerInfo {
             if(existsColumn(resultSet, "address_detail")){
                 receiveAddressManagerInfo.setAddressDetail(resultSet.getString("address_detail"));
             }
-
+            if(existsColumn(resultSet, "tuangou_enable")){
+                receiveAddressManagerInfo.setTuangouEnable(resultSet.getBoolean("tuangou_enable"));
+            }
+            if(existsColumn(resultSet, "tuangou_threshold")){
+                receiveAddressManagerInfo.setTuangouThreshold(resultSet.getInt("tuangou_threshold"));
+            }
+            if(existsColumn(resultSet, "delivery_fee")){
+                receiveAddressManagerInfo.setDeliveryFee(resultSet.getBigDecimal("delivery_fee"));
+            }
             return receiveAddressManagerInfo;
         }
         private boolean existsColumn(ResultSet rs, String column) {
@@ -54,6 +75,30 @@ public class ReceiveAddressManagerInfo {
                 return false;
             }
         }
+    }
+
+    public boolean isTuangouEnable() {
+        return tuangouEnable;
+    }
+
+    public void setTuangouEnable(boolean tuangouEnable) {
+        this.tuangouEnable = tuangouEnable;
+    }
+
+    public int getTuangouThreshold() {
+        return tuangouThreshold;
+    }
+
+    public void setTuangouThreshold(int tuangouThreshold) {
+        this.tuangouThreshold = tuangouThreshold;
+    }
+
+    public BigDecimal getDeliveryFee() {
+        return deliveryFee;
+    }
+
+    public void setDeliveryFee(BigDecimal deliveryFee) {
+        this.deliveryFee = deliveryFee;
     }
 
     public int getId() {

@@ -1,15 +1,14 @@
 package com.sm.controller;
 
-import com.google.errorprone.annotations.Var;
 import com.sm.config.UserDetail;
+import com.sm.dao.domain.ReceiveAddressManager;
 import com.sm.message.ResultJson;
 import com.sm.message.address.AddressDetailInfo;
 import com.sm.message.address.AddressListItem;
+import com.sm.message.admin.ReceiveAddressManagerInfo;
 import com.sm.service.AddressService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+import com.sm.service.AdminOtherService;
+import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -34,6 +33,8 @@ public class AddressController {
     @Autowired
     private AddressService addressService;
 
+    @Autowired
+    private AdminOtherService adminService;
     @Value("${bd.tk}")
     private String bdtk;
 
@@ -43,6 +44,78 @@ public class AddressController {
     public String getTk(){
         return bdtk;
     }
+    /////////// /////////// //////////
+    /////////// ADMIN 专区 ///////////
+    /////////// /////////// /////////
+
+
+    @PostMapping(path = "/adminother/address")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @ApiOperation(value = "增加配送小区")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "request", value = "request", required = true, paramType = "body", dataType = "CreateAddressRequest")
+    })
+    @ApiResponses(value={@ApiResponse(code= 401, message="地址保存失败")})
+    public ResultJson addAddress(@Valid @NotNull @RequestBody ReceiveAddressManagerInfo request){
+        adminService.addAddress(request);
+        return ResultJson.ok();
+    }
+
+    @PutMapping(path = "/adminother/address")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @ApiOperation(value = "更改配送小区")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "request", value = "request", required = true, paramType = "body", dataType = "CreateAddressRequest")
+    })
+    @ApiResponses(value={@ApiResponse(code= 490, message="配送小区不存在")})
+    public ResultJson updateAddress(@Valid @NotNull @RequestBody ReceiveAddressManagerInfo request){
+        if(request.getId() <= 0 ){
+            return ResultJson.failure(HttpYzCode.ADMIN_ADDRESS_NOT_EXISTS);
+        }
+        adminService.updateAddress(request);
+        return ResultJson.ok();
+    }
+
+    @DeleteMapping(path = "/adminother/address")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @ApiOperation(value = "删除配送小区")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "request", value = "request", required = true, paramType = "body", dataType = "CreateAddressRequest")
+    })
+    @ApiResponses(value={@ApiResponse(code= 490, message="配送小区不存在")})
+    public ResultJson adminDeleteAddress(@Valid @NotNull @RequestParam("id") int id){
+        if(id <= 0 ){
+            return ResultJson.failure(HttpYzCode.ADMIN_ADDRESS_NOT_EXISTS);
+        }
+        adminService.deleteAddress(id);
+        return ResultJson.ok();
+    }
+
+    @GetMapping(path = "/adminother/address/list")
+    @PreAuthorize("hasAuthority('ADMIN') OR hasAuthority('BUYER')")
+    @ApiOperation(value = "不分页获取配送小区列表")
+    @ApiResponses(value={@ApiResponse(code= 200, message="成功")})
+    public ResultJson<List<ReceiveAddressManager>> queryAddressList(){
+        return ResultJson.ok(adminService.queryAddressList());
+    }
+
+    @GetMapping(path = "/adminother/address/detail")
+    @PreAuthorize("hasAuthority('ADMIN') OR hasAuthority('BUYER')")
+    @ApiOperation(value = "不分页获取配送小区详情")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id", value = "id", required = true, paramType = "body", dataType = "int")
+    })
+    @ApiResponses(value={@ApiResponse(code= 490, message="配送小区不存在")})
+    public ResultJson<ReceiveAddressManager> queryAddressDetail(@Valid @NotNull @RequestParam("id") int id){
+        if(id <= 0 ){
+            return ResultJson.failure(HttpYzCode.ADMIN_ADDRESS_NOT_EXISTS);
+        }
+        return ResultJson.ok(adminService.queryAddressDetail(id));
+    }
+
+    /////////// /////////// //////////
+    /////////// 用户   专区 ///////////
+    /////////// /////////// /////////
 
     @GetMapping(path = "/address/list")
     @PreAuthorize("hasAuthority('BUYER')")

@@ -26,6 +26,7 @@ public class ProductListItem {
     private int salesCnt;
     private int zhuanquId;
     private String zhuanquName;
+    private BigDecimal tuangouPrice;
     private Long zhuanquEndTime;
     private boolean zhuanquEnable;
     private BigDecimal zhuanquPrice;
@@ -76,6 +77,9 @@ public class ProductListItem {
             }
             if(existsColumn(resultSet, "sales_cnt")){
                 product.setSalesCnt(resultSet.getInt("sales_cnt"));
+            }
+            if(existsColumn(resultSet, "tuangou_price")){
+                product.setTuangouPrice(resultSet.getBigDecimal("tuangou_price"));
             }
             if(existsColumn(resultSet, "zhuanqu_endTime")){
                 product.setZhuanquEndTime(resultSet.getLong("zhuanqu_endTime"));
@@ -269,6 +273,14 @@ public class ProductListItem {
 
     public void setOfflinePrice(BigDecimal offlinePrice) {
         this.offlinePrice = offlinePrice;
+    }
+
+    public BigDecimal getTuangouPrice() {
+        return tuangouPrice;
+    }
+
+    public void setTuangouPrice(BigDecimal tuangouPrice) {
+        this.tuangouPrice = tuangouPrice;
     }
 
     public boolean isYongjinAble() {

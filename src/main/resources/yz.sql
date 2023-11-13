@@ -113,12 +113,10 @@ create table products(
     stock int default 0 comment '库存',
 
     origin_price decimal(10,2) not null comment '原价',
-    cost_price decimal(10,2) not null default 0 comment '成本价, 当时散装的时候 线上散装元/500g',
-    current_price decimal(10, 2) not null comment '售价',
-    offline_price decimal (10, 2) not null default 0 comment '线下价格， 散装的时候这个为0',
-
-    sanzhuang_unit_online_price decimal(10,2) not null default 0 comment '线上散装元/500g',
-    sanzhuang_unit_offline_price decimal(10,2) not null default 0 comment '线下散装元/500g',
+    cost_price decimal(10,2) not null default 0 comment '成本价, 当散装的时候 线上散装元/500g',
+    tuangou_price decimal(10,2) not null default 0 comment '团购价, 当散装的时候 线上散装元/500g',
+    current_price decimal(10, 2) not null comment '线上价格,当散装的时候 线上散装元/500g',
+    offline_price decimal (10, 2) not null default 0 comment '线下价格, 当散装的时候 线上散装元/500g',
 
     supplier_id int comment '供应商',
     sort int default 0 not null comment '排序',
@@ -475,12 +473,38 @@ create table receive_address_manager(
     id int auto_increment primary key,
     address_name varchar(128) not null,
     address_detail varchar(256) not null,
-    send_pay varchar(256) not null comment '运费',
+    delivery_fee decimal (10,2) not null default 0 comment '运费'  ,
     tuangou_enable  bit(1) not null default 0 comment '是否开启团购',
+    tuangou_threshold int not null comment '成团人数',
     is_del  bit(1) not null default 0 comment '是否删除',
     created_time timestamp DEFAULT CURRENT_TIMESTAMP ,
 	modified_time timestamp  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 )
+
+
+create table tuangou(
+    id int auto_increment primary key,
+    threshold int not null comment '团购要求的最少成团单量',
+    order_count int not null comment '团购关联单量',
+    receive_address_manager_id varchar(50) not null comment '小区id',
+    status varchar(256) not null comment '状态：分为 开团，成团，取消',
+    version int default 0 not null,
+    created_time timestamp DEFAULT CURRENT_TIMESTAMP ,
+	modified_time timestamp  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+状态机:  开团 -> 成团
+            |---------> 取消团
+流程推动:
+    【开团】: 订单创建的时候
+              1. 获取当前小区的团：如果当前小区 没有进行中的团。创建新的团 【并发问题，用版本号】。否则用现有的团
+              2. 更新团购表状态和个数【如何防止并发，通过版本号】在订单表-关联团购id。
+    【成团】：  当数字对得上，成团成功
+    【取消成团】：Job扫描取消团购
+
+
+
 
 select t1.id, t1.name,t1.parent_id,t2.id, t2.name from product_category t1 inner join product_category t2 on t1.parent_id = t2.id where t1.id =   154
 

@@ -52,7 +52,7 @@ public class ProductSalesDetail {
     private int kanjiaLeavePerson;
     private BigDecimal kanjiaUnitAmount;
     private BigDecimal currentKanjiaPrice;
-
+    private BigDecimal tuangouPrice;
     public static class ProductSalesDetailRowMapper implements RowMapper<ProductSalesDetail> {
 
         @Override
@@ -87,6 +87,9 @@ public class ProductSalesDetail {
             }
             if(existsColumn(resultSet, "zhuanquenable")){
                 product.setZhuanquEnable(resultSet.getBoolean("zhuanquenable"));
+            }
+            if(existsColumn(resultSet, "tuangou_price")){
+                product.setTuangouPrice(resultSet.getBigDecimal("tuangou_price"));
             }
             if(existsColumn(resultSet, "zhuanqu_id")){
 
@@ -124,6 +127,9 @@ public class ProductSalesDetail {
             }
             if(existsColumn(resultSet, "zhuanqu_endTime")){
                 product.setZhuanquEndTime(resultSet.getLong("zhuanqu_endTime"));
+            }
+            if(existsColumn(resultSet, "tuangou_price")){
+                product.setTuangouPrice(resultSet.getBigDecimal("tuangou_price"));
             }
             if(existsColumn(resultSet, "max_kanjia_person")){
                 product.setMaxKanjiaPerson(resultSet.getInt("max_kanjia_person"));
@@ -222,6 +228,14 @@ public class ProductSalesDetail {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public BigDecimal getTuangouPrice() {
+        return tuangouPrice;
+    }
+
+    public void setTuangouPrice(BigDecimal tuangouPrice) {
+        this.tuangouPrice = tuangouPrice;
     }
 
     public String getName() {

@@ -53,7 +53,7 @@ public class DrawBackAmount {
     //not use
     private BigDecimal chajiaUseYue;
 
-    public void calcDisplayTotal(){
+    public void calcDisplayTotal(boolean drawbackDeliveryFree){
         /**
          * 一共分为如下情况
          * 1. 没有差价金额
@@ -113,14 +113,14 @@ public class DrawBackAmount {
             }
         }
         //从 现金扣除运费
-        calcDeliveryFee();
+        calcDeliveryFee(drawbackDeliveryFree);
 
         this.displayTotalAmount = this.displayOrderAmount.add(this.displayChajiaAmount);
     }
 
-    private void calcDeliveryFee() {
+    private void calcDeliveryFee(boolean drawbackDeliveryFree) {
         BigDecimal sub = this.deliveryFee;
-        if(sub.compareTo(BigDecimal.ZERO) <= 0){
+        if(sub.compareTo(BigDecimal.ZERO) <= 0 && !drawbackDeliveryFree){
             return;
         }
         if(this.displayOrderAmount.compareTo(BigDecimal.ZERO) > 0){

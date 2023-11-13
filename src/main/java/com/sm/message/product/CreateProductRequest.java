@@ -5,6 +5,7 @@ import org.hibernate.validator.constraints.Length;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.lang.NonNull;
 
+import javax.annotation.Nonnegative;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -48,13 +49,18 @@ public class CreateProductRequest {
     @NonNull
     private int stock;
     @NonNull
+    @Nonnegative
     private BigDecimal originPrice;
     @NonNull
+    @Nonnegative
     private BigDecimal costPrice;
     @NonNull
+    @Nonnegative
     private BigDecimal currentPrice;
     private BigDecimal offlinePrice;
-
+    @NonNull
+    @Nonnegative
+    private BigDecimal tuangouPrice;
     private Integer supplierId;
     private String supplierName;
     @NonNull
@@ -114,6 +120,13 @@ public class CreateProductRequest {
             if(existsColumn(resultSet, "offline_price")){
                 product.setOfflinePrice(resultSet.getBigDecimal("offline_price"));
             }
+            if(existsColumn(resultSet, "tuangouPrice")){
+                product.setTuangouPrice(resultSet.getBigDecimal("tuangouPrice"));
+            }
+            if(existsColumn(resultSet, "tuangou_price")){
+                product.setTuangouPrice(resultSet.getBigDecimal("tuangou_price"));
+            }
+
             if(existsColumn(resultSet, "profile_img")){
                 product.setProfileImg(resultSet.getString("profile_img"));
             }
@@ -285,6 +298,14 @@ public class CreateProductRequest {
 
     public void setCostPrice(BigDecimal costPrice) {
         this.costPrice = costPrice;
+    }
+
+    public BigDecimal getTuangouPrice() {
+        return tuangouPrice;
+    }
+
+    public void setTuangouPrice(BigDecimal tuangouPrice) {
+        this.tuangouPrice = tuangouPrice;
     }
 
     public BigDecimal getCurrentPrice() {
