@@ -39,7 +39,7 @@ public class DrawbackOrderDetailInfo {
     private String approveComment;
     private String drawBackTime;
     private boolean drawbackTotalOrder;
-
+    private BigDecimal deliveryFee;
     public static class DrawbackOrderDetailInfoRowMapper implements RowMapper<DrawbackOrderDetailInfo> {
 
         @Override
@@ -97,6 +97,9 @@ public class DrawbackOrderDetailInfo {
                 dod.setDrawbackTotalOrder(resultSet.getBoolean("drawback_total_order"));
             }
 
+            if(existsColumn(resultSet, "delivery_fee")){
+                dod.setDeliveryFee(resultSet.getBigDecimal("delivery_fee"));
+            }
             return dod;
         }
         private boolean existsColumn(ResultSet rs, String column) {
@@ -134,6 +137,14 @@ public class DrawbackOrderDetailInfo {
 
     public String getDetail() {
         return detail;
+    }
+
+    public BigDecimal getDeliveryFee() {
+        return deliveryFee;
+    }
+
+    public void setDeliveryFee(BigDecimal deliveryFee) {
+        this.deliveryFee = deliveryFee;
     }
 
     public void setDetail(String detail) {

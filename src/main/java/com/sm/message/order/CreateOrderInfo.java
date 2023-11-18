@@ -26,7 +26,12 @@ public class CreateOrderInfo {
     private BigDecimal yongjinBasePrice;
     private String message;
     private BigDecimal deliveryFee;
-
+    private int tuangouId;
+    private String tuangouMod;
+    private BigDecimal tuangouDrawbackAmount;
+    private boolean tuangouDrawbackStatus;
+    private BigDecimal tuangouAmount;
+    private String jianhuoStatus;
     public Integer getId() {
         return id;
     }
@@ -111,6 +116,30 @@ public class CreateOrderInfo {
         return totalPrice;
     }
 
+    public String getTuangouMod() {
+        return tuangouMod;
+    }
+
+    public void setTuangouMod(String tuangouMod) {
+        this.tuangouMod = tuangouMod;
+    }
+
+    public BigDecimal getTuangouDrawbackAmount() {
+        return tuangouDrawbackAmount;
+    }
+
+    public void setTuangouDrawbackAmount(BigDecimal tuangouDrawbackAmount) {
+        this.tuangouDrawbackAmount = tuangouDrawbackAmount;
+    }
+
+    public boolean isTuangouDrawbackStatus() {
+        return tuangouDrawbackStatus;
+    }
+
+    public void setTuangouDrawbackStatus(boolean tuangouDrawbackStatus) {
+        this.tuangouDrawbackStatus = tuangouDrawbackStatus;
+    }
+
     public void setTotalPrice(BigDecimal totalPrice) {
         this.totalPrice = totalPrice;
     }
@@ -149,6 +178,30 @@ public class CreateOrderInfo {
 
     public String getMessage() {
         return message;
+    }
+
+    public int getTuangouId() {
+        return tuangouId;
+    }
+
+    public void setTuangouId(int tuangouId) {
+        this.tuangouId = tuangouId;
+    }
+
+    public BigDecimal getTuangouAmount() {
+        return tuangouAmount;
+    }
+
+    public void setTuangouAmount(BigDecimal tuangouAmount) {
+        this.tuangouAmount = tuangouAmount;
+    }
+
+    public String getJianhuoStatus() {
+        return jianhuoStatus;
+    }
+
+    public void setJianhuoStatus(String jianhuoStatus) {
+        this.jianhuoStatus = jianhuoStatus;
     }
 
     public BigDecimal getDeliveryFee() {

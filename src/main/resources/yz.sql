@@ -220,6 +220,11 @@ create table orders(
     fahuoyuan_id int,
     has_fahuo boolean default false,
 
+    tuangou_id int not null default 0 comment '团购id',
+    alter table orders add column  tuangou_mod varchar(10) not null default 'SINGLE' comment 'SINGLE:零售，TUANGOU：团购,NORMAL 正常',
+    alter table orders add column  tuangou_drawback_amount decimal(10, 2) default 0  not null comment '团购退还',
+    alter table orders add column  tuangou_drawback_status  bit(1) default 0 comment '退款状态 0 没写入退款表，1已写入',
+
     drawback_status varchar(20) default 'NONE' comment ' NONE 代表没有, WAIT_APPROVE 待审核/审批中， APPROVE_PASS 通过/退款成功，APPROVE_REJECT 审核不通过/申请失败',
     last_status varchar(20) default 'NONE',
     created_time timestamp DEFAULT CURRENT_TIMESTAMP ,
@@ -229,6 +234,7 @@ create table orders(
 create index orders_uid_status_idx on orders(user_id, status)
 create index orders_drawback_status_idx on orders(drawback_status)
 create index orders_order_num_idx on orders(order_num)
+
 
 alter table orders
 	add yongjin_base_price decimal(10,2) not null default 0;
@@ -243,7 +249,8 @@ create table orders_item(
     product_cnt int,
     product_total_price decimal(10, 2),
     product_unit_price  decimal(10, 2),
-
+    product_total_tuangou_price decimal(10, 2),
+    product_total_cost_price decimal(10, 2),
     product_sanzhuang boolean default false,
     chajia_total_weight varchar(100),
     chajia_total_price decimal(10, 2),
@@ -283,11 +290,10 @@ create table order_drawback(
     approve_user_id int,
     approve_comment varchar(300),
     drawback_total_order bit(1) default 0 not null,
+    delivery_fee decimal(10, 2) not null default 0,
     created_time timestamp DEFAULT CURRENT_TIMESTAMP ,
 	modified_time timestamp  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-
 
 
 create table order_yongjin_percent(
@@ -748,3 +754,12 @@ select id, image from lunbo
 select profile_img, count(1) from products group by profile_img having count(1) > 1
 
 select * from products_bk_bk where detail_imgs like '%http://121.40.186.118:10090/upload/201911/22/191122204259379415.jpeg%'
+
+128	1EBNBSOFS-2C7
+137	1E66S97CI-182
+964	mb51IEZq
+1225	1EAE6K40V-28D
+1297	1EA9S6LQ8-2DF
+1860	1EBAEUC0F-2DB
+2288	1EB3PE7F2-141
+2378	1EBO06MKK-291

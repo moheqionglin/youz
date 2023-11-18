@@ -29,7 +29,10 @@ public class SimpleOrder {
     private BigDecimal yongjinBasePrice;
     private BigDecimal totalPrice;
     private BigDecimal totalCostPrice;
-
+    private BigDecimal tuangouDrawbackAmount;
+    private String tuangouMod;
+    private Integer tuangouId;
+    private boolean tuangouDrawbackStatus;
 
     public static class SimpleOrderRowMapper implements RowMapper<SimpleOrder>{
 
@@ -87,6 +90,18 @@ public class SimpleOrder {
             }
             if(existsColumn(resultSet, "total_price")){
                 simpleOrder.setTotalPrice(resultSet.getBigDecimal("total_price"));
+            }
+            if(existsColumn(resultSet, "tuangou_drawback_amount")){
+                simpleOrder.setTuangouDrawbackAmount(resultSet.getBigDecimal("tuangou_drawback_amount"));
+            }
+            if(existsColumn(resultSet, "tuangou_mod")){
+                simpleOrder.setTuangouMod(resultSet.getString("tuangou_mod"));
+            }
+            if(existsColumn(resultSet, "tuangou_id")){
+                simpleOrder.setTuangouId(resultSet.getInt("tuangou_id"));
+            }
+            if(existsColumn(resultSet, "tuangou_drawback_status")){
+                simpleOrder.setTuangouDrawbackStatus(resultSet.getBoolean("tuangou_drawback_status"));
             }
             return simpleOrder;
         }
@@ -165,6 +180,38 @@ public class SimpleOrder {
 
     public void setOrderNum(String orderNum) {
         this.orderNum = orderNum;
+    }
+
+    public BigDecimal getTuangouDrawbackAmount() {
+        return tuangouDrawbackAmount;
+    }
+
+    public void setTuangouDrawbackAmount(BigDecimal tuangouDrawbackAmount) {
+        this.tuangouDrawbackAmount = tuangouDrawbackAmount;
+    }
+
+    public String getTuangouMod() {
+        return tuangouMod;
+    }
+
+    public void setTuangouMod(String tuangouMod) {
+        this.tuangouMod = tuangouMod;
+    }
+
+    public Integer getTuangouId() {
+        return tuangouId;
+    }
+
+    public void setTuangouId(Integer tuangouId) {
+        this.tuangouId = tuangouId;
+    }
+
+    public boolean isTuangouDrawbackStatus() {
+        return tuangouDrawbackStatus;
+    }
+
+    public void setTuangouDrawbackStatus(boolean tuangouDrawbackStatus) {
+        this.tuangouDrawbackStatus = tuangouDrawbackStatus;
     }
 
     public BigDecimal getUseYongjin() {

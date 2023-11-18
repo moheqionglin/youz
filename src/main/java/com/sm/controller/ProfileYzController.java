@@ -6,10 +6,8 @@ import com.sm.message.ResultJson;
 import com.sm.message.admin.AdminCntInfo;
 import com.sm.message.order.OrderAllStatusCntInfo;
 import com.sm.message.profile.*;
-import com.sm.service.AdminOtherService;
-import com.sm.service.OrderService;
-import com.sm.service.ProfileService;
-import com.sm.service.UserService;
+import com.sm.message.tuangou.TuangouSelfStatistics;
+import com.sm.service.*;
 import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -39,6 +37,9 @@ public class ProfileYzController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private TuangouService tuangouService;
 
     @Autowired
     private OrderService orderService;
@@ -100,6 +101,7 @@ public class ProfileYzController {
         OrderAllStatusCntInfo orderAllStatusCntInfo = orderService.countOrderAllStatus(userDetail.getId());
         profileBaseInfo.initOrderCnt(orderAllStatusCntInfo);
         profileBaseInfo.setAlertCnt(profileService.countAlert(userDetail.getId()));
+        profileBaseInfo.setTuangouCnt(tuangouService.getSelfTuangouCount(userDetail.getId()));
         if(admin){
             AdminCntInfo info = adminOtherService.countAdminCnt();
             profileBaseInfo.initAdminInfo(info);

@@ -1,16 +1,18 @@
-package com.sm.service;
+package com.sm.job;
 
 import com.sm.dao.dao.*;
 import com.sm.message.admin.YzStatisticsInfo;
-import com.sm.message.admin.YzStatisticsInfoItem;
-import com.sm.utils.SmUtil;
+import com.sm.message.order.SimpleOrder;
+import com.sm.message.order.SimpleOrderItem;
+import com.sm.service.TuangouService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 /**
  * @author wanli.zhou
@@ -37,7 +39,8 @@ public class ScheduleService {
     private ProductDao productDao;
     @Autowired
     private SearchDao searchDao;
-
+    @Autowired
+    private TuangouService tuangouService;
     @Autowired
     private UserDao userDao;
 
@@ -91,6 +94,12 @@ public class ScheduleService {
      *
      */
     private void modifyOrderStatus() {
+        //查询待收货的
+        List<SimpleOrder> waitReceiveOrderStatus = orderDao.getWaitReceiveOrderStatus();
+        waitReceiveOrderStatus.stream().forEach(o -> {
+            tuangouService.drawbackTuangouAmount(o);
+        });
+
         orderDao.modifyOrderStatus();
     }
 

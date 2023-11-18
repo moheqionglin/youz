@@ -402,4 +402,11 @@ public class ProductDao {
         final String sql = "select id,profile_img,name,size,offline_price,cost_price,current_price,sanzhung from products where code like '%"+code+"' and length(code) > 7";
         return jdbcTemplate.query(sql, new ShouYinProductInfo.ShouYinProductInfoRowMapper()).stream().findFirst().orElse(null);
     }
+
+    public ProductListItem getSingleEditListProduct(Integer productId) {
+        final String sql = String.format("select  t1.size as size, t1.sort as sort, t1.cost_price as cost_price, t1.id as id, t1.name as name ,sanzhung,show_able,stock,origin_price,current_price,profile_img,sales_cnt, zhuanqu_id, t2.enable as zhuanquenable, zhuanqu_price,zhuanqu_endTime, max_kanjia_person,tuangou_price  "+
+                " from %s as t1 left join %s as t2 on t1.zhuanqu_id = t2.id " +
+                " where t1.id = ?", VarProperties.PRODUCTS, VarProperties.PRODUCT_ZHUANQU_CATEGORY);
+        return jdbcTemplate.query(sql, new Object[]{productId}, new ProductListItem.ProductListItemRowMapper()).stream().findFirst().orElse(null);
+    }
 }

@@ -60,14 +60,15 @@ public class SearchController {
     })
     public List<ProductListItem> search(@Valid @NotNull @RequestParam("page_size") int pageSize,
                                         @Valid @NotNull @RequestParam("page_num") int pageNum,
-                                        @Valid @NotNull @RequestParam("term") String term){
+                                        @Valid @NotNull @RequestParam("term") String term,
+                                        @RequestHeader("AddressId") int addressId){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Integer userId = null;
         if(authentication != null && authentication.getPrincipal() instanceof UserDetail){
             userId =  ((UserDetail) authentication.getPrincipal()).getId();
         }
 
-        return productService.search(userId, term, pageSize, pageNum);
+        return productService.search(userId, term, pageSize, pageNum, addressId);
     }
 
     @GetMapping(path = "/search/history/hot")

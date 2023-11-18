@@ -20,7 +20,7 @@ public class CreateOrderRequest {
     private BigDecimal useYue;
     private String yongjinCode;
     private String message;
-
+    private boolean selectTuangouEnable = false;
     @NotEmpty
     @NotNull
     List<Integer> cartIds = new ArrayList<>();
@@ -31,6 +31,14 @@ public class CreateOrderRequest {
 
     public void setAddressId(int addressId) {
         this.addressId = addressId;
+    }
+
+    public boolean isSelectTuangouEnable() {
+        return selectTuangouEnable;
+    }
+
+    public void setSelectTuangouEnable(boolean selectTuangouEnable) {
+        this.selectTuangouEnable = selectTuangouEnable;
     }
 
     public BigDecimal getUseYongjin() {

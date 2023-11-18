@@ -80,4 +80,8 @@ public class AddressService {
         return receiveAddressManager == null ? null : new ReceiveAddressManagerInfo(receiveAddressManager);
     }
 
+    public boolean tuangouEnable(int addressId) {
+        ReceiveAddressManager receiveAddressManager = receiveAddressManagerDao.queryAddressDetail(addressId);
+        return receiveAddressManager != null && receiveAddressManager.isTuangouEnable();
+    }
 }

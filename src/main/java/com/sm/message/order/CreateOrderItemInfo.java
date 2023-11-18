@@ -15,6 +15,8 @@ public class CreateOrderItemInfo {
     private String productSize;
     private int  productCnt;
     private BigDecimal productTotalPrice;
+    private BigDecimal productTotalTuangouPrice;
+    private BigDecimal productTotalCostPrice;
     private BigDecimal productUnitPrice;
     private boolean productSanzhuang;
 
@@ -84,6 +86,21 @@ public class CreateOrderItemInfo {
 
     public boolean isProductSanzhuang() {
         return productSanzhuang;
+    }
+
+    public BigDecimal getProductTotalTuangouPrice() {
+        return productTotalTuangouPrice;
+    }
+
+    public void setProductTotalTuangouPrice(BigDecimal productTotalTuangouPrice) {
+        this.productTotalTuangouPrice = productTotalTuangouPrice;
+    }
+    public BigDecimal getProductTotalCostPrice() {
+        return productTotalCostPrice;
+    }
+
+    public void setProductTotalCostPrice(BigDecimal productTotalCostPrice) {
+        this.productTotalCostPrice = productTotalCostPrice;
     }
 
     public void setProductSanzhuang(boolean productSanzhuang) {

@@ -27,7 +27,8 @@ public class OrderDetailItemInfo {
     private Boolean jianhuoSuccess;
     private Timestamp jianhuoTime;
     private boolean hasDrawback = false;
-
+    private BigDecimal productTotalTuangouPrice;
+    private BigDecimal productTotalCostPrice;
     public OrderDetailItemInfo(CreateOrderItemInfo i) {
         this.setOrderId(i.getOrderId());
         this.setProductId(i.getProductId());
@@ -88,6 +89,12 @@ public class OrderDetailItemInfo {
             }
             if(existsColumn(resultSet, "jianhuo_time")){
                 item.setJianhuoTime(resultSet.getTimestamp("jianhuo_time"));
+            }
+            if(existsColumn(resultSet, "product_total_tuangou_price")){
+                item.setProductTotalTuangouPrice(resultSet.getBigDecimal("product_total_tuangou_price"));
+            }
+            if(existsColumn(resultSet, "product_total_cost_price")){
+                item.setProductTotalCostPrice(resultSet.getBigDecimal("product_total_cost_price"));
             }
             return item;
         }
@@ -202,6 +209,22 @@ public class OrderDetailItemInfo {
 
     public void setJianhuoSuccess(Boolean jianhuoSuccess) {
         this.jianhuoSuccess = jianhuoSuccess;
+    }
+
+    public BigDecimal getProductTotalTuangouPrice() {
+        return productTotalTuangouPrice;
+    }
+
+    public void setProductTotalTuangouPrice(BigDecimal productTotalTuangouPrice) {
+        this.productTotalTuangouPrice = productTotalTuangouPrice;
+    }
+
+    public BigDecimal getProductTotalCostPrice() {
+        return productTotalCostPrice;
+    }
+
+    public void setProductTotalCostPrice(BigDecimal productTotalCostPrice) {
+        this.productTotalCostPrice = productTotalCostPrice;
     }
 
     public Timestamp getJianhuoTime() {

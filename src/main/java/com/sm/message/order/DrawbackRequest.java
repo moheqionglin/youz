@@ -76,4 +76,19 @@ public class DrawbackRequest {
     public void setImages(List<String> images) {
         this.images = images;
     }
+
+    public static enum Reason{
+        TUANGOU_SUCCESS_DRAWBACK("团购成功，退还差价"),
+        TUANGOU_FAILD_DRAWBACK("成团失败");
+
+        private String desc;
+
+        Reason(String desc) {
+            this.desc = desc;
+        }
+
+        public String getDesc() {
+            return desc;
+        }
+    }
 }

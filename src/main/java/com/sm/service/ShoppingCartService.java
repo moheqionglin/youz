@@ -26,11 +26,14 @@ public class ShoppingCartService {
     @Autowired
     private ProductService productService;
 
-    public List<CartItemInfo> getAllCartItems(int userId, boolean selected) {
+    @Autowired
+    private AddressService addressService;
+
+    public List<CartItemInfo> getAllCartItems(int userId, boolean selected, boolean tuangouEnable) {
         List<ShoppingCart> allCartItem = shoppingCartDao.getAllCartItem(userId, selected);
         List<Integer> ids = allCartItem.stream().map(aci -> aci.getProductId()).collect(Collectors.toList());
         List<ProductListItem> products = productService.getAllContanisXiajiaProductsByIds(ids);
-
+        products.stream().forEach(p ->  p.setTuangouEnable(tuangouEnable));
         Map<Integer, List<ProductListItem>> collect = products.stream().collect(Collectors.groupingBy(ProductListItem::getId));
         List<CartItemInfo> result = allCartItem.stream()
                 .map(ci -> new CartItemInfo(ci, collect.containsKey(ci.getProductId()) && !collect.get(ci.getProductId()).isEmpty() ? collect.get(ci.getProductId()).get(0) : null))

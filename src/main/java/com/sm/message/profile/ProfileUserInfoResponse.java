@@ -36,6 +36,8 @@ public class ProfileUserInfoResponse {
     private int feedManagerCnt;
     private int waitTiXianCnt;
 
+    private int tuangouCnt;
+
     public void initOrderCnt(OrderAllStatusCntInfo info) {
         this.setWaitPayCnt(info.getWaitPayCnt());
         this.setWaitSentCnt(info.getWaitSentCnt());
@@ -129,6 +131,14 @@ public class ProfileUserInfoResponse {
 
     public String getSex() {
         return sex;
+    }
+
+    public int getTuangouCnt() {
+        return tuangouCnt;
+    }
+
+    public void setTuangouCnt(int tuangouCnt) {
+        this.tuangouCnt = tuangouCnt;
     }
 
     public int getFeedManagerCnt() {

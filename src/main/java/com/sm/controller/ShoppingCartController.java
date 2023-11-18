@@ -8,6 +8,7 @@ import com.sm.message.ResultJson;
 import com.sm.message.order.CartInfo;
 import com.sm.message.order.CartItemInfo;
 import com.sm.message.product.ProductSalesDetail;
+import com.sm.service.AddressService;
 import com.sm.service.ProductService;
 import com.sm.service.ServiceUtil;
 import com.sm.service.ShoppingCartService;
@@ -42,6 +43,8 @@ public class ShoppingCartController {
     private ProductService productService;
 
     @Autowired
+    private AddressService addressService;
+    @Autowired
     private OrderDao orderDao;
     @Autowired
     private ConfigDao configDao;
@@ -52,14 +55,17 @@ public class ShoppingCartController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "selected", value = "selected", required = true, paramType = "query", dataType = "Boolean")
     })
-    public CartInfo getAllCartItems(@Valid @NotNull @RequestParam("selected") boolean selected){
+    public CartInfo getAllCartItems(@Valid @NotNull @RequestParam("selected") boolean selected,
+                                    @RequestParam("addressId") int addressId){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
-
-        List<CartItemInfo> cartItems = shoppingCartService.getAllCartItems(userDetail.getId(), selected);
-        BigDecimal totalAmount = ServiceUtil.calcCartTotalPrice(cartItems);
+        boolean tuangouEnable = addressService.tuangouEnable(addressId);
+        List<CartItemInfo> cartItems = shoppingCartService.getAllCartItems(userDetail.getId(), selected, tuangouEnable);
+        BigDecimal totalAmount = ServiceUtil.calcCartTotalPrice(cartItems, TotalPriceType.CURRENT_PRICE);
+        BigDecimal totalTuangouAmount = ServiceUtil.calcCartTotalPrice(cartItems, TotalPriceType.TUANGOU_PRICE);
         BigDecimal freeDeliveryFeeOrderAmount = configDao.getFreeDeliveryFeeOrderAmount();
-        return new CartInfo(cartItems, totalAmount, configDao.getDeliveryFee(), orderDao.needPayDeliveryFee(userDetail.getId(), totalAmount), freeDeliveryFeeOrderAmount);
+        return new CartInfo(cartItems, totalAmount, totalTuangouAmount ,configDao.getDeliveryFee(), orderDao.needPayDeliveryFee(userDetail.getId(), totalAmount), freeDeliveryFeeOrderAmount,
+                tuangouEnable);
     }
 
     @GetMapping(path = "/cart/count")
@@ -198,5 +204,10 @@ public class ShoppingCartController {
     public static enum CountAction{
         REDUCE,
         ADD
+    }
+
+    public static enum TotalPriceType{
+        CURRENT_PRICE,
+        TUANGOU_PRICE
     }
 }

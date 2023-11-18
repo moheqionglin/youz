@@ -46,6 +46,12 @@ public class OrderDetailInfo {
     private Timestamp createdTime;
     List<OrderDetailItemInfo> items;
     private BigDecimal deliveryFee;
+    private Integer tuangouId;
+    private String tuangouMod;
+    private BigDecimal tuangouDrawbackAmount;
+    private boolean tuangouDrawbackStatus;
+    private BigDecimal tuangouAmount;
+    private Integer addressId;
 
     public OrderDetailInfo() {
     }
@@ -66,6 +72,7 @@ public class OrderDetailInfo {
         this.setMessage(orderInfo.getMessage());
         this.setCreatedTime(new Timestamp(System.currentTimeMillis()));
         this.setDeliveryFee(orderInfo.getDeliveryFee());
+
     }
 
     public static class OrderDetailInfoRowMapper implements RowMapper<OrderDetailInfo> {
@@ -112,6 +119,9 @@ public class OrderDetailInfo {
             if(existsColumn(resultSet, "use_yongjin")){
                 odi.setUseYongjin(resultSet.getBigDecimal("use_yongjin"));
             }
+            if(existsColumn(resultSet, "address_id")){
+                odi.setAddressId(resultSet.getInt("address_id"));
+            }
             if(existsColumn(resultSet, "use_yue")){
                 odi.setUseYue(resultSet.getBigDecimal("use_yue"));
             }
@@ -157,6 +167,21 @@ public class OrderDetailInfo {
             if(existsColumn(resultSet, "delivery_fee")){
                 odi.setDeliveryFee(resultSet.getBigDecimal("delivery_fee"));
             }
+            if(existsColumn(resultSet, "tuangou_id")){
+                odi.setTuangouId(resultSet.getInt("tuangou_id"));
+            }
+            if(existsColumn(resultSet, "tuangou_mod")){
+                odi.setTuangouMod(resultSet.getString("tuangou_mod"));
+            }
+            if(existsColumn(resultSet, "tuangou_drawback_amount")){
+                odi.setTuangouDrawbackAmount(resultSet.getBigDecimal("tuangou_drawback_amount"));
+            }
+            if(existsColumn(resultSet, "tuangou_amount")){
+                odi.setTuangouAmount(resultSet.getBigDecimal("tuangou_amount"));
+            }
+            if(existsColumn(resultSet, "tuangou_drawback_status")){
+                odi.setTuangouDrawbackStatus(resultSet.getBoolean("tuangou_drawback_status"));
+            }
             return odi;
         }
         private boolean existsColumn(ResultSet rs, String column) {
@@ -168,12 +193,28 @@ public class OrderDetailInfo {
         }
     }
 
+    public BigDecimal getTuangouAmount() {
+        return tuangouAmount;
+    }
+
+    public void setTuangouAmount(BigDecimal tuangouAmount) {
+        this.tuangouAmount = tuangouAmount;
+    }
+
     public Boolean getHasFahuo() {
         return hasFahuo;
     }
 
     public Integer getUserId() {
         return userId;
+    }
+
+    public Integer getAddressId() {
+        return addressId;
+    }
+
+    public void setAddressId(Integer addressId) {
+        this.addressId = addressId;
     }
 
     public void setUserId(Integer userId) {
@@ -190,6 +231,38 @@ public class OrderDetailInfo {
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public Integer getTuangouId() {
+        return tuangouId;
+    }
+
+    public void setTuangouId(Integer tuangouId) {
+        this.tuangouId = tuangouId;
+    }
+
+    public String getTuangouMod() {
+        return tuangouMod;
+    }
+
+    public void setTuangouMod(String tuangouMod) {
+        this.tuangouMod = tuangouMod;
+    }
+
+    public BigDecimal getTuangouDrawbackAmount() {
+        return tuangouDrawbackAmount;
+    }
+
+    public void setTuangouDrawbackAmount(BigDecimal tuangouDrawbackAmount) {
+        this.tuangouDrawbackAmount = tuangouDrawbackAmount;
+    }
+
+    public boolean isTuangouDrawbackStatus() {
+        return tuangouDrawbackStatus;
+    }
+
+    public void setTuangouDrawbackStatus(boolean tuangouDrawbackStatus) {
+        this.tuangouDrawbackStatus = tuangouDrawbackStatus;
     }
 
     public String getOrderNum() {
@@ -374,5 +447,42 @@ public class OrderDetailInfo {
 
     public void setItems(List<OrderDetailItemInfo> items) {
         this.items = items;
+    }
+
+    @Override
+    public String toString() {
+        return "OrderDetailInfo{" +
+                "id=" + id +
+                ", orderNum='" + orderNum + '\'' +
+                ", userId=" + userId +
+                ", addressDetail='" + addressDetail + '\'' +
+                ", addressContract='" + addressContract + '\'' +
+                ", yongjinCode='" + yongjinCode + '\'' +
+                ", status='" + status + '\'' +
+                ", totalPrice=" + totalPrice +
+                ", useYongjin=" + useYongjin +
+                ", useYue=" + useYue +
+                ", needPayMoney=" + needPayMoney +
+                ", hadPayMoney=" + hadPayMoney +
+                ", chajiaStatus='" + chajiaStatus + '\'' +
+                ", chajiaPrice=" + chajiaPrice +
+                ", chajiaUseYongjin=" + chajiaUseYongjin +
+                ", chajiaUseYue=" + chajiaUseYue +
+                ", chajiaNeedPayMoney=" + chajiaNeedPayMoney +
+                ", chajiaHadPayMoney=" + chajiaHadPayMoney +
+                ", message='" + message + '\'' +
+                ", jianhuoyuanId=" + jianhuoyuanId +
+                ", jianhuoyuanName='" + jianhuoyuanName + '\'' +
+                ", jianhuoStatus='" + jianhuoStatus + '\'' +
+                ", hasFahuo=" + hasFahuo +
+                ", createdTime=" + createdTime +
+                ", items=" + items +
+                ", deliveryFee=" + deliveryFee +
+                ", tuangouId=" + tuangouId +
+                ", tuangouMod='" + tuangouMod + '\'' +
+                ", tuangouDrawbackAmount=" + tuangouDrawbackAmount +
+                ", tuangouDrawbackStatus=" + tuangouDrawbackStatus +
+                ", addressId=" + addressId +
+                '}';
     }
 }

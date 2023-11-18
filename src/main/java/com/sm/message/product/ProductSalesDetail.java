@@ -53,6 +53,7 @@ public class ProductSalesDetail {
     private BigDecimal kanjiaUnitAmount;
     private BigDecimal currentKanjiaPrice;
     private BigDecimal tuangouPrice;
+    private boolean tuangouEnable;
     public static class ProductSalesDetailRowMapper implements RowMapper<ProductSalesDetail> {
 
         @Override
@@ -328,6 +329,14 @@ public class ProductSalesDetail {
 
     public int getCommentCnt() {
         return commentCnt;
+    }
+
+    public boolean isTuangouEnable() {
+        return tuangouEnable;
+    }
+
+    public void setTuangouEnable(boolean tuangouEnable) {
+        this.tuangouEnable = tuangouEnable;
     }
 
     public void setCommentCnt(int commentCnt) {

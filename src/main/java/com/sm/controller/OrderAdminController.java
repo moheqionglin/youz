@@ -91,14 +91,16 @@ public class OrderAdminController {
     @ApiImplicitParams(value = {
             @ApiImplicitParam(name = "orderType", value = "orderType", required = true, paramType = "path", dataType = "OrderController.DrawbackStatus"),
             @ApiImplicitParam(name = "page_size", value = "page_size", required = true, paramType = "query", dataType = "Integer"),
-            @ApiImplicitParam(name = "page_num", value = "page_num", required = true, paramType = "query", dataType = "Integer")
+            @ApiImplicitParam(name = "page_num", value = "page_num", required = true, paramType = "query", dataType = "Integer"),
+            @ApiImplicitParam(name = "tuangouType", value = "tuangouType", required = true, paramType = "query", dataType = "Integer")
     })
     public List<OrderListItemInfo> getDrawbackApproveList(
             @Valid @NotNull @PathVariable("orderType") OrderController.DrawbackStatus orderType,
             @Valid @NotNull @RequestParam("page_size") int pageSize,
-            @Valid @NotNull @RequestParam("page_num") int pageNum){
+            @Valid @NotNull @RequestParam("page_num") int pageNum,
+            @Valid @NotNull @RequestParam("tuangouType") OrderAdminController.TuangouType tuantouType){
 
-        return orderService.getDrawbackApproveList(orderType, pageSize, pageNum);
+        return orderService.getDrawbackApproveList(orderType, pageSize, pageNum, tuantouType);
     }
 
     @GetMapping(path = "/aorder/{orderType}/jianhuo/list")
@@ -224,6 +226,7 @@ public class OrderAdminController {
         DRAWBACK_APPROVE_FAIL,
     }
     public static enum JianHYOrderStatus{
+        NOT_VISIABLE,
         NOT_JIANHUO,
         ING_JIANHUO,
         HAD_JIANHUO;
@@ -232,5 +235,10 @@ public class OrderAdminController {
         NO,
         WAIT_PAY,
         HAD_PAY;
+    }
+    public static enum TuangouType{
+        ALL,
+        TUANGOU,
+        NONTUANGOU
     }
 }

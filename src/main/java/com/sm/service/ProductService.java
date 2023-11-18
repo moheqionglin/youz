@@ -43,6 +43,8 @@ public class ProductService {
     private ConfigDao configDao;
     @Autowired
     private ServiceUtil serviceUtil;
+    @Autowired
+    private AddressService addressService;
     /**
      * 获取不包含 下架商品的列表
      * @param isShow
@@ -223,7 +225,7 @@ public class ProductService {
         });
         return admin;
     }
-    public List<ProductListItem> search(Integer userid, String term, int pageSize, int pageNum) {
+    public List<ProductListItem> search(Integer userid, String term, int pageSize, int pageNum, int addressId) {
         SearchRequest searchRequest = new SearchRequest();
         searchRequest.setType(SearchRequest.SearchType.ALL);
         searchRequest.setShow(true);
@@ -232,12 +234,14 @@ public class ProductService {
             searchService.addMySearchTerm(userid, term);
             searchService.addHotSearch(term);
         }
+        boolean tuangouEnable = addressService.tuangouEnable(addressId);
         List<ProductListItem> notadmin = productDao.search(searchRequest, pageSize, pageNum, "NOTADMIN");
         notadmin.stream().forEach(pi ->{
             pi.setZhuanquName(ServiceUtil.zhuanquName(pi.getZhuanquId(), pi.isZhuanquEnable(), pi.getZhuanquEndTime()));
             pi.setCurrentPrice(ServiceUtil.calcCurrentPrice(pi.getCurrentPrice(), pi.getZhuanquPrice(), pi.isZhuanquEnable(), pi.getZhuanquId(), pi.getZhuanquEndTime()));
             pi.setValidKanjiaProduct(ServiceUtil.zhuanquValid(pi.getZhuanquId(), pi.isZhuanquEnable(), pi.getZhuanquEndTime())
                     && ServiceUtil.isKanjia(pi.getZhuanquId()));
+            pi.setTuangouEnable(tuangouEnable);
         });
         return notadmin;
     }
@@ -280,5 +284,9 @@ public class ProductService {
 
     public List<Integer> getAllKanjiaingPids(int uid) {
         return productDao.getAllKanjiaingPids(uid);
+    }
+
+    public ProductListItem getSingleEditListProduct(Integer productId) {
+        return productDao.getSingleEditListProduct(productId);
     }
 }

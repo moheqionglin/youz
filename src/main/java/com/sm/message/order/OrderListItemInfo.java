@@ -40,12 +40,14 @@ public class OrderListItemInfo {
     private boolean hasFahuo;
     private String orderTime;
     List<String> productImges;
-
+    private boolean drawbackTuangouChajia = false;
+    private String drawbackReason;
     //退款的orderItemId
     List<Integer> drawbackItemIds = new ArrayList<>();
     private boolean drawbackTotalOrder = false;//退款列表的时候，用到
     private String dStatus;
     private int totalItemCount;
+    private boolean drawbackTuangou;
     public static class OrderListItemInfoRowMapper implements RowMapper<OrderListItemInfo> {
 
         @Override
@@ -65,6 +67,9 @@ public class OrderListItemInfo {
             }
             if(existsColumn(resultSet, "address_detail")){
                 olii.setAddressDetail(resultSet.getString("address_detail"));
+            }
+            if(existsColumn(resultSet, "drawback_tuangou")){
+                olii.setDrawbackTuangou(resultSet.getBoolean("drawback_tuangou"));
             }
             if(existsColumn(resultSet, "address_contract")){
                 olii.setAddressContract(resultSet.getString("address_contract"));
@@ -120,6 +125,9 @@ public class OrderListItemInfo {
             }
             if(existsColumn(resultSet, "chajia_had_pay_money")){
                 olii.setChajiaHadPayMoney(resultSet.getBigDecimal("chajia_had_pay_money"));
+            }
+            if(existsColumn(resultSet, "drawback_reason")){
+                olii.setDrawbackReason(resultSet.getString("drawback_reason"));
             }
             if(existsColumn(resultSet, "message")){
                 olii.setMessage(resultSet.getString("message"));
@@ -178,6 +186,22 @@ public class OrderListItemInfo {
         this.dStatus = dStatus;
     }
 
+    public boolean isDrawbackTuangou() {
+        return drawbackTuangou;
+    }
+
+    public void setDrawbackTuangou(boolean drawbackTuangou) {
+        this.drawbackTuangou = drawbackTuangou;
+    }
+
+    public boolean isDrawbackTuangouChajia() {
+        return drawbackTuangouChajia;
+    }
+
+    public void setDrawbackTuangouChajia(boolean drawbackTuangouChajia) {
+        this.drawbackTuangouChajia = drawbackTuangouChajia;
+    }
+
     public static class OrderItemsForListPage{
         private Integer orderId;
         private String image;
@@ -197,6 +221,14 @@ public class OrderListItemInfo {
         public void setImage(String image) {
             this.image = image;
         }
+    }
+
+    public String getDrawbackReason() {
+        return drawbackReason;
+    }
+
+    public void setDrawbackReason(String drawbackReason) {
+        this.drawbackReason = drawbackReason;
     }
 
     public static class OrderItemsForListPageRowMapper implements RowMapper<OrderItemsForListPage> {

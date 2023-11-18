@@ -6,6 +6,7 @@ import com.sm.message.ResultJson;
 import com.sm.message.product.CreateProductRequest;
 import com.sm.message.product.ProductListItem;
 import com.sm.message.product.ProductSalesDetail;
+import com.sm.service.AddressService;
 import com.sm.service.ProductService;
 import com.sm.service.ServiceUtil;
 import io.swagger.annotations.*;
@@ -35,7 +36,8 @@ public class ProductController {
     private static Logger logger = LoggerFactory.getLogger(PaymentController.class);
     @Autowired
     private ProductService productService;
-
+    @Autowired
+    private AddressService addressService;
 
     /////////// /////////// //////////
     /////////// ADMIN 专区 ///////////
@@ -136,6 +138,17 @@ public class ProductController {
         return productService.getProductsPaged(categoryType, categoryId, isShow, "ADMIN",pageSize, pageNum);
     }
 
+    @GetMapping(path = "/products/editList/single")
+    @ApiOperation(value = "[获取商品列表] 从编辑页面回来，刷新单个编辑的商品")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "productId", value = "productId", required = true, paramType = "query", dataType = "CategoryType")
+    })
+    public ProductListItem getSingleEditListProduct(
+            @Valid @NotNull @RequestParam("productId") Integer productId){
+        return productService.getSingleEditListProduct(productId);
+    }
+
     /////////// /////////// //////////
     /////////// 用户 专区 /////////////
     /////////// /////////// /////////
@@ -153,10 +166,11 @@ public class ProductController {
             @Valid @NotNull @PathVariable("categoryType") CategoryType categoryType,
             @Valid @NotNull @PathVariable("categoryId") int categoryId,
             @Valid @NotNull @RequestParam("page_size") int pageSize,
-            @Valid @NotNull @RequestParam("page_num") int pageNum){
+            @Valid @NotNull @RequestParam("page_num") int pageNum,
+            @RequestHeader("AddressId") int addressId){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
-
+        boolean tuangouEnable = addressService.tuangouEnable(addressId);
         List<ProductListItem> buyer = productService.getProductsPaged(categoryType, categoryId, true, "BUYER", pageSize, pageNum);
         if(ServiceUtil.isKanjia(categoryId)){
             List<Integer> pids = productService.getAllKanjiaingPids(userDetail.getId());
@@ -164,6 +178,9 @@ public class ProductController {
                 p.setKanjiaing(pids.contains(p.getId()));
             });
         }
+        buyer.stream().forEach(p -> {
+            p.setTuangouEnable(tuangouEnable);
+        });
         return buyer;
     }
 
@@ -174,15 +191,18 @@ public class ProductController {
             @ApiImplicitParam(name = "kanjiaUserid", value = "kanjiaUserid", required = true, paramType = "query", dataType = "Integer")
     })
     public ProductSalesDetail getSalesDetail(@Valid @NotNull @PathVariable("productId") int productId,
-                                             @RequestParam("kanjiaUserid") Integer kanjiaUserid){
+                                             @RequestParam("kanjiaUserid") Integer kanjiaUserid,
+                                             @RequestHeader("AddressId") int addressId){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         final UserDetail userDetail = (UserDetail) authentication.getPrincipal();
         Integer userId = userDetail.getId();
         if(userId <= 0 || userId == null){//没有登录的人的
             userId = null;
         }
-        return productService.getSalesDetail(userId, productId, kanjiaUserid);
-
+        boolean tuangouEnable = addressService.tuangouEnable(addressId);
+        ProductSalesDetail salesDetail = productService.getSalesDetail(userId, productId, kanjiaUserid);
+        salesDetail.setTuangouEnable(tuangouEnable);
+        return salesDetail;
     }
 
     @GetMapping(path = "/product/help/{userid}/kanjia/{pid}")

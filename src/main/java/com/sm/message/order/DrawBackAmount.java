@@ -48,12 +48,13 @@ public class DrawBackAmount {
     private BigDecimal chajiaHadPayMoney;
     private BigDecimal deliveryFee;
 
+    private BigDecimal tuangouAmount;
     //not use
     private BigDecimal chajiaUseYongjin;
     //not use
     private BigDecimal chajiaUseYue;
-
-    public void calcDisplayTotal(boolean drawbackDeliveryFree){
+    private boolean drawbackDeliveryFee = false;
+    public void calcDisplayTotal(){
         /**
          * 一共分为如下情况
          * 1. 没有差价金额
@@ -113,14 +114,14 @@ public class DrawBackAmount {
             }
         }
         //从 现金扣除运费
-        calcDeliveryFee(drawbackDeliveryFree);
+        calcDeliveryFee(this.drawbackDeliveryFee);
 
         this.displayTotalAmount = this.displayOrderAmount.add(this.displayChajiaAmount);
     }
 
     private void calcDeliveryFee(boolean drawbackDeliveryFree) {
         BigDecimal sub = this.deliveryFee;
-        if(sub.compareTo(BigDecimal.ZERO) <= 0 && !drawbackDeliveryFree){
+        if(sub.compareTo(BigDecimal.ZERO) <= 0 || drawbackDeliveryFree){
             return;
         }
         if(this.displayOrderAmount.compareTo(BigDecimal.ZERO) > 0){
@@ -216,6 +217,7 @@ public class DrawBackAmount {
         BigDecimal currentDrawbackChaJiaOrderTotalAmount = BigDecimal.ZERO;
 
         BigDecimal price = currentItemPrice;
+        //散装商品 用差价金额当成退款金额
         if(currentItemChajiaTotalPrice.compareTo(BigDecimal.ZERO) > 0){
             price = currentItemChajiaTotalPrice;
         }
@@ -291,6 +293,10 @@ public class DrawBackAmount {
             if(existsColumn(resultSet, "delivery_fee")){
                 drawBackAmount.setDeliveryFee(resultSet.getBigDecimal("delivery_fee"));
             }
+            if(existsColumn(resultSet, "tuangou_amount")){
+                drawBackAmount.setTuangouAmount(resultSet.getBigDecimal("tuangou_amount"));
+            }
+
             return drawBackAmount;
         }
         private boolean existsColumn(ResultSet rs, String column) {
@@ -430,12 +436,28 @@ public class DrawBackAmount {
         this.displayOrderAmount = displayOrderAmount;
     }
 
+    public BigDecimal getTuangouAmount() {
+        return tuangouAmount;
+    }
+
+    public void setTuangouAmount(BigDecimal tuangouAmount) {
+        this.tuangouAmount = tuangouAmount;
+    }
+
     public BigDecimal getDisplayChajiaAmount() {
         return displayChajiaAmount;
     }
 
     public void setDisplayChajiaAmount(BigDecimal displayChajiaAmount) {
         this.displayChajiaAmount = displayChajiaAmount;
+    }
+
+    public boolean isDrawbackDeliveryFee() {
+        return drawbackDeliveryFee;
+    }
+
+    public void setDrawbackDeliveryFee(boolean drawbackDeliveryFee) {
+        this.drawbackDeliveryFee = drawbackDeliveryFee;
     }
 
     public BigDecimal getChajiaHadPayMoney() {

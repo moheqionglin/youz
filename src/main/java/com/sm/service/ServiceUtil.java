@@ -2,6 +2,7 @@ package com.sm.service;
 
 import com.qiniu.util.Auth;
 import com.qiniu.util.StringMap;
+import com.sm.controller.ShoppingCartController;
 import com.sm.message.order.CartItemInfo;
 import com.sm.message.product.ProductListItem;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,8 +69,8 @@ public class ServiceUtil {
         return zhuanquPrice;
     }
 
-    public static BigDecimal calcCartTotalPrice(List<CartItemInfo> cartItems) {
-        return cartItems.stream().filter(c -> c.isSelected()).filter(c -> c.getProduct() != null).map(c -> calcCartItemPrice(c)).reduce(BigDecimal.ZERO, BigDecimal::add);
+    public static BigDecimal calcCartTotalPrice(List<CartItemInfo> cartItems, ShoppingCartController.TotalPriceType totalPriceType) {
+        return cartItems.stream().filter(c -> c.isSelected()).filter(c -> c.getProduct() != null).map(c -> calcCartItemPrice(c, totalPriceType)).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     /**
@@ -89,12 +90,12 @@ public class ServiceUtil {
         }).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    public static BigDecimal calcCartItemPrice(CartItemInfo c) {
+    public static BigDecimal calcCartItemPrice(CartItemInfo c, ShoppingCartController.TotalPriceType totalPriceType) {
         ProductListItem product = c.getProduct();
         if(product == null){
             return BigDecimal.ZERO;
         }
-        if(c.isKanjiaProduct() ){
+        if(c.isKanjiaProduct()){
             if(c.getProductCnt() == 1){
                 return c.getCartPrice();
             }
@@ -102,12 +103,17 @@ public class ServiceUtil {
                 //是砍价专区，同时砍价专区有效,返回原价
                 return c.getCartPrice().add(product.getOriginPrice().multiply(BigDecimal.valueOf(c.getProductCnt() - 1))).setScale(2, RoundingMode.UP);
             }else{
-                BigDecimal currentprice = calcCurrentPrice(product.getCurrentPrice(), product.getZhuanquPrice(), product.isZhuanquEnable(), product.getZhuanquId(), product.getZhuanquEndTime());
-                return c.getCartPrice().add(currentprice.multiply(BigDecimal.valueOf(c.getProductCnt() - 1))).setScale(2, RoundingMode.UP);
+                BigDecimal currentPrice = calcCurrentPrice(product.getCurrentPrice(), product.getZhuanquPrice(), product.isZhuanquEnable(), product.getZhuanquId(), product.getZhuanquEndTime());
+                return c.getCartPrice().add(currentPrice.multiply(BigDecimal.valueOf(c.getProductCnt() - 1))).setScale(2, RoundingMode.UP);
             }
         }
-        BigDecimal currentprice = calcCurrentPrice(product.getCurrentPrice(), product.getZhuanquPrice(), product.isZhuanquEnable(), product.getZhuanquId(), product.getZhuanquEndTime());
-        return currentprice.multiply(BigDecimal.valueOf(c.getProductCnt())).setScale(2, RoundingMode.UP);
+        //走到这里，是非砍价商品
+        BigDecimal currentPrice = calcCurrentPrice(product.getCurrentPrice(), product.getZhuanquPrice(), product.isZhuanquEnable(), product.getZhuanquId(), product.getZhuanquEndTime());
+        //专区商品，同时是计算团购价的话，返回商品团购价
+        if(totalPriceType == ShoppingCartController.TotalPriceType.TUANGOU_PRICE && !zhuanquValid(product.getZhuanquId(), product.isZhuanquEnable(), product.getZhuanquEndTime())){
+            currentPrice = product.getTuangouPrice();
+        }
+        return currentPrice.multiply(BigDecimal.valueOf(c.getProductCnt())).setScale(2, RoundingMode.UP);
     }
 
     public static BigDecimal calcUnitPrice(CartItemInfo c) {

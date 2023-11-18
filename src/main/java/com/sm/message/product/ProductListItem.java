@@ -26,6 +26,7 @@ public class ProductListItem {
     private int salesCnt;
     private int zhuanquId;
     private String zhuanquName;
+    private boolean tuangouEnable = false;
     private BigDecimal tuangouPrice;
     private Long zhuanquEndTime;
     private boolean zhuanquEnable;
@@ -189,6 +190,14 @@ public class ProductListItem {
 
     public BigDecimal getOriginPrice() {
         return originPrice;
+    }
+
+    public boolean isTuangouEnable() {
+        return tuangouEnable;
+    }
+
+    public void setTuangouEnable(boolean tuangouEnable) {
+        this.tuangouEnable = tuangouEnable;
     }
 
     public int getSort() {

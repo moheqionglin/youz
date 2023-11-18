@@ -1,13 +1,13 @@
 package com.sm.message.admin;
 
 import com.sm.dao.domain.ReceiveAddressManager;
-import com.sun.istack.internal.NotNull;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.springframework.jdbc.core.RowMapper;
 
 import javax.annotation.Nonnegative;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;

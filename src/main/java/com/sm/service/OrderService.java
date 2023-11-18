@@ -4,7 +4,9 @@ import com.sm.config.UserDetail;
 import com.sm.controller.HttpYzCode;
 import com.sm.controller.OrderAdminController;
 import com.sm.controller.OrderController;
+import com.sm.controller.ShoppingCartController;
 import com.sm.dao.dao.*;
+import com.sm.dao.domain.Tuangou;
 import com.sm.message.ResultJson;
 import com.sm.message.address.AddressDetailInfo;
 import com.sm.message.order.*;
@@ -21,12 +23,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import sun.nio.ch.ThreadPool;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.util.*;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import static com.sm.message.order.DrawbackRequest.Reason.TUANGOU_SUCCESS_DRAWBACK;
 
 /**
  * @author wanli.zhou
@@ -52,12 +60,17 @@ public class OrderService {
     private AddressService addressService;
 
     @Autowired
+    private TuangouService tuangouService;
+
+    @Autowired
     private ProductService productService;
     @Autowired
     private PaymentService paymentService;
     @Autowired
     private UserAmountLogDao userAmountLogDao;
 
+    @Autowired
+    private TuangouDao tuangouDao;
     @Autowired
     private Prienter prienter;
 
@@ -81,6 +94,7 @@ public class OrderService {
         if(addressDetail == null || addressDetail.getReceiveAddressManagerInfo() == null || addressDetail.getReceiveAddressManagerInfo().getId() <= 0){
             return ResultJson.failure(HttpYzCode.ADDRESS_NOT_EXISTS);
         }
+        boolean tuangouEnable =  addressDetail.getReceiveAddressManagerInfo().isTuangouEnable() && order.isSelectTuangouEnable();
 
         //2. 校验 佣金，和余额
         UserAmountInfo userAmountInfo = userService.getAmount(userID);
@@ -93,7 +107,7 @@ public class OrderService {
             return ResultJson.failure(HttpYzCode.YONGJIN_YUE_NOT_ENOUGH);
         }
         //3. 校验库存
-        List<CartItemInfo> cartItems = shoppingCartService.getAllCartItems(userID, true);
+        List<CartItemInfo> cartItems = shoppingCartService.getAllCartItems(userID, true, tuangouEnable);
         cartItems = cartItems.stream().filter(c -> order.getCartIds().contains(c.getId())).collect(Collectors.toList());
         if(cartItems.size() != order.getCartIds().size()){
             return ResultJson.failure(HttpYzCode.PRODUCT_XIAJIA);
@@ -107,8 +121,13 @@ public class OrderService {
         }
 
         CreateOrderInfo createOrderInfo = new CreateOrderInfo();
+        //零售价
+        BigDecimal totalSingleProductAmount = ServiceUtil.calcCartTotalPrice(cartItems, ShoppingCartController.TotalPriceType.CURRENT_PRICE);
+        //团购价
+        BigDecimal totalTuangouAmount = ServiceUtil.calcCartTotalPrice(cartItems, ShoppingCartController.TotalPriceType.TUANGOU_PRICE);
 
-        BigDecimal totalProductAmount = ServiceUtil.calcCartTotalPrice(cartItems);
+        BigDecimal totalProductAmount = tuangouEnable ? totalTuangouAmount : totalSingleProductAmount;
+        BigDecimal tuangouDrawbackAount = totalSingleProductAmount.subtract(totalTuangouAmount);
         BigDecimal deliveryFee = orderDao.needPayDeliveryFee(userID, totalProductAmount) ? configDao.getDeliveryFee() : BigDecimal.ZERO;
 
         createOrderInfo.setOrderNum(SmUtil.getOrderCode());
@@ -140,10 +159,27 @@ public class OrderService {
         createOrderInfo.setMessage(order.getMessage());
         BigDecimal yongjinbase = ServiceUtil.calcCartTotalPriceWithoutZhuanqu(cartItems);
         createOrderInfo.setYongjinBasePrice(yongjinbase == null ? BigDecimal.ZERO: yongjinbase);
+        createOrderInfo.setTuangouMod(addressDetail.getReceiveAddressManagerInfo().isTuangouEnable() ? (order.isSelectTuangouEnable() ? TUANGOU_MOD.TUANGOU.name() : TUANGOU_MOD.SINGLE.name()):TUANGOU_MOD.NORMAL.name());
+        createOrderInfo.setJianhuoStatus(OrderAdminController.JianHYOrderStatus.NOT_JIANHUO.name());
+        createOrderInfo.setTuangouAmount(BigDecimal.ZERO);
+        createOrderInfo.setTuangouDrawbackAmount(BigDecimal.ZERO);
+        if(addressDetail.getReceiveAddressManagerInfo().isTuangouEnable()){
+            if(order.isSelectTuangouEnable()){//团购模式，不可见，成团后进入拣货环节
+                createOrderInfo.setJianhuoStatus(OrderAdminController.JianHYOrderStatus.NOT_VISIABLE.name());
+                createOrderInfo.setTuangouDrawbackAmount(totalTuangouAmount.negate());
+            }else{//只有小区开启团购，且 选择了零售购买才用到如下几个字段。
+                createOrderInfo.setTuangouDrawbackAmount(tuangouDrawbackAount);
+                createOrderInfo.setTuangouAmount(totalTuangouAmount);
+                createOrderInfo.setTuangouDrawbackStatus(false);
+            }
+        }
+
         Integer id = orderDao.createOrder(createOrderInfo);
         createOrderInfo.setId(id);
 
         List<CreateOrderItemInfo> collect = cartItems.stream().map(c -> {
+            BigDecimal tuangouItemPrice = ServiceUtil.calcCartItemPrice(c, ShoppingCartController.TotalPriceType.TUANGOU_PRICE);
+            BigDecimal currentItemPrice = ServiceUtil.calcCartItemPrice(c, ShoppingCartController.TotalPriceType.CURRENT_PRICE);
             CreateOrderItemInfo ci = new CreateOrderItemInfo();
             ProductListItem product = c.getProduct();
             ci.setOrderId(id);
@@ -152,7 +188,11 @@ public class OrderService {
             ci.setProductProfileImg(product.getProfileImg());
             ci.setProductSize(product.getSize());
             ci.setProductCnt(c.getProductCnt());
-            ci.setProductTotalPrice(ServiceUtil.calcCartItemPrice(c));
+            ci.setProductTotalPrice(tuangouEnable ? tuangouItemPrice : currentItemPrice);
+            if(addressDetail.getReceiveAddressManagerInfo().isTuangouEnable() && !order.isSelectTuangouEnable()){
+                ci.setProductTotalTuangouPrice(tuangouItemPrice);
+            }
+            ci.setProductTotalCostPrice(ServiceUtil.calcCartTotalCost(Arrays.asList(c)));
             ci.setProductUnitPrice(ServiceUtil.calcUnitPrice(c));
             ci.setProductSanzhuang(product.isSanzhung());
             return ci;
@@ -163,14 +203,20 @@ public class OrderService {
         //产品销量加加
         productService.addSalesCount(collect.stream().map(o -> o.getProductId()).collect(Collectors.toList()));
         if(createOrderInfo.getStatus().equals(OrderController.BuyerOrderStatus.WAIT_SEND.toString())){
+            //不需要微信支付的，余额支付的情况
             OrderDetailInfo orderDetailInfo = new OrderDetailInfo(createOrderInfo);
-            doFinishOrder(orderDetailInfo);
+            subStock(orderDetailInfo);
+            printOrder(orderDetailInfo);
+            tuangouService.processTuangou(orderDetailInfo);
         }
         //删除购物车
         shoppingCartService.deleteCartItem(userID, order.getCartIds());
-        //处理团购
 
         return ResultJson.ok(createOrderInfo.getOrderNum());
+    }
+
+    private BigDecimal min(BigDecimal a, BigDecimal b) {
+        return a.compareTo(b) >= 0 ? b : a;
     }
 
     private void createAmountLog(CreateOrderInfo createOrderInfo) {
@@ -215,6 +261,9 @@ public class OrderService {
                     logger.info("Update yongjin for order {}/{}, order total {}, yongjin = [{} * {}], ", simpleOrder.getId(), simpleOrder.getOrderNum(), simpleOrder.getNeedPayMoney(), total, yongJinPercent);
                 }
             }
+            //如果有 差价订单，并且差价订单为负数，那么退还到余额(可能出现用户实际支付金额为0全部用佣金支付，用劲转余额的情况)
+            drawbackChajiaToYue(simpleOrder);
+            tuangouService.drawbackTuangouAmount(simpleOrder);
         }else {
             bysta = OrderController.BuyerOrderStatus.CANCEL_MANUAL;
         }
@@ -238,7 +287,7 @@ public class OrderService {
         if(drawbackRequest.getOrderItemId() == null || drawbackRequest.getOrderItemId() <= 0){
             orderDao.actionTotalOrderDrawbackStatus(orderNum);
         }
-        orderDao.creteDrawbackOrder(userId, drawbackRequest, data);
+        orderDao.creteDrawbackOrder(drawbackRequest, data);
         return ResultJson.ok();
     }
 
@@ -295,8 +344,9 @@ public class OrderService {
         drawBackAmount.setOrderId(simpleOrder.getId());
 
         if(isTotalOrderDrawback(orderNum, orderItemId)){//整单取消
-            boolean drawbackDeliveryFree = !OrderController.BuyerOrderStatus.WAIT_SEND.toString().equalsIgnoreCase(simpleOrder.getStatus());
-            drawBackAmount.calcDisplayTotal(drawbackDeliveryFree);
+            boolean drawbackDeliveryFree = OrderController.BuyerOrderStatus.WAIT_SEND.toString().equalsIgnoreCase(simpleOrder.getStatus());
+            drawBackAmount.setDrawbackDeliveryFee(drawbackDeliveryFree);
+            drawBackAmount.calcDisplayTotal();
         }else{
             OrderDetailItemInfo orderItem = orderDao.getOrderDetailItemByOrderItemId(orderItemId);
             if(orderItem == null){
@@ -419,8 +469,6 @@ public class OrderService {
         switch (actionType){
             case SEND:
                 orderDao.fahuo(userId, orderNum);
-                //如果有 差价订单，并且差价订单为负数，那么退还到余额(可能出现用户实际支付金额为0全部用佣金支付，用劲转余额的情况)
-                drawbackChajiaToYue(simpleOrder);
                 break;
             case DRAWBACK_APPROVE_PASS:
                 //发起退款
@@ -504,6 +552,10 @@ public class OrderService {
             simo.setOrderNum(simpleOrder.getOrderNum());
             userAmountLogDao.drawbackYue(simo);
             logger.info("退还余额给 order {}, 余额 = {}  ", simo.getOrderNum(), simo.getUseYue());
+        }
+
+        if(TUANGOU_SUCCESS_DRAWBACK.getDesc().equals(drawbackOrderDetail.getReason())){
+            orderDao.updateTuangouDrawbackStatus(simpleOrder.getId());
         }
 
     }
@@ -607,8 +659,8 @@ public class OrderService {
         return ResultJson.ok();
     }
 
-    public List<OrderListItemInfo> getDrawbackApproveList(OrderController.DrawbackStatus orderType, int pageSize, int pageNum) {
-        List<OrderListItemInfo> drawbackApproveList = orderDao.getDrawbackApproveList(orderType, null, pageSize, pageNum);
+    public List<OrderListItemInfo> getDrawbackApproveList(OrderController.DrawbackStatus orderType, int pageSize, int pageNum, OrderAdminController.TuangouType tuantouType) {
+        List<OrderListItemInfo> drawbackApproveList = orderDao.getDrawbackApproveList(orderType, null, pageSize, pageNum, tuantouType);
         return drawbackApproveList;
     }
 
@@ -663,17 +715,32 @@ public class OrderService {
         }
         orderDao.surePayment(orderDetailInfo.getId(), payAmount, orderNum.contains("CJ"));
         if(!orderNum.contains("CJ")){
-            doFinishOrder(orderDetailInfo);
+            subStock(orderDetailInfo);
+            if(notPrintOrder(orderDetailInfo)){
+                printOrder(orderDetailInfo);
+            }
+            if(!notTuangouOrder(orderDetailInfo) && orderDetailInfo.getTuangouId() <= 0){//团购
+                tuangouService.processTuangou(orderDetailInfo);
+            }
         }
         return 1;
     }
 
-    public void doFinishOrder(OrderDetailInfo orderDetailInfo){
+    private boolean notPrintOrder(OrderDetailInfo orderDetailInfo) {
+        return !orderDetailInfo.getTuangouMod().equals(TUANGOU_MOD.TUANGOU.name()) ;
+    }
+
+    private boolean notTuangouOrder(OrderDetailInfo orderDetailInfo) {
+        return !orderDetailInfo.getTuangouMod().equals(TUANGOU_MOD.TUANGOU.name()) &&
+                !orderDetailInfo.getTuangouMod().equals(TUANGOU_MOD.SINGLE.name()) ;
+    }
+
+    public void subStock(OrderDetailInfo orderDetailInfo){
         // 库存减少
         HashMap<Integer, Integer> pid2cnt = orderDao.getPid2StockByOrderId(orderDetailInfo.getId());
 
         productService.subStock(pid2cnt);
-        printOrder(orderDetailInfo);
+
     }
     public void printOrder(OrderDetailInfo orderDetailInfo) {
         try{
@@ -758,4 +825,10 @@ public class OrderService {
         return orderDao.countOrderAllStatus(userId);
     }
 
+    //single 代表可以团购小区选择零售，normal代表不支持团购的小区
+    public static enum TUANGOU_MOD{
+        SINGLE,
+        TUANGOU,
+        NORMAL,
+    }
 }

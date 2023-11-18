@@ -11,18 +11,22 @@ import java.util.List;
 public class CartInfo {
     private List<CartItemInfo> items ;
     private BigDecimal total;
+    private boolean tuangouEnable;
+    private BigDecimal totalTuangouAmount;
     private BigDecimal deliveryFee = BigDecimal.ZERO;
     private boolean needPayDeliveryFee = false;
     private BigDecimal freeDeliveryFeeThreshold = BigDecimal.ZERO;
     public CartInfo() {
     }
 
-    public CartInfo(List<CartItemInfo> cartItems, BigDecimal totalAmount, BigDecimal deliveryFree, boolean needPayDeliveryFree, BigDecimal freeDeliveryFeeThreshold) {
+    public CartInfo(List<CartItemInfo> cartItems, BigDecimal totalAmount, BigDecimal totalTuangouAmount, BigDecimal deliveryFree, boolean needPayDeliveryFree, BigDecimal freeDeliveryFeeThreshold, boolean tuangouEnable) {
         this.total = totalAmount;
         this.items = cartItems;
         this.deliveryFee = deliveryFree;
         this.needPayDeliveryFee = needPayDeliveryFree;
         this.freeDeliveryFeeThreshold = freeDeliveryFeeThreshold;
+        this.totalTuangouAmount = totalTuangouAmount;
+        this.tuangouEnable = tuangouEnable;
     }
 
     public List<CartItemInfo> getItems() {
@@ -45,12 +49,28 @@ public class CartInfo {
         this.deliveryFee = deliveryFee;
     }
 
+    public boolean isTuangouEnable() {
+        return tuangouEnable;
+    }
+
+    public void setTuangouEnable(boolean tuangouEnable) {
+        this.tuangouEnable = tuangouEnable;
+    }
+
     public boolean isNeedPayDeliveryFee() {
         return needPayDeliveryFee;
     }
 
     public void setNeedPayDeliveryFee(boolean needPayDeliveryFee) {
         this.needPayDeliveryFee = needPayDeliveryFee;
+    }
+
+    public BigDecimal getTotalTuangouAmount() {
+        return totalTuangouAmount;
+    }
+
+    public void setTotalTuangouAmount(BigDecimal totalTuangouAmount) {
+        this.totalTuangouAmount = totalTuangouAmount;
     }
 
     public BigDecimal getFreeDeliveryFeeThreshold() {
