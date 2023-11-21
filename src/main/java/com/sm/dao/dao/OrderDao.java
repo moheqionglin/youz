@@ -679,7 +679,7 @@ public class OrderDao {
         String userWhere = Objects.isNull(userId) ? " " : " orders.user_id = :user_id and ";
         final String sql = String.format("select orders.id, orders.tuangou_drawback_amount, orders.tuangou_id, orders.created_time,users.nick_name, users.head_picture from orders left join users on orders.user_id = users.id where %s tuangou_id in (:ids)", userWhere);
         MapSqlParameterSource pams = new MapSqlParameterSource();
-        if(Objects.isNull(userId)){
+        if(!Objects.isNull(userId)){
             pams.addValue("user_id", userId);
         }
         pams.addValue("ids", tuangouIDs);
