@@ -4,7 +4,10 @@ import com.alibaba.fastjson.JSON;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.sm.dao.domain.UserAmountLogType;
+import com.sm.service.OrderService;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -20,11 +23,21 @@ import java.util.concurrent.TimeUnit;
  * @time 2020-01-08 20:45
  */
 public class CommonTest {
+    private Logger logger = LoggerFactory.getLogger(OrderService.class);
     private final Cache<Integer, String> userId2Token = CacheBuilder.newBuilder()
             .expireAfterWrite(120, TimeUnit.MINUTES)
             .maximumSize(10000)
             .build();
 
+    @Test
+    public void t(){
+        try{
+            int i = 1/ 0;
+        }catch (Exception e){
+            logger.error("asdfasdfasdfasdf", e);
+        }
+
+    }
     @Test
     public void bigdecimalTest(){
         BigDecimal bigDecimal = new BigDecimal(1.34567);

@@ -204,8 +204,10 @@ public class TuangouService {
         if(CollectionUtils.isEmpty(tuangouIDs)){
             return new ArrayList<>();
         }
+
         Map<Integer, Tuangou> tuangouId2Detail = tuangouDao.getTuangouDetailsByIds(tuangouIDs).stream().collect(Collectors.toMap(tu -> tu.getId(), tu -> tu, (o1, o2) -> o1));
-        List<TuangouOrderInfo> tuangouOrderInfos = orderDao.queryTuangouSimpleOrderByTuangouIds(userId, tuangouIDs);
+
+        List<TuangouOrderInfo> tuangouOrderInfos = orderDao.queryTuangouSimpleOrderByTuangouIds(TuangouController.QueryType.SELF.equals(queryType)? userId : null, tuangouIDs);
 
         return tuangouOrderInfos.stream().collect(Collectors.groupingBy(TuangouOrderInfo::getTuangouId)).entrySet().stream().map(en -> {
             Tuangou tg = tuangouId2Detail.get(en.getKey());
