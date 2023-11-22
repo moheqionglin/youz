@@ -243,7 +243,7 @@ public class OrderDao {
                 break;
         }
 
-        final String sql = String.format("select id ,order_num,user_id ,address_id ,address_detail ,address_contract , created_time, status, total_price ,chajia_status,chajia_price, chajia_need_pay_money, chajia_had_pay_money, message,  jianhuo_status , has_fahuo from %s where user_id = ?  %s order by id desc limit ?, ?", VarProperties.ORDER, whereStr);
+        final String sql = String.format("select id ,order_num,user_id ,address_id ,address_detail ,address_contract , created_time, status, total_price ,chajia_status,chajia_price, chajia_need_pay_money, chajia_had_pay_money, message,  jianhuo_status , has_fahuo,tuangou_mod,tuangou_id from %s where user_id = ?  %s order by id desc limit ?, ?", VarProperties.ORDER, whereStr);
         return jdbcTemplate.query(sql, new Object[]{userId, startIndex, pageSize}, new OrderListItemInfo.OrderListItemInfoRowMapper());
     }
 

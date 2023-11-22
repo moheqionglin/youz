@@ -12,6 +12,7 @@ import com.sm.message.order.SimpleOrder;
 import com.sm.message.tuangou.TuangouListItemInfo;
 import com.sm.message.tuangou.TuangouOrderInfo;
 import com.sm.message.tuangou.TuangouSelfStatistics;
+import com.sm.utils.SmUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -205,12 +206,17 @@ public class TuangouService {
             return new ArrayList<>();
         }
 
+        return getTuangouListItemInfos(TuangouController.QueryType.SELF.equals(queryType)? userId : null, tuangouIDs);
+    }
+
+    public List<TuangouListItemInfo> getTuangouListItemInfos(Integer userId, List<Integer> tuangouIDs) {
         Map<Integer, Tuangou> tuangouId2Detail = tuangouDao.getTuangouDetailsByIds(tuangouIDs).stream().collect(Collectors.toMap(tu -> tu.getId(), tu -> tu, (o1, o2) -> o1));
 
-        List<TuangouOrderInfo> tuangouOrderInfos = orderDao.queryTuangouSimpleOrderByTuangouIds(TuangouController.QueryType.SELF.equals(queryType)? userId : null, tuangouIDs);
+        List<TuangouOrderInfo> tuangouOrderInfos = orderDao.queryTuangouSimpleOrderByTuangouIds(userId, tuangouIDs);
 
         return tuangouOrderInfos.stream().collect(Collectors.groupingBy(TuangouOrderInfo::getTuangouId)).entrySet().stream().map(en -> {
             Tuangou tg = tuangouId2Detail.get(en.getKey());
+            en.getValue().stream().forEach(o -> o.setNickName(SmUtil.mockName(o.getNickName())));
             return new TuangouListItemInfo(en.getKey(), en.getValue(), tg.getThreshold(), tg.getCreatedTime());
         }).sorted(Comparator.comparing(TuangouListItemInfo::getTuangouId).reversed()).collect(Collectors.toList());
     }

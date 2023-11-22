@@ -1,6 +1,7 @@
 package com.sm.message.order;
 
 import com.sm.controller.OrderController;
+import com.sm.message.tuangou.TuangouListItemInfo;
 import com.sm.utils.SmUtil;
 import org.springframework.jdbc.core.RowMapper;
 
@@ -48,6 +49,8 @@ public class OrderDetailInfo {
     private BigDecimal deliveryFee;
     private Integer tuangouId;
     private String tuangouMod;
+    private String tuangouStatus;
+    private TuangouListItemInfo tuangouListItemInfo;
     private BigDecimal tuangouDrawbackAmount;
     private boolean tuangouDrawbackStatus;
     private BigDecimal tuangouAmount;
@@ -337,6 +340,14 @@ public class OrderDetailInfo {
         this.needPayMoney = needPayMoney;
     }
 
+    public String getTuangouStatus() {
+        return tuangouStatus;
+    }
+
+    public void setTuangouStatus(String tuangouStatus) {
+        this.tuangouStatus = tuangouStatus;
+    }
+
     public BigDecimal getHadPayMoney() {
         return hadPayMoney;
     }
@@ -443,6 +454,14 @@ public class OrderDetailInfo {
 
     public List<OrderDetailItemInfo> getItems() {
         return items;
+    }
+
+    public TuangouListItemInfo getTuangouListItemInfo() {
+        return tuangouListItemInfo;
+    }
+
+    public void setTuangouListItemInfo(TuangouListItemInfo tuangouListItemInfo) {
+        this.tuangouListItemInfo = tuangouListItemInfo;
     }
 
     public void setItems(List<OrderDetailItemInfo> items) {

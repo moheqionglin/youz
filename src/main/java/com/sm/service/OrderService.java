@@ -12,6 +12,7 @@ import com.sm.message.address.AddressDetailInfo;
 import com.sm.message.order.*;
 import com.sm.message.product.ProductListItem;
 import com.sm.message.profile.UserAmountInfo;
+import com.sm.message.tuangou.TuangouListItemInfo;
 import com.sm.third.message.OrderItem;
 import com.sm.third.message.OrderPrintBean;
 import com.sm.third.yilianyun.Prienter;
@@ -23,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import sun.nio.ch.ThreadPool;
 
 import java.math.BigDecimal;
@@ -370,10 +372,31 @@ public class OrderService {
 
     public ResultJson<List<OrderListItemInfo>> getOrderList(int userId, OrderController.BuyerOrderStatus orderType, int pageSize, int pageNum) {
         List<OrderListItemInfo> os = orderDao.getBuyerOrderList(userId, orderType, pageSize, pageNum);
+        if(OrderController.BuyerOrderStatus.WAIT_SEND.toString().equals(orderType.toString())){
+            fillOrderTuangouStatusAndTuangouInfo(os);
+        }
         if(!OrderController.BuyerOrderStatus.DRAWBACK.toString().equals(orderType.toString())){
             fillOrderItemImg(os);
         }
         return ResultJson.ok(os);
+    }
+
+    private void fillOrderTuangouStatusAndTuangouInfo(List<OrderListItemInfo> os) {
+        List<Integer> tuangouIds = os.stream().map(OrderListItemInfo::getTuangouId).filter(tuangouId -> tuangouId > 0).collect(Collectors.toList());
+        if(!CollectionUtils.isEmpty(tuangouIds)){
+            Map<Integer, String> tuangouId2Status = tuangouDao.getTuangouDetailsByIds(tuangouIds).stream().collect(Collectors.toMap(tu -> tu.getId(), tu -> tu.getStatus(), (o1, o2) -> o1));
+            List<TuangouListItemInfo> tuangouListItemInfos = tuangouService.getTuangouListItemInfos(null, tuangouIds);
+            final Map<Integer, TuangouListItemInfo> tuangouId2TuangouInfoMap = new HashMap<>();
+            if(!CollectionUtils.isEmpty(tuangouListItemInfos)){
+                tuangouId2TuangouInfoMap.putAll(tuangouListItemInfos.stream().collect(Collectors.toMap(t -> t.getTuangouId(), t -> t, (o1, o2) -> o1)));
+            }
+            os.stream().forEach(o -> {
+                o.setTuangouStatus(tuangouId2Status.get(o.getTuangouId()));
+                if(tuangouId2TuangouInfoMap !=null && tuangouId2TuangouInfoMap.size() > 0){
+                    o.setTuangouListItemInfo(tuangouId2TuangouInfoMap.get(o.getTuangouId()));
+                }
+            });
+        }
     }
 
     private void fillOrderItemImg(List<OrderListItemInfo> os) {
@@ -406,9 +429,21 @@ public class OrderService {
             }
             orderDetailInfo.setItems(items);
         }
+        if(OrderController.BuyerOrderStatus.WAIT_SEND.toString().equals(orderDetailInfo.getStatus())){
+            fillOrderTuangouStatusAndTuangouInfo(orderDetailInfo);
+        }
         String jianhou = userService.getUserName(orderDetailInfo.getJianhuoyuanId());
         orderDetailInfo.setJianhuoyuanName(jianhou);
         return ResultJson.ok(orderDetailInfo);
+    }
+
+    private void fillOrderTuangouStatusAndTuangouInfo(OrderDetailInfo os) {
+        if(os != null && os.getTuangouId() > 0){
+            Tuangou tuangou = tuangouDao.selectById(os.getTuangouId());
+            os.setTuangouStatus(Objects.isNull(tuangou) ? null : tuangou.getStatus());
+            List<TuangouListItemInfo> tuangouListItemInfos = tuangouService.getTuangouListItemInfos(null, Arrays.asList(os.getTuangouId()));
+            os.setTuangouListItemInfo(CollectionUtils.isEmpty(tuangouListItemInfos) ? null : tuangouListItemInfos.get(0));
+        }
     }
 
     @Transactional

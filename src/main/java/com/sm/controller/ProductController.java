@@ -134,8 +134,14 @@ public class ProductController {
             @Valid @NotNull @PathVariable("categoryId") int categoryId,
             @Valid @NotNull @PathVariable("isShow") boolean isShow,
             @Valid @NotNull @RequestParam("page_size") int pageSize,
-             @Valid @NotNull @RequestParam("page_num") int pageNum){
-        return productService.getProductsPaged(categoryType, categoryId, isShow, "ADMIN",pageSize, pageNum);
+             @Valid @NotNull @RequestParam("page_num") int pageNum,
+            @RequestHeader("AddressId") int addressId){
+        boolean tuangouEnable = addressService.tuangouEnable(addressId);
+        List<ProductListItem> ps = productService.getProductsPaged(categoryType, categoryId, isShow, "ADMIN", pageSize, pageNum);
+        ps.stream().forEach(p -> {
+            p.setTuangouEnable(tuangouEnable);
+        });
+        return ps;
     }
 
     @GetMapping(path = "/products/editList/single")

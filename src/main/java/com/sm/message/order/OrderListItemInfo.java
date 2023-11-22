@@ -2,6 +2,7 @@ package com.sm.message.order;
 
 import com.sm.controller.OrderAdminController;
 import com.sm.controller.OrderController;
+import com.sm.message.tuangou.TuangouListItemInfo;
 import com.sm.utils.SmUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.jdbc.core.RowMapper;
@@ -48,6 +49,10 @@ public class OrderListItemInfo {
     private String dStatus;
     private int totalItemCount;
     private boolean drawbackTuangou;
+    private int tuangouId;
+    private TuangouListItemInfo tuangouListItemInfo;
+    private String tuangouStatus;
+    private String tuangouMod;
     public static class OrderListItemInfoRowMapper implements RowMapper<OrderListItemInfo> {
 
         @Override
@@ -140,6 +145,12 @@ public class OrderListItemInfo {
             }
             if(existsColumn(resultSet, "d_status")){
                 olii.setdStatus(resultSet.getString("d_status"));
+            }
+            if(existsColumn(resultSet, "tuangou_mod")){
+                olii.setTuangouMod(resultSet.getString("tuangou_mod"));
+            }
+            if(existsColumn(resultSet, "tuangou_id")){
+                olii.setTuangouId(resultSet.getInt("tuangou_id"));
             }
             if(existsColumn(resultSet, "has_fahuo")){
                 olii.setHasFahuo(resultSet.getBoolean("has_fahuo"));
@@ -252,6 +263,15 @@ public class OrderListItemInfo {
             }
         }
     }
+
+    public TuangouListItemInfo getTuangouListItemInfo() {
+        return tuangouListItemInfo;
+    }
+
+    public void setTuangouListItemInfo(TuangouListItemInfo tuangouListItemInfo) {
+        this.tuangouListItemInfo = tuangouListItemInfo;
+    }
+
     public Integer getId() {
         return id;
     }
@@ -390,6 +410,30 @@ public class OrderListItemInfo {
 
     public int getTotalItemCount() {
         return totalItemCount;
+    }
+
+    public int getTuangouId() {
+        return tuangouId;
+    }
+
+    public void setTuangouId(int tuangouId) {
+        this.tuangouId = tuangouId;
+    }
+
+    public String getTuangouStatus() {
+        return tuangouStatus;
+    }
+
+    public void setTuangouStatus(String tuangouStatus) {
+        this.tuangouStatus = tuangouStatus;
+    }
+
+    public String getTuangouMod() {
+        return tuangouMod;
+    }
+
+    public void setTuangouMod(String tuangouMod) {
+        this.tuangouMod = tuangouMod;
     }
 
     public void setTotalItemCount(int totalItemCount) {
