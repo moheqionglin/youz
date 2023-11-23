@@ -6,6 +6,7 @@ import com.sm.dao.dao.OrderDao;
 import com.sm.dao.dao.TuangouDao;
 import com.sm.dao.domain.Tuangou;
 import com.sm.message.address.AddressDetailInfo;
+import com.sm.message.order.DrawbackOrderDetailInfo;
 import com.sm.message.order.DrawbackRequest;
 import com.sm.message.order.OrderDetailInfo;
 import com.sm.message.order.SimpleOrder;
@@ -128,14 +129,14 @@ public class TuangouService {
 
     //打印其他团购单子
     public void doFinishSingleTuangou(Tuangou tuangou) {
-
         List<OrderDetailInfo> orders = orderDao.getOrdersByTuangouId(tuangou.getId());
-
         orders.stream().forEach(o -> {
             if(o.getTuangouId() > 0 && OrderService.TUANGOU_MOD.TUANGOU.name().equals(o.getTuangouMod())){
                 orderDao.updateJianhuoStatus(o.getId(), OrderAdminController.JianHYOrderStatus.NOT_JIANHUO);
                 orderService.printOrder(o);
-
+            }else if(o.getTuangouId() > 0 && OrderService.TUANGOU_MOD.SINGLE.name().equals(o.getTuangouMod())){
+                //退差价
+                drawbackTuangouAmount(orderDao.getSimpleOrder(o.getOrderNum()));
             }
         });
 
@@ -172,8 +173,12 @@ public class TuangouService {
     }
 
     public void drawbackTuangouAmount(SimpleOrder simpleOrder) {
+        //获取团购状态，只有成团才退差价。
+        Tuangou tuangou = tuangouDao.selectById(simpleOrder.getTuangouId());
+        //且之前没有发生过团购差价退款
+        DrawbackOrderDetailInfo drawbackOrderDetail = orderDao.getDrawbackOrderDetail(simpleOrder.getId(), Integer.MAX_VALUE);
         //只有SINGLE 的才能退款
-        if(simpleOrder.getTuangouId() != null && simpleOrder.getTuangouId() > 0
+        if(drawbackOrderDetail == null && tuangou != null && TuangouDao.TUANGOU_STATUS.成团.name().equals(tuangou.getStatus())  && simpleOrder.getTuangouId() != null && simpleOrder.getTuangouId() > 0
             && OrderService.TUANGOU_MOD.SINGLE.name().equals(simpleOrder.getTuangouMod()) &&
                 simpleOrder.getTuangouDrawbackAmount().compareTo(BigDecimal.ZERO) > 0){
             DrawbackRequest drawbackRequest = new DrawbackRequest();
