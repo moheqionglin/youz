@@ -179,6 +179,12 @@ public class DrawBackAmount {
         //本次要退的商品
         BigDecimal currentItemPrice = orderItem.getProductTotalPrice();
         BigDecimal currentItemChajiaTotalPrice = orderItem.getChajiaTotalPrice();
+        if(simpleOrder.isTuangouDrawbackStatus()
+                && simpleOrder.getTuangouDrawbackAmount().compareTo(BigDecimal.ZERO) > 0
+                && (OrderController.BuyerOrderStatus.WAIT_COMMENT.toString().equals(simpleOrder.getStatus()))
+                && orderItem.getProductTotalTuangouPrice().compareTo(BigDecimal.ZERO) > 0 ){//团购订单，且已经退还团购金额的，统一按照团购价
+            currentItemPrice = orderItem.getProductTotalTuangouPrice();
+        }
 
         //已经退款的金额
         BigDecimal hadDrawbackMainOrderTotalAmount = BigDecimal.ZERO;

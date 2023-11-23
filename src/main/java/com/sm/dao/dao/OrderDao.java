@@ -205,7 +205,7 @@ public class OrderDao {
      * @return
      */
     public DrawbackOrderDetailInfo getDrawbackOrderDetail(Integer orderId, Integer orderItemId) {
-        final String sql = String.format("select order_id,drawback_type,drawback_amount,chajia_drawback_amount,drawback_reason,drawback_detail,drawback_pay_price,drawback_yue ,drawback_yongjin ,drawback_imgs,approve_user_id ,approve_comment ,created_time,drawback_total_order,d_status,order_item_ids,delivery_fee from %s where order_id = ?",  VarProperties.ORDER_DRAWBACK);
+        final String sql = String.format("select id,order_id,drawback_type,drawback_amount,chajia_drawback_amount,drawback_reason,drawback_detail,drawback_pay_price,drawback_yue ,drawback_yongjin ,drawback_imgs,approve_user_id ,approve_comment ,created_time,drawback_total_order,d_status,order_item_ids,delivery_fee from %s where order_id = ?",  VarProperties.ORDER_DRAWBACK);
         List<DrawbackOrderDetailInfo> details = jdbcTemplate.query(sql, new Object[]{orderId}, new DrawbackOrderDetailInfo.DrawbackOrderDetailInfoRowMapper());
         if(isDrawbackTotalOrder(orderItemId)){
             return details.stream().filter(item -> item.isDrawbackTotalOrder()).findFirst().orElse(null);

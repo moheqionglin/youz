@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
  * @time 2020-01-15 22:24
  */
 public class DrawbackOrderDetailInfo {
-
+    private Integer id;
     private Integer orderId;
     private List<Integer> orderItemIds = new ArrayList<>();
     private String dStatus;
@@ -45,6 +45,9 @@ public class DrawbackOrderDetailInfo {
         @Override
         public DrawbackOrderDetailInfo mapRow(ResultSet resultSet, int i) throws SQLException {
             DrawbackOrderDetailInfo dod = new DrawbackOrderDetailInfo();
+            if(existsColumn(resultSet, "id")){
+                dod.setId(resultSet.getInt("id"));
+            }
             if(existsColumn(resultSet, "order_id")){
                 dod.setOrderId(resultSet.getInt("order_id"));
             }
@@ -173,6 +176,14 @@ public class DrawbackOrderDetailInfo {
 
     public void setImages(List<String> images) {
         this.images = images;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public String getDrawBackTime() {
