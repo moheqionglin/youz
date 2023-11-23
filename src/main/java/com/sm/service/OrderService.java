@@ -507,11 +507,16 @@ public class OrderService {
                 break;
             case DRAWBACK_APPROVE_PASS:
                 //发起退款
-                doDrawback(simpleOrder, orderItemId);
-                orderDao.adminApproveDrawback(userId, simpleOrder.getId(), orderNum, orderItemId,OrderController.DrawbackStatus.APPROVE_PASS, attach);
+                Integer drawbackId = doDrawback(simpleOrder, orderItemId);
+                if(drawbackId != null){
+                    orderDao.adminApproveDrawback(userId, simpleOrder.getId(), orderNum, orderItemId,OrderController.DrawbackStatus.APPROVE_PASS, attach, drawbackId);
+                }
                 break;
             case DRAWBACK_APPROVE_FAIL:
-                orderDao.adminApproveDrawback(userId, simpleOrder.getId(), orderNum, orderItemId, OrderController.DrawbackStatus.APPROVE_REJECT, attach);
+                DrawbackOrderDetailInfo drawbackOrderDetailInfo = getDrawbackOrderDetailInfo(simpleOrder, orderItemId);
+                if(drawbackOrderDetailInfo != null) {
+                    orderDao.adminApproveDrawback(userId, simpleOrder.getId(), orderNum, orderItemId, OrderController.DrawbackStatus.APPROVE_REJECT, attach, drawbackOrderDetailInfo.getId());
+                }
                 break;
         }
         return ResultJson.ok();
@@ -524,12 +529,9 @@ public class OrderService {
         }
     }
 
-    private void doDrawback(SimpleOrder simpleOrder, Integer orderItemId){
-        DrawbackOrderDetailInfo drawbackOrderDetail = orderDao.getDrawbackOrderDetail(simpleOrder.getId(), orderItemId);
-        if(drawbackOrderDetail == null){
-            logger.error("doDrawback order not exists " + simpleOrder.getOrderNum());
-            return;
-        }
+    private Integer doDrawback(SimpleOrder simpleOrder, Integer orderItemId){
+        DrawbackOrderDetailInfo drawbackOrderDetail = getDrawbackOrderDetailInfo(simpleOrder, orderItemId);
+        if (drawbackOrderDetail == null) return null;
         //退还主订单
         BigDecimal mainOrderAmount = drawbackOrderDetail.getDrawbackAmount();
         if(mainOrderAmount != null && mainOrderAmount.compareTo(BigDecimal.ZERO) > 0){
@@ -592,8 +594,18 @@ public class OrderService {
         if(TUANGOU_SUCCESS_DRAWBACK.getDesc().equals(drawbackOrderDetail.getReason())){
             orderDao.updateTuangouDrawbackStatus(simpleOrder.getId());
         }
-
+        return drawbackOrderDetail.getId();
     }
+
+    public DrawbackOrderDetailInfo getDrawbackOrderDetailInfo(SimpleOrder simpleOrder, Integer orderItemId) {
+        DrawbackOrderDetailInfo drawbackOrderDetail = orderDao.getDrawbackOrderDetail(simpleOrder.getId(), orderItemId);
+        if(drawbackOrderDetail == null){
+            logger.error("doDrawback order not exists " + simpleOrder.getOrderNum());
+            return null;
+        }
+        return drawbackOrderDetail;
+    }
+
     public ResultJson updateChajiaOrder(String orderNum, ChaJiaOrderItemRequest chajia) {
         SimpleOrder simpleOrder = orderDao.getSimpleOrder(orderNum);
         if(simpleOrder == null){

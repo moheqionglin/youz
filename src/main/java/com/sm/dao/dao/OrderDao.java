@@ -295,14 +295,14 @@ public class OrderDao {
     }
 
     @Transactional
-    public void adminApproveDrawback(int approveUserId, Integer orderId, String orderNum, Integer orderItemId, OrderController.DrawbackStatus actionType, String attach) {
+    public void adminApproveDrawback(int approveUserId, Integer orderId, String orderNum, Integer orderItemId, OrderController.DrawbackStatus actionType, String attach, Integer drawbackId) {
         if(isDrawbackTotalOrder(orderItemId) && OrderController.DrawbackStatus.APPROVE_REJECT.toString().equals(actionType.toString())){
             final String sql1 = String.format("update %s set status = last_status where order_num= ?", VarProperties.ORDER);
             jdbcTemplate.update(sql1, new Object[]{orderNum});
         }
 
-        final String sql = String.format("update %s set d_status = ?, approve_user_id = ?, approve_comment= ? where order_id = ? ", VarProperties.ORDER_DRAWBACK);
-        jdbcTemplate.update(sql, new Object[]{ actionType.toString(), approveUserId, attach, orderId});
+        final String sql = String.format("update %s set d_status = ?, approve_user_id = ?, approve_comment= ? where id = ? ", VarProperties.ORDER_DRAWBACK);
+        jdbcTemplate.update(sql, new Object[]{ actionType.toString(), approveUserId, attach, drawbackId});
     }
 
     public void updateChajiaOrder(Integer orderID, ChaJiaOrderItemRequest chajia) {
