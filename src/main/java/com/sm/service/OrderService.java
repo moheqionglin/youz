@@ -168,7 +168,7 @@ public class OrderService {
         if(addressDetail.getReceiveAddressManagerInfo().isTuangouEnable()){
             if(order.isSelectTuangouEnable()){//团购模式，不可见，成团后进入拣货环节
                 createOrderInfo.setJianhuoStatus(OrderAdminController.JianHYOrderStatus.NOT_VISIABLE.name());
-                createOrderInfo.setTuangouDrawbackAmount(totalTuangouAmount.negate());
+                createOrderInfo.setTuangouDrawbackAmount(tuangouDrawbackAount.negate());
             }else{//只有小区开启团购，且 选择了零售购买才用到如下几个字段。
                 createOrderInfo.setTuangouDrawbackAmount(tuangouDrawbackAount);
                 createOrderInfo.setTuangouAmount(totalTuangouAmount);
@@ -191,7 +191,7 @@ public class OrderService {
             ci.setProductSize(product.getSize());
             ci.setProductCnt(c.getProductCnt());
             ci.setProductTotalPrice(tuangouEnable ? tuangouItemPrice : currentItemPrice);
-            if(addressDetail.getReceiveAddressManagerInfo().isTuangouEnable() && !order.isSelectTuangouEnable()){
+            if(addressDetail.getReceiveAddressManagerInfo().isTuangouEnable()){
                 ci.setProductTotalTuangouPrice(tuangouItemPrice);
             }
             ci.setProductTotalCostPrice(ServiceUtil.calcCartTotalCost(Arrays.asList(c)));
