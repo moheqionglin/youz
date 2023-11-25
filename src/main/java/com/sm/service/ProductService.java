@@ -57,16 +57,20 @@ public class ProductService {
         List<ProductListItem> ps = productDao.getProductsPaged(categoryType, categoryId, isShow, pageType, pageSize, pageNum);
 
         ps.forEach(pi -> {
-            pi.setZhuanquName(ServiceUtil.zhuanquName(pi.getZhuanquId(), pi.isZhuanquEnable(), pi.getZhuanquEndTime()));
-            if(!("ADMIN".equals(pageType) && ProductController.CategoryType.ZHUANQU.equals(categoryType))){
-                //专区管理页面看到的currentPrice就是实际的售价
-                pi.setCurrentPrice(ServiceUtil.calcCurrentPrice(pi.getCurrentPrice(), pi.getZhuanquPrice(), pi.isZhuanquEnable(), pi.getZhuanquId(), pi.getZhuanquEndTime()));
-            }
-            pi.setValidKanjiaProduct(ServiceUtil.zhuanquValid(pi.getZhuanquId(), pi.isZhuanquEnable(), pi.getZhuanquEndTime())
-                    && ServiceUtil.isKanjia(pi.getZhuanquId()));
+            setZhuanqu(categoryType, pageType, pi);
 
         });
         return ps;
+    }
+
+    private void setZhuanqu(ProductController.CategoryType categoryType, String pageType, ProductListItem pi) {
+        pi.setZhuanquName(ServiceUtil.zhuanquName(pi.getZhuanquId(), pi.isZhuanquEnable(), pi.getZhuanquEndTime()));
+        if(!("ADMIN".equals(pageType) && ProductController.CategoryType.ZHUANQU.equals(categoryType))){
+            //专区管理页面看到的currentPrice就是实际的售价
+            pi.setCurrentPrice(ServiceUtil.calcCurrentPrice(pi.getCurrentPrice(), pi.getZhuanquPrice(), pi.isZhuanquEnable(), pi.getZhuanquId(), pi.getZhuanquEndTime()));
+        }
+        pi.setValidKanjiaProduct(ServiceUtil.zhuanquValid(pi.getZhuanquId(), pi.isZhuanquEnable(), pi.getZhuanquEndTime())
+                && ServiceUtil.isKanjia(pi.getZhuanquId()));
     }
 
     /**
@@ -287,6 +291,8 @@ public class ProductService {
     }
 
     public ProductListItem getSingleEditListProduct(Integer productId) {
-        return productDao.getSingleEditListProduct(productId);
+        ProductListItem singleEditListProduct = productDao.getSingleEditListProduct(productId);
+        setZhuanqu(ProductController.CategoryType.ALL, "ADMIN", singleEditListProduct);
+        return singleEditListProduct;
     }
 }

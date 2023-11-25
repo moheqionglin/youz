@@ -151,8 +151,12 @@ public class ProductController {
             @ApiImplicitParam(name = "productId", value = "productId", required = true, paramType = "query", dataType = "CategoryType")
     })
     public ProductListItem getSingleEditListProduct(
-            @Valid @NotNull @RequestParam("productId") Integer productId){
-        return productService.getSingleEditListProduct(productId);
+            @Valid @NotNull @RequestParam("productId") Integer productId,
+            @RequestHeader("AddressId") int addressId){
+        boolean tuangouEnable = addressService.tuangouEnable(addressId);
+        ProductListItem singleEditListProduct = productService.getSingleEditListProduct(productId);
+        singleEditListProduct.setTuangouEnable(tuangouEnable);
+        return singleEditListProduct;
     }
 
     /////////// /////////// //////////
